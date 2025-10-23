@@ -1,91 +1,27 @@
-<!DOCTYPE html>
-<html lang="en" class="cms4-page">
-
-<head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-    <meta name="robots" content="
-                    index
-                    ,follow
-        " />
-    <title>
-        Strona główna
-    </title>
-    <link rel="shortcut icon" href="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/favicon.png?v=0" class="cms-favicon-image">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
-    <meta name="description" content='
-            Welcome in our unique place, which attracts with its original interior but above all the quality of the dishes served. Carefully prepared dishes are characterized by freshness and a lot of ingredients.
-' />
-    <!-- Open Graph Data -->
-    <meta property="og:title" content="
-                Strona główna
-    " />
-    <meta property="og:url" content="https://avocado-en.orderwebsite.com/" />
-    <meta property="og:type" content="restaurant" />
-    <meta property="og:description" content='
-                Welcome in our unique place, which attracts with its original interior but above all the quality of the dishes served. Carefully prepared dishes are characterized by freshness and a lot of ingredients.
-    ' />
-    <meta property="og:image" content="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/cover.jpg" />
-    <!-- // Open Graph Data -->
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="
-                Strona główna
-    " />
-    <meta name="twitter:description" content='
-                Welcome in our unique place, which attracts with its original interior but above all the quality of the dishes served. Carefully prepared dishes are characterized by freshness and a lot of ingredients.
-    ' />
-    <meta name="twitter:url" content="https://avocado-en.orderwebsite.com/" />
-    <meta name="twitter:image" content="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/cover.jpg" />
-    <!-- // Twitter Card -->
-    <link rel="canonical" href="index.html">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <!-- GOOGLE ANALYTICS -->
-    <script>
-        com.upmenu.Facebook = {};
+com.upmenu.Facebook = {};
         com.upmenu.GoogleAnalytics = {};
         com.upmenu.GTM = {};
         com.upmenu.GA4 = {};
         com.upmenu.GoogleAnalytics.id = [];
         window.dataLayer = window.dataLayer || [];
-    </script>
-    <script>
-        var ga = function() {} // mocking function
-    </script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
+
+var ga = function() {} // mocking function
+
+window.dataLayer = window.dataLayer || [];
 
         function gtag() {
             dataLayer.push(arguments);
         }
-    </script>
-    <!-- GOOGLE ANALYTICS -->
-    <!-- FACEBOOK PIXEL CODE -->
-    <script>
-        function pixelTrackEvent(event, object) {
+
+function pixelTrackEvent(event, object) {
             // pixel disabled, ignore
         }
-    </script>
-    <!-- FACEBOOK PIXEL CODE -->
-    <!-- upmenu marketing automation tracking code -->
-    <script type='text/javascript'>
-        var _umaq = _umaq || [];
-    </script>
-    <!-- fonts mockup function - is here only for backward compatibilty. method moved to bottomResources -->
-    <script type='text/javascript'>
-        var _loadGoogleFonts = function(fonts) {};
-    </script>
-    <!-- CSS LIBS -->
-    <link href='https://static.cdn-upm.com/media/1202/topAll.css' rel='stylesheet' type='text/css' />
-    <!-- CSS LIBS -->
-    <!-- EDIT MODE CSS -->
-    <!-- EDIT MODE CSS -->
-    <!-- LESS STYLES -->
-    <link rel="stylesheet" type="text/css" href="https://avocado-en.orderwebsite.com/dynamict/themes/less/v4/98dfb947-4a04-11ed-8bca-525400080621/styles-6/theme-styles.json" />
-    <!-- // LESS STYLES -->
-    <!-- JSON LD Schema -->
-    <script type="application/ld+json">
-        {
+
+var _umaq = _umaq || [];
+
+var _loadGoogleFonts = function(fonts) {};
+
+{
             "@context": "http://www.schema.org",
             "@type": "Restaurant",
             "name": "Strona główna",
@@ -149,794 +85,8 @@
                 "closes": "11:59 PM"
             }]
         }
-    </script>
-    <!-- / JSON LD Schema -->
-</head>
 
-<body class="upmenu theme-body   page-with-nav  ">
-    <div class="page-navigation" style="display: none;">
-        <div class="theme-header pos-rlt">
-            <div class="container theme-header-inner main-navigation">
-                <div class="row">
-                    <div class="col-sm-12 row-flex flex-middle nav-container nav-preset-1">
-                        <a class="brand logo-custom m-r clearfix" href="index.html">
-                            <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/logo.png?v=0" id="logo" width="200" height="45" class="img-responsive inline" alt="Avocado" />
-                        </a>
-                        <ul class="nav navbar-nav theme-navbar-nav theme-navigation m-l-auto m-r-auto clearfix hidden-xs hidden-sm responsivetab">
-                            <li class="" role="presentation">
-                                <a href="index.html" class=" active">
-                                    <span class="inline pos-rlt">
-                    Home
-                </span>
-                                    <i class="feather-icon icon-chevron-right pull-right m-t-3xxs"></i>
-                                </a>
-                            </li>
-                            <li role="presentation">
-                                <a href="https://avocado-en.orderwebsite.com/about-us" class="">
-                                    <span class="pos-rlt inline">
-                        About us
-                    </span>
-                                    <i class="feather-icon icon-chevron-right pull-right m-t-3xxs"></i>
-                                </a>
-                            </li>
-                            <li role="presentation">
-                                <a href="https://avocado-en.orderwebsite.com/gallery" class="">
-                                    <span class="pos-rlt inline">
-                        Gallery
-                    </span>
-                                    <i class="feather-icon icon-chevron-right pull-right m-t-3xxs"></i>
-                                </a>
-                            </li>
-                            <li role="presentation">
-                                <a href="https://avocado-en.orderwebsite.com/contact" class="">
-                                    <span class="pos-rlt inline">
-                        Contact
-                    </span>
-                                    <i class="feather-icon icon-chevron-right pull-right m-t-3xxs"></i>
-                                </a>
-                            </li>
-                        </ul>
-                        <ul class="nav navbar-nav theme-navbar-nav theme-account m-l hidden-xs hidden-sm">
-                            <li class="theme-highlight-btn">
-                                <a href="https://avocado-en.orderwebsite.com/menu" class="btn btn-upmenu">
-                            Order online
-                        </a>
-                            </li>
-                            <li class="theme-nav-customer-account">
-                                <a href="index.html#" class="dropdown-toggle btn" data-toggle="dropdown">
-                                    <i class="feather-icon icon-user"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-right">
-                                    <li><a href="https://avocado-en.orderwebsite.com/?login" id="_start-login">Sign in</a></li>
-                                    <li><a href="https://avocado-en.orderwebsite.com/?registration" id="_start-registration">Register</a></li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <div class="m-l-auto visible-xs visible-sm">
-                            <div class="short-nav-toggle">
-                                <a href="index.html#" class="_toggle-aside-nav">
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" class="v-middle m-t-n-xxs" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2.5 15H17.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2.5 10H17.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2.5 5H17.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <aside class="aside-navigation">
-                <div class="nav-container slim-scrollbar">
-                    <a class="brand logo-custom inline clearfix" href="index.html">
-                        <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/logo.png?v=0" id="logo" width="200" height="45" class="img-responsive" alt="Avocado" style="display: inline-block;" />
-                    </a>
-                    <a href="index.html#" class="short-nav-close pull-right _toggle-aside-nav">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" class="v-middle" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M15 5L5 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M5 5L15 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                    </a>
-                    <div class="row m-t-xl">
-                        <div class="col-xs-6">
-                        </div>
-                        <div class="col-xs-6">
-                            <ul class="nav theme-navbar-nav theme-nav-customer-account-mobile m-r-auto">
-                                <div class="theme-nav-customer-account-mobile text-right">
-                                    <a href="index.html#" class="dropdown-toggle" data-toggle="dropdown">
-                                        <i class="feather-icon icon-user"></i>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                                        <li>
-                                            <a href="https://avocado-en.orderwebsite.com/?login" id="_start-login">
-                                                <span class="inline pos-rlt">
-                        Sign in
-                    </span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="https://avocado-en.orderwebsite.com/?registration" id="_start-registration">
-                                                <span class="inline pos-rlt">
-                        Register
-                    </span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="separator m-t m-b"></div>
-                    <ul class="nav theme-navbar-nav m-r-auto">
-                        <li class="theme-highlight-btn">
-                            <a href="https://avocado-en.orderwebsite.com/menu" class="btn btn-upmenu">
-                                Order online
-                            </a>
-                        </li>
-                    </ul>
-                    <ul class="nav theme-navbar-nav m-l-auto clearfix">
-                        <li class="" role="presentation">
-                            <a href="index.html" class=" active">
-                                <span class="inline pos-rlt">
-                    Home
-                </span>
-                                <i class="feather-icon icon-chevron-right pull-right m-t-3xxs"></i>
-                            </a>
-                        </li>
-                        <li role="presentation">
-                            <a href="https://avocado-en.orderwebsite.com/about-us" class="">
-                                <span class="pos-rlt inline">
-                        About us
-                    </span>
-                                <i class="feather-icon icon-chevron-right pull-right m-t-3xxs"></i>
-                            </a>
-                        </li>
-                        <li role="presentation">
-                            <a href="https://avocado-en.orderwebsite.com/gallery" class="">
-                                <span class="pos-rlt inline">
-                        Gallery
-                    </span>
-                                <i class="feather-icon icon-chevron-right pull-right m-t-3xxs"></i>
-                            </a>
-                        </li>
-                        <li role="presentation">
-                            <a href="https://avocado-en.orderwebsite.com/contact" class="">
-                                <span class="pos-rlt inline">
-                        Contact
-                    </span>
-                                <i class="feather-icon icon-chevron-right pull-right m-t-3xxs"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </aside>
-            <div class="navigation-backdrop _toggle-aside-nav"></div>
-        </div>
-    </div>
-    <div class="_page-content theme-content">
-        <section id="w592e4a3a-ce01-4e24-ae40-6db5fabc0285" class="
-     theme-page-section section-height-custom
-    background-fixed
-    background-top
-    " style="padding: 120px 0;
-            background-image: url('https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/wave2.png?v=0');
-     ">
-            <div class="section-video-layer" data-vbg=""></div>
-            <div class="section-overlay color-2" style="opacity: 0%;"></div>
-            <div class="container _container-width">
-                <div class="row row-flex  flex-middle">
-                    <div class="col-sm-6 section-column" data-aos="fade-in">
-                        <div class="page-widget text-widget">
-                            <h1>Healthy, colorful, <span style="color: rgb(97, 222, 85);">AVOCADO!</span></h1>
-                        </div>
-                        <div class="page-widget text-widget">
-                            <h4>Enjoy our avocado specialties from Monday to Sunday! </h4>
-                        </div>
-                        <div id="w365a5d3a-5fae-4353-87e3-a0b7e578d626" class="page-widget button-widget  flex-justify-left 
-        ">
-                            <a href="https://avocado-en.orderwebsite.com/menu" class="btn button button-standard icon-holder bg-color-0 btn-size-large
-       ">
-        <span class="button-label inline text-ellipsis color-6" data-default-label="Button"
-            ">
-            Order online
-        </span>
-        </a>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 section-column" data-aos="fade-in">
-                        <div id="w685890fd-30fa-4067-a462-67ba181411f6" class="page-widget image-widget flex 
-         flex-justify-center 
-        " style="">
-                            <img class="page-widget-image  image-size-auto  " alt="Image" src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/hero.png?v=0" style="border-radius:
-            80px 0px 80px 0px;
-        ;
-        width: 500px;
-">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section id="w65613be3-922a-4555-afb3-dbc05494c656" class="
-     theme-page-section section-height-custom
-    background-fixed
-    " style="padding: 120px 0;
-            background-image: url('https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/bg2.jpg?v=0');
-     ">
-            <div class="section-video-layer" data-vbg=""></div>
-            <div class="section-overlay color-0" style="opacity: 0%;"></div>
-            <div class="container _container-width">
-                <div class="row row-flex column-reverse flex-middle">
-                    <div class="col-sm-6 section-column" data-aos="fade-in">
-                        <div id="w11a7750a-e862-4076-af52-b4ef54b01b43" class="page-widget image-widget flex 
-         flex-justify-center 
-        " style="">
-                            <img class="page-widget-image  " alt="Image" src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan2.jpg?v=0" style="border-radius:
-            200px 200px 90px 90px;
-        ;
-        width: 80%;
-">
-                        </div>
-                    </div>
-                    <div class="col-sm-6 section-column" data-aos="fade-in">
-                        <div class="page-widget text-widget">
-                            <h4><span style="color: rgb(255, 255, 255);">Looking for something delicious and fit? You will love our restaurant!</span></h4>
-                        </div>
-                        <div class="page-widget text-widget">
-                            <h2><span style="color: rgb(255, 255, 255);">We invite you to AVOCADO! Here you will always eat something tasty </span></h2>
-                        </div>
-                        <div class="page-widget text-widget">
-                            <p><span style="color: rgb(255, 255, 255);">Are you ready for an explosion of flavor? At our restaurant, we combine our two passions: love for healthy living and delicious food. How is this possible? We opt for natural and fresh ingredients and unique spices. At its heart is the avocado!</span></p>
-                        </div>
-                        <div id="w0131aa62-1601-4f88-ae66-f89a905060ca" class="page-widget spacer-widget spacer-small" style="height: 50px">
-                        </div>
-                        <div id="wfa5398e9-5e56-4e9d-8e1c-74d3f961ad1b" class="page-widget button-widget  flex-justify-left 
-        ">
-                            <a href="https://avocado-en.orderwebsite.com/menu" class="btn button button-outline icon-holder bg-color-6 btn-size-large
-       ">
-        <span class="button-label inline text-ellipsis color-6" data-default-label="Button"
-            ">
-            Order now
-        </span>
-        </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section id="w1c75aa64-f60b-4e24-a7e1-2120965b8989" class="
-     theme-page-section section-height-custom
-    " style="padding: 100px 0;
-     ">
-            <div class="section-video-layer" data-vbg=""></div>
-            <div class="section-overlay color-custom" style="background-color: rgba(254,248,236,1);"></div>
-            <div class="container _container-width">
-                <div class="row row-flex  flex-middle">
-                    <div class="col-sm-4 section-column" data-aos="fade-in">
-                        <div id="w3cd8d462-f864-4ae9-b249-5ab0ab33bc70" class="page-widget flex icon-box-widget 
-         widget-justify-center 
-        ">
-                            <div class="single-icon-box icon-holder color-0  widget-vertical " data-icon="fa-coffee" data-icon-color="#004dff" data-icon-text="#000000">
-                                <i class="fa fa-coffee" style="font-size: 72px"></i>
-                                <div class="icon-box-text color-3 ">
-                                    <h3 class="title">
-                                        Aromatic coffee
-                                    </h3>
-                                    <p class="desc">
-                                        We carefully select the coffee beans.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-4 section-column" data-aos="fade-in">
-                        <div id="w6cdf9fea-399a-4314-89b4-d3e8a64a4313" class="page-widget flex icon-box-widget 
-         widget-justify-center 
-        ">
-                            <div class="single-icon-box icon-holder color-0  widget-vertical " data-icon="fa-bed" data-icon-color="#967d47" data-icon-text="#111111">
-                                <i class="fa fa-bed" style="font-size: 72px"></i>
-                                <div class="icon-box-text color-3 ">
-                                    <h3 class="title">
-                                        Comfort and chill
-                                    </h3>
-                                    <p class="desc">
-                                        Our comfortable couches will make you forget about your troubles.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-4 section-column" data-aos="fade-in">
-                        <div id="w0a127ce1-b5bb-440d-beb6-911c681767a9" class="page-widget flex icon-box-widget 
-         widget-justify-center 
-        ">
-                            <div class="single-icon-box icon-holder color-0  widget-vertical " data-icon="fa-cutlery" data-icon-color="#967d47" data-icon-text="#111111">
-                                <i class="fa fa-cutlery" style="font-size: 72px"></i>
-                                <div class="icon-box-text color-3 ">
-                                    <h3 class="title">
-                                        Healthy food
-                                    </h3>
-                                    <p class="desc">
-                                        We cook healthily and tasty.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section id="w41cf9306-8182-490f-8e88-bf7851222cfe" class="
-     theme-page-section section-height-standard
-    " style="
-     ">
-            <div class="section-video-layer" data-vbg=""></div>
-            <div class="section-overlay color-2" style="opacity: 0%;"></div>
-            <div class="container _container-width">
-                <div class="row row-flex  flex-middle">
-                    <div class="col-sm-3 section-column" data-aos="fade-in">
-                        <div class="page-widget text-widget">
-                            <h3 class="ql-align-center"><span style="color: rgb(97, 222, 85);">Healthy and delicious food</span></h3>
-                        </div>
-                        <div class="page-widget text-widget">
-                            <p class="ql-align-center">We combine health with taste. We cook healthily, and all dishes on our menu are low in calories. </p>
-                        </div>
-                        <div id="w2e535143-cb9b-4340-81ea-7c7e4ca2ab76" class="page-widget spacer-widget spacer-custom" style="height: 90px">
-                        </div>
-                        <div class="page-widget text-widget">
-                            <h3 class="ql-align-center"><span style="color: rgb(97, 222, 85);">Sugar-free sweet desserts</span></h3>
-                        </div>
-                        <div class="page-widget text-widget">
-                            <p class="ql-align-center">Is it possible to eat sweets while on a diet? Yes! All our desserts are healthy! Instead of sugar, we use the natural sweetness of fruits. </p>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 section-column" data-aos="fade-in">
-                        <div id="we541793f-2d61-416e-bd26-ecda9187233d" class="page-widget image-widget flex 
-        " style="">
-                            <img class="page-widget-image  " alt="Image" src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan.jpg?v=0" style="border-radius:
-            0px;
-        ;
-        width: ;
-">
-                        </div>
-                    </div>
-                    <div class="col-sm-3 section-column" data-aos="fade-in">
-                        <div class="page-widget text-widget">
-                            <h3 class="ql-align-center"><span style="color: rgb(97, 222, 85);">Aromatic coffee</span></h3>
-                        </div>
-                        <div class="page-widget text-widget">
-                            <p class="ql-align-center">Coffee from freshly roasted and carefully selected beans tastes delicious every day. Come and try it!</p>
-                        </div>
-                        <div id="we92b3805-9d7d-41e9-9fb7-327e00dacab0" class="page-widget spacer-widget spacer-custom" style="height: 90px">
-                        </div>
-                        <div class="page-widget text-widget">
-                            <h3 class="ql-align-center"><span style="color: rgb(97, 222, 85);">The power of freshness  </span></h3>
-                        </div>
-                        <div class="page-widget text-widget">
-                            <p class="ql-align-center">We carefully select our ingredients. We only order fresh and quality products from local suppliers, including vegetables and fruits. </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section id="wb558928a-80de-4def-a26e-c1ad8d3b1455" class="
-     theme-page-section section-height-custom
-    " style="padding: 120px 0;
-     ">
-            <div class="section-video-layer" data-vbg=""></div>
-            <div class="section-overlay color-1" style="opacity: 120%;"></div>
-            <div class="container _container-width">
-                <div class="row row-flex  flex-middle">
-                    <div class="col-sm-6 section-column" data-aos="fade-in">
-                        <div class="page-widget text-widget">
-                            <h4><span style="color: rgb(97, 222, 85);">Authentic fit food</span></h4>
-                        </div>
-                        <div class="page-widget text-widget">
-                            <h2><span style="color: rgb(255, 255, 255);">Avocado is our superhero! </span></h2>
-                        </div>
-                        <div class="page-widget text-widget">
-                            <p><span style="color: rgb(255, 255, 255);">We focus on health and taste. In the heart of our kitchen, we put avocado, the healthiest fruit in the world, which is a real mine of vitamins and nutrients! All our dishes are created based on this beauty. </span></p>
-                        </div>
-                        <div id="wa8b75aab-cde8-4374-8a54-b9016c76a457" class="page-widget spacer-widget spacer-custom" style="height: 15px">
-                        </div>
-                        <div id="w8cc831ed-eccc-48b6-98d0-35633d887fdd" class="page-widget button-widget  flex-justify-left 
-        ">
-                            <a href="https://avocado-en.orderwebsite.com/menu" class="btn button button-outline icon-holder bg-color-0 btn-size-large
-       ">
-        <span class="button-label inline text-ellipsis color-0" data-default-label="Button"
-            ">
-            Order now
-        </span>
-        </a>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 section-column" data-aos="fade-in">
-                        <div id="w015001d6-3f1b-4f0b-a58d-d78dc59f80c8" class="page-widget image-widget flex 
-         flex-justify-center 
-        " style="">
-                            <img class="page-widget-image  " alt="Image" src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/person.jpg?v=0" style="border-radius:
-            200px 200px 0px 0px;
-        ;
-        width: 80%;
-">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section id="wf3004da6-2db2-47dc-b52b-867e00256ad1" class="
-     theme-page-section section-height-standard
-    " style="
-     ">
-            <div class="section-video-layer" data-vbg=""></div>
-            <div class="section-overlay color-custom" style="background-color: rgba(254,248,236,1);"></div>
-            <div class="container-fluid _container-width">
-                <div class="row row-flex  flex-middle">
-                    <div class="col-sm-3 section-column" data-aos="fade-in">
-                        <div id="w355e1c64-ec30-42cb-8b8c-96444ba9b23c" class="page-widget image-widget flex 
-         flex-justify-center 
-        " style="">
-                            <img class="page-widget-image  image-size-auto  " alt="Image" src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan_AFouckhG.jpg?v=0" style="border-radius:
-            150px;
-        ;
-        width: 400px;
-">
-                        </div>
-                    </div>
-                    <div class="col-sm-6 section-column" data-aos="fade-in">
-                        <div class="page-widget text-widget">
-                            <h2 class="ql-align-center">How about healthy meal delivery service? </h2>
-                        </div>
-                        <div class="page-widget text-widget">
-                            <h4 class="ql-align-center">You can order a catering service from us. What does this mean? Why is it worth it? Every day, we will deliver your meals according to your diet and culinary preferences. Contact us for more details. </h4>
-                        </div>
-                        <div id="w869064ed-91e3-4b50-9987-31f3e704374c" class="page-widget spacer-widget spacer-custom" style="height: 24px">
-                        </div>
-                        <div id="w7d1bbc02-37d7-4a68-9f24-6474ce9014c7" class="page-widget button-widget 
-         flex-justify-center 
-        ">
-                            <a href="https://avocado-en.orderwebsite.com/menu" class="btn button button-standard icon-holder bg-color-0 btn-size-large
-       ">
-        <span class="button-label inline text-ellipsis color-6" data-default-label="Button"
-            ">
-            Order online
-        </span>
-        </a>
-                        </div>
-                    </div>
-                    <div class="col-sm-3 section-column" data-aos="fade-in">
-                        <div id="w8a528f68-ec48-4617-b03f-d2b654b25c87" class="page-widget image-widget flex 
-         flex-justify-center 
-        " style="">
-                            <img class="page-widget-image  image-size-auto  " alt="Image" src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan3.jpg?v=0" style="border-radius:
-            150px;
-        ;
-        width: 400px;
-">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-    <div class="page-footer" style="display: none;">
-        <footer class="theme-footer">
-            <div class="container theme-footer-inner">
-                <div class="row">
-                    <div class="col-sm-12 text-center">
-                        <a class="brand footer-logo-standard" href="index.html">
-                            <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/logo.png?v=0" width="160" height="36" class="img-responsive inline m-b-md" alt="Avocado" />
-                        </a>
-                        <div class="footer-socials">
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-12 m-t-lg m-b-lg">
-                        <ul class="horizontal-list text-center m-b-none">
-                            <li>
-                                <a href="index.html" class=" active">Home</a>
-                            </li>
-                            <li>
-                                <a href="https://avocado-en.orderwebsite.com/about-us" class="">
-                        About us
-                    </a>
-                            </li>
-                            <li>
-                                <a href="https://avocado-en.orderwebsite.com/gallery" class="">
-                        Gallery
-                    </a>
-                            </li>
-                            <li>
-                                <a href="https://avocado-en.orderwebsite.com/contact" class="">
-                        Contact
-                    </a>
-                            </li>
-                            <li>
-                                <a href="https://avocado-en.orderwebsite.com/menu" class="">
-                        Order online
-                    </a>
-                            </li>
-                            <li>
-                                <a href="https://avocado-en.orderwebsite.com/api/v2/newsletterUnsubscribe/98dfb947-4a04-11ed-8bca-525400080621" class="_show-unsubscribe-modal">Unsubscribe</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-12 m-b-lg">
-                        <ul class="address-list horizontal-list text-center">
-                            <li>
-                                <svg width="25" height="25" viewBox="0 0 25 25" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15.5499 5.15723C16.5267 5.34779 17.4243 5.82548 18.128 6.52916C18.8317 7.23284 19.3094 8.13049 19.4999 9.10723M15.5499 1.15723C17.5792 1.38266 19.4715 2.2914 20.9162 3.73423C22.3608 5.17707 23.2719 7.06824 23.4999 9.09723M22.4999 17.0772V20.0772C22.5011 20.3557 22.444 20.6314 22.3324 20.8866C22.2209 21.1418 22.0572 21.3708 21.852 21.5591C21.6468 21.7474 21.4045 21.8907 21.1407 21.9799C20.8769 22.0692 20.5973 22.1023 20.3199 22.0772C17.2428 21.7429 14.2869 20.6914 11.6899 19.0072C9.27376 17.4719 7.22527 15.4234 5.68993 13.0072C3.99991 10.3984 2.94818 7.42822 2.61993 4.33723C2.59494 4.06069 2.62781 3.78199 2.71643 3.51885C2.80506 3.25572 2.9475 3.01392 3.1347 2.80885C3.32189 2.60378 3.54974 2.43994 3.80372 2.32775C4.05771 2.21556 4.33227 2.15749 4.60993 2.15723H7.60993C8.09524 2.15245 8.56572 2.32431 8.93369 2.64076C9.30166 2.95721 9.54201 3.39667 9.60993 3.87723C9.73656 4.83729 9.97138 5.77995 10.3099 6.68723C10.4445 7.04515 10.4736 7.43414 10.3938 7.80811C10.3141 8.18207 10.1288 8.52534 9.85993 8.79723L8.58993 10.0672C10.0135 12.5708 12.0864 14.6437 14.5899 16.0672L15.8599 14.7972C16.1318 14.5284 16.4751 14.3431 16.8491 14.2633C17.223 14.1836 17.612 14.2127 17.9699 14.3472C18.8772 14.6858 19.8199 14.9206 20.7799 15.0472C21.2657 15.1158 21.7093 15.3604 22.0265 15.7347C22.3436 16.109 22.5121 16.5868 22.4999 17.0772Z" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-                                <a href="tel:+1 123123123">+1 123123123</a>
-                            </li>
-                            <li>
-                                <svg width="24" height="25" viewBox="0 0 24 25" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 4.15723H20C21.1 4.15723 22 5.05723 22 6.15723V18.1572C22 19.2572 21.1 20.1572 20 20.1572H4C2.9 20.1572 2 19.2572 2 18.1572V6.15723C2 5.05723 2.9 4.15723 4 4.15723Z" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M22 6.15723L12 13.1572L2 6.15723" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-                                <a href="mailto:contact@upmenu.com" target="_blank">contact@upmenu.com</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-12 text-center">
-                        <p class="theme-footer-powered-by text-center m-t-none">
-                            Online Food Ordering System by
-                            <a href="https://www.upmenu.com" target="_blank">
-                                <svg alt="UpMenu" class="_powered-by-logo" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 240.2 54.5" style="enable-background:new 0 0 240.2 54.5;" xml:space="preserve">
-                    <path d="M18.5,19c-0.6,0-1.1,0.5-1.1,1.1v2.5c0,0.6,0.5,1.1,1.1,1.1s1.1-0.5,1.1-1.1v-2.5C19.5,19.5,19.1,19,18.5,19z"/>
-                    <path d="M18.5,51.5c-0.6,0-1.1,0.5-1.1,1.1v0.8c0,0.6,0.5,1.1,1.1,1.1s1.1-0.5,1.1-1.1v-0.8 C19.5,52,19.1,51.5,18.5,51.5z"/>
-                    <path d="M27.2,46.6c-0.6,0-1.1,0.5-1.1,1.1v3.7c0,0.6,0.5,1.1,1.1,1.1s1.1-0.5,1.1-1.1v-3.7C28.3,47.1,27.8,46.6,27.2,46.6z"/>
-                    <path d="M36.9,23.2V9.7c0-1.6-1-3-2.4-3.6L19.9,0.3C19.4,0.1,19,0,18.5,0s-1,0.1-1.4,0.3L2.4,6.1C0.9,6.7,0,8.1,0,9.7
-                        v13.5v12v5.6l5.2-2.1l13.2-5.2l13.2,5.2l5.2,2.1v-5.6L36.9,23.2L36.9,23.2z M19.5,29.9v-3.4c0-0.6-0.5-1.1-1.1-1.1
-                        s-1.1,0.5-1.1,1.1v3.4L3.7,35.3v-12V9.8l13.6-5.4V16c0,0.6,0.5,1.1,1.1,1.1s1.1-0.5,1.1-1.1V4.3l13.6,5.4v13.5v12L19.5,29.9z"/>
-                    <path d="M26.1,42.6c0,0.6,0.5,1.1,1.1,1.1s1.1-0.5,1.1-1.1v-2.2l-2.2-0.9V42.6z"/>
-                    <path d="M17.4,36.9v10.7c0,0.6,0.5,1.1,1.1,1.1s1.1-0.5,1.1-1.1V36.9l-1.1-0.4L17.4,36.9z"/>
-                    <path d="M8.6,50.2c0,0.6,0.5,1.1,1.1,1.1s1.1-0.5,1.1-1.1V39.5l-2.2,0.9L8.6,50.2z"/>
-				    <path d="M70,42.7c-0.2,0.2-0.5,0.4-0.8,0.4h-2.8c-0.3,0-0.6-0.1-0.8-0.4c-0.2-0.2-0.3-0.5-0.3-0.8v-1.1c-1.6,0.9-3.1,1.6-4.4,2
-						c-1.4,0.5-2.9,0.7-4.6,0.7c-3.4,0-5.9-1.1-7.5-3.2s-2.4-5.1-2.4-9V12.1c0-0.3,0.1-0.6,0.3-0.8s0.5-0.4,0.8-0.4h2.7
-						c0.3,0,0.6,0.1,0.8,0.4c0.2,0.2,0.3,0.5,0.3,0.8v19.2c0,1.5,0.1,2.7,0.4,3.7c0.2,1,0.6,1.8,1.1,2.4s1.2,1,1.9,1.3
-						c0.8,0.3,1.7,0.4,2.8,0.4c1.2,0,2.5-0.2,3.7-0.6c1.3-0.4,2.6-1,3.9-1.6V12.3c0-0.3,0.1-0.6,0.3-0.8s0.5-0.4,0.8-0.4H69
-						c0.3,0,0.6,0.1,0.8,0.4c0.2,0.2,0.3,0.5,0.3,0.8v29.8C70.3,42.2,70.2,42.5,70,42.7z"/>
-                    <path d="M102,29.2c0,4.6-1,8.1-3.1,10.6c-2,2.5-5.1,3.7-9.3,3.7c-0.9,0-1.9-0.1-3.1-0.2S84.1,43,83,42.8v10.6
-						c0,0.3-0.1,0.6-0.3,0.8c-0.2,0.2-0.5,0.3-0.8,0.3H79c-0.3,0-0.5-0.1-0.7-0.3S78,53.7,78,53.4V13.2c0-0.4,0.1-0.7,0.2-0.9
-						s0.5-0.4,1-0.5c1.5-0.4,3.2-0.7,5-1c1.9-0.3,3.6-0.4,5.4-0.4c2.1,0,4,0.3,5.5,1s2.8,1.7,3.9,2.9c1,1.3,1.8,2.8,2.3,4.6
-						s0.7,3.7,0.7,5.9L102,29.2L102,29.2z M97,25c0-1.5-0.1-2.9-0.4-4.1c-0.2-1.2-0.7-2.3-1.2-3.2c-0.6-0.9-1.3-1.6-2.3-2
-						C92.2,15.2,91,15,89.6,15c-1.2,0-2.4,0.1-3.6,0.2c-1.2,0.1-2.2,0.3-3,0.4v23.1c0.9,0.2,2.1,0.3,3.3,0.4c1.3,0.1,2.4,0.1,3.3,0.1
-						c1.4,0,2.6-0.2,3.5-0.7c0.9-0.4,1.7-1.1,2.3-2c0.6-0.9,1-1.9,1.2-3.2c0.2-1.2,0.4-2.6,0.4-4.2L97,25L97,25z"/>
-                    <path d="M145.9,42.7c-0.2,0.2-0.5,0.4-0.8,0.4h-2.7c-0.3,0-0.6-0.1-0.8-0.4c-0.2-0.2-0.3-0.5-0.3-0.8V21.2c0-1.2-0.1-2.2-0.4-3
-						s-0.6-1.5-1.1-1.9c-0.5-0.5-1-0.8-1.6-1s-1.3-0.3-2-0.3c-1,0-2.1,0.2-3.3,0.5c-1.2,0.3-2.3,0.7-3.4,1.1c0.3,1.3,0.5,2.8,0.5,4.6V42
-						c0,0.3-0.1,0.6-0.3,0.8s-0.4,0.4-0.7,0.4h-3c-0.3,0-0.5-0.1-0.7-0.4c-0.2-0.2-0.3-0.5-0.3-0.8V21.2c0-1.3-0.1-2.3-0.3-3.1
-						c-0.2-0.8-0.4-1.4-0.8-1.9c-0.4-0.4-0.8-0.7-1.4-0.9c-0.5-0.2-1.2-0.2-1.9-0.2c-1,0-2.1,0.2-3.3,0.7c-1.2,0.4-2.4,1-3.6,1.6V42
-						c0,0.3-0.1,0.6-0.3,0.8c-0.2,0.2-0.4,0.4-0.7,0.4h-3c-0.3,0-0.5-0.1-0.7-0.4c-0.2-0.2-0.3-0.5-0.3-0.8V12.2c0-0.3,0.1-0.6,0.3-0.8
-						c0.2-0.2,0.5-0.4,0.8-0.4h2.8c0.3,0,0.6,0.1,0.8,0.4c0.2,0.2,0.3,0.5,0.3,0.8v1.1c1.1-0.7,2.4-1.4,3.8-1.9s2.9-0.8,4.5-0.8
-						c1.2,0,2.3,0.2,3.2,0.6c0.9,0.4,1.7,1,2.5,1.8c1.6-0.8,3.2-1.4,4.8-1.8c1.6-0.4,3.1-0.6,4.6-0.6c1.3,0,2.5,0.2,3.6,0.5
-						s2.1,0.9,2.9,1.8c0.8,0.8,1.5,1.9,2,3.3s0.7,3.1,0.7,5.1V42C146.3,42.2,146.2,42.5,145.9,42.7z"/>
-                    <path d="M178,27.4c0,0.9-0.4,1.3-1.1,1.3h-19v0.8c0,3.5,0.7,5.9,2,7.4c1.3,1.4,3.3,2.2,5.9,2.2c1.7,0,3.4-0.1,5.3-0.2
-						s3.5-0.3,4.8-0.5h0.3c0.2,0,0.4,0.1,0.6,0.2s0.3,0.3,0.3,0.6v2c0,0.4-0.1,0.7-0.2,0.9c-0.2,0.2-0.5,0.4-0.9,0.4
-						c-1.6,0.3-3.2,0.6-4.8,0.7c-1.6,0.2-3.4,0.3-5.3,0.3c-1.6,0-3.2-0.2-4.8-0.7c-1.5-0.4-2.9-1.2-4.1-2.3c-1.2-1.1-2.2-2.5-2.9-4.3
-						s-1.1-4-1.1-6.8v-5.3c0-4.2,1.1-7.5,3.2-10s5.3-3.7,9.3-3.7c2.1,0,3.9,0.3,5.4,1c1.5,0.6,2.8,1.6,3.9,2.7c1,1.2,1.8,2.6,2.3,4.3
-						s0.8,3.6,0.8,5.6v3.4C177.9,27.4,178,27.4,178,27.4z M173,24.2c0-3.3-0.6-5.7-1.8-7.1c-1.2-1.4-3.1-2.1-5.6-2.1s-4.3,0.7-5.6,2.2
-						s-2,3.8-2,6.9v0.5h15L173,24.2L173,24.2z"/>
-                    <path d="M208.4,42.7c-0.2,0.2-0.5,0.4-0.8,0.4h-2.7c-0.3,0-0.6-0.1-0.8-0.4c-0.2-0.2-0.3-0.5-0.3-0.8V22.7c0-1.5-0.1-2.7-0.4-3.7
-						c-0.2-1-0.6-1.8-1.1-2.4s-1.2-1-2-1.3s-1.7-0.4-2.8-0.4c-1.2,0-2.5,0.2-3.7,0.6c-1.3,0.4-2.6,1-3.9,1.6v24.6c0,0.3-0.1,0.6-0.3,0.8
-						s-0.5,0.4-0.8,0.4h-2.9c-0.3,0-0.6-0.1-0.8-0.4c-0.2-0.2-0.3-0.5-0.3-0.8V11.9c0-0.3,0.1-0.6,0.3-0.8s0.5-0.4,0.8-0.4h2.8
-						c0.3,0,0.6,0.1,0.8,0.4c0.2,0.2,0.3,0.5,0.3,0.8V13c1.6-0.9,3.1-1.6,4.4-2c1.4-0.5,2.9-0.7,4.6-0.7c3.4,0,5.9,1,7.5,3.2
-						c1.6,2.1,2.4,5.1,2.4,9v19.2C208.7,42.2,208.6,42.5,208.4,42.7z"/>
-                    <path d="M240,42.7c-0.2,0.2-0.5,0.4-0.8,0.4h-2.8c-0.3,0-0.6-0.1-0.8-0.4c-0.2-0.2-0.3-0.5-0.3-0.8v-1.1c-1.6,0.9-3.1,1.6-4.4,2
-						c-1.4,0.5-2.9,0.7-4.6,0.7c-3.4,0-5.9-1.1-7.5-3.2s-2.4-5.1-2.4-9V12.1c0-0.3,0.1-0.6,0.3-0.8s0.5-0.4,0.8-0.4h2.7
-						c0.3,0,0.6,0.1,0.8,0.4c0.2,0.2,0.3,0.5,0.3,0.8v19.2c0,1.5,0.1,2.7,0.4,3.7c0.2,1,0.6,1.8,1.1,2.4s1.2,1,1.9,1.3
-						c0.8,0.3,1.7,0.4,2.8,0.4c1.2,0,2.5-0.2,3.7-0.6c1.3-0.4,2.6-1,3.9-1.6V12.3c0-0.3,0.1-0.6,0.3-0.8s0.5-0.4,0.8-0.4h2.8
-						c0.3,0,0.6,0.1,0.8,0.4c0.2,0.2,0.3,0.5,0.3,0.8v29.8C240.3,42.2,240.2,42.5,240,42.7z"/>
-		        </svg>
-                            </a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </footer>
-    </div>
-    <!-- COOKIE IN IFRAME BUGFIX // -->
-    <!-- http://stackoverflow.com/questions/10060820/does-the-technique-for-setting-third-party-cookies-in-iframes-in-safari-still-wo -->
-    <div class="modal fade cms-modal" id="_cookie-iniframe-bugfix-modal" data-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Problem with cookies.</h4>
-                </div>
-                <div class="modal-body" id="_cookie-iniframe-bugfix-modal-body">
-                    It looks like cookies on your browser are disabled or they do not operate properly.
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- // COOKIE BUGFIX -->
-    <!-- NEWSLETTER SUBSCRIPTION MODAL (FOR AUTOMATIC) // -->
-    <div class="modal fade cms-modal" id="_newsletter-subscription-modal" data-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-close">
-                <button type="button" class="pull-right" data-dismiss="modal" aria-label="Close"><img src="https://static.cdn-upm.com/media/1202/images/icons/x-white.svg"></button>
-            </div>
-            <div class="modal-content" id="_newsletter-subscription-modal-content">
-            </div>
-        </div>
-    </div>
-    <!-- // NEWSLETTER SUBSCRIPTION MODAL (FOR AUTOMATIC) -->
-    <!-- GET MY POSITION MODAL // -->
-    <div class="modal fade cms-modal" id="_show-modal-geolocation" data-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-header">
-                <h5 class="modal-title">Move the map to the place of delivery</h5>
-                <div class="modal-close">
-                    <button type="button" class="pull-right _show-modal-geolocation-close"><img src="https://static.cdn-upm.com/media/1202/images/icons/x-white.svg"></button>
-                </div>
-            </div>
-            <div class="modal-content">
-                <div class="modal-body" id="_show-modal-geolocation-body">
-                    <div id="getMyLocation" style="height: 450px"></div>
-                </div>
-                <div class="modal-footer">
-                    <div class="address pull-left" id="_show-modal-geolocation-address">
-                        <div class="first-address">
-                            <span class="street"></span>
-                        </div>
-                        <div class="second-address">
-                            <span class="postal-code"></span> <span class="city"></span> <span class="region"></span>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-upmenu _show-modal-geolocation-btn">Confirm the location</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- // GET MY POSITION MODAL -->
-    <!-- GENERIC MODALS -->
-    <div class="modal fade" id="_cms-modal-big" data-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-close">
-                <button type="button" class="pull-right" data-dismiss="modal" aria-label="Close"><img src="https://static.cdn-upm.com/media/1202/images/icons/x-white.svg"></button>
-            </div>
-            <div class="modal-content" id="_cms-modal-big-content">
-            </div>
-        </div>
-    </div>
-    <div class="modal fade cms-modal modal-narrow" id="_cms-modal-narrow" data-backdrop="static">
-        <div class="modal-dialog">
-            <div class="modal-close">
-                <button type="button" class="pull-right" data-dismiss="modal" aria-label="Close"><img src="https://static.cdn-upm.com/media/1202/images/icons/x-white.svg"></button>
-            </div>
-            <div class="modal-content" id="_cms-modal-narrow-content">
-            </div>
-        </div>
-    </div>
-    <div class="modal fade cms-modal order-form-fullscreen" id="_cms-modal" data-backdrop="static">
-        <div class="modal-dialog">
-            <div class="modal-content" id="_cms-modal-content">
-            </div>
-        </div>
-    </div>
-    <!-- /GENERIC MODAL -->
-    <div class="modal fade cms-modal" id="_cms-modal-adults" data-backdrop="static">
-        <div class="modal-dialog">
-            <div class="modal-content" id="_cms-modal-adults-content">
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-sm-12 text-center modal-logo">
-                            <img src="https://static.cdn-upm.com/media/1202/images/themes/stop-hand.svg" alt="Hold image">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <p class="text-center m-b-lg">
-                                Some of the items in our menu are available only for adults.<br><strong>Are you an adult person?</strong>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-12 col-sm-6">
-                            <button type="button" class="btn btn-upmenu btn-block btn-lg _adult-items-allow">Yes</button>
-                        </div>
-                        <div class="col-xs-12 col-sm-6">
-                            <button type="button" class="btn btn-default btn-block btn-lg _adult-items-deny" data-dismiss="modal" aria-label="Close">
-                            No</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- /GENERIC MODAL -->
-    <div class="modal cms4-modal fade" id="form-gdpr">
-        <div class="modal-dialog modal-md">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">
-                        <button type="button" class="pull-right" data-dismiss="modal" aria-hidden="true"><i class="feather-icon icon-x"></i></button> Privacy policy
-                    </h4>
-                </div>
-                <div class="modal-body" id="form-gdpr-content">
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade cms-modal" id="form-adult-terms-modal" data-backdrop="static">
-        <div class="modal-dialog">
-            <div class="modal-close">
-                <button type="button" class="pull-right" data-dismiss="modal" aria-label="Close"><img src="https://static.cdn-upm.com/media/1202/images/icons/x-white.svg"></button>
-            </div>
-            <div class="modal-content">
-                <div class="modal-body" id="form-adult-terms-modal-content">
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- TERMS OF SERVICE MODAL // -->
-    <div class="modal fade cms-modal" id="_terms-of-service-modal" data-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-close">
-                <button type="button" class="pull-right" data-dismiss="modal" aria-label="Close"><img src="https://static.cdn-upm.com/media/1202/images/icons/x-white.svg" alt="Close"></button>
-            </div>
-            <div class="modal-content">
-                <div class="modal-body" id="_terms-of-service-modal-body">
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- // TERMS OF SERVICE MODAL -->
-    <!-- PRIVACY POLICY MODAL // -->
-    <div class="modal fade cms-modal" id="_privacy-policy-modal" data-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-close">
-                <button type="button" class="pull-right" data-dismiss="modal" aria-label="Close"><img src="https://static.cdn-upm.com/media/1202/images/icons/x-white.svg" alt="Close"></button>
-            </div>
-            <div class="modal-content">
-                <div class="modal-body" id="_privacy-policy-modal-body">
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- // PRIVACY POLICY MODAL -->
-    <!-- UNSUBSCRIBE MODAL // -->
-    <div class="modal fade cms-modal" id="_unsubscribe-modal" data-backdrop="static">
-        <div class="modal-dialog">
-            <div class="modal-close">
-                <button type="button" class="pull-right" data-dismiss="modal" aria-label="Close"><img src="https://static.cdn-upm.com/media/1202/images/icons/x-white.svg" alt="Close"></button>
-            </div>
-            <div class="modal-content">
-                <div class="modal-body" id="_unsubscribe-modal-body">
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- // UNSUBSCRIBE MODAL -->
-    <!-- POPUPS // -->
-    <!-- POPUPS // -->
-    <!-- CMS4 POPUPS -->
-    <div class="modal fade cms4-modal" id="cms4-popups" data-backdrop="static">
-        <div class="modal-dialog">
-            <div class="modal-close">
-                <button type="button" class="pull-right" data-dismiss="modal" aria-label="Close"><img src="https://static.cdn-upm.com/media/1202/images/icons/x-white.svg" alt="Close"></button>
-            </div>
-            <div class="modal-content">
-                <div class="modal-body no-padding" id="cms4-popups-content">
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- EDIT MODE // -->
-    <!-- CSS LIBS -->
-    <link rel="stylesheet" href='https://static.cdn-upm.com/media/1202/bottomAllCms4.css' type='text/css' />
-    <!-- // CSS LIBS -->
-    <!-- JS LIBS -->
-    <script async defer type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
-    <script type='text/javascript' src='https://static.cdn-upm.com/media/1202/allCms4.js'></script>
-    <!-- // JS LIBS  -->
-    <script id="cms3-cart-html" type="text/x-handlebars">
-        <div class="_shopping-cart-container" id="_shopping-cart" data-hidden-errors="{{#unless cart.items}}{{message " cms_cart_empty "}}{{/unless}}">
+<div class="_shopping-cart-container" id="_shopping-cart" data-hidden-errors="{{#unless cart.items}}{{message " cms_cart_empty "}}{{/unless}}">
             <div class="loading-container" style="display: none">
                 <div class="text-center m-t"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
             </div>
@@ -2022,9 +1172,8 @@
             </ul>
         </div>
         <div class="_mobile-cart-backdrop" style="display: none;"></div>
-    </script>
-    <script id="cms3-cartQR-html" type="text/x-handlebars">
-        <div class="_shopping-cart-container" id="_shopping-cart">
+
+<div class="_shopping-cart-container" id="_shopping-cart">
             <div class="cart hidden-xs">
                 <div class="theme-cart-inner">
                     <h5 class="cart-title">
@@ -2044,9 +1193,8 @@
         </a>
             </div>
         </div>
-    </script>
-    <script id="cms3-cart-delivery-type-html" type="text/x-handlebars">
-        {{#if tableNumber}}{{else}} {{#if restaurant.deliveryTypes}}
+
+{{#if tableNumber}}{{else}} {{#if restaurant.deliveryTypes}}
         <div class="cart-wrapper m-b cart-delivery-types {{#if cmsv4}}cmsv4{{/if}}">
             <div class="theme-context-wrapper">
                 <div class="btn-group theme-cart-delivery-type">
@@ -2100,9 +1248,8 @@
             </div>
         </div>
         {{/if}} {{/if}}
-    </script>
-    <script id="cms3-couponForm-html" type="text/x-handlebars">
-        <div class="modal-body">
+
+<div class="modal-body">
             <form action="index.html#" id="_coupon-code-form" class="form">
                 <div class="row">
                     <div class="col-sm-12">
@@ -2126,9 +1273,8 @@
 			</div>-->
             </form>
         </div>
-    </script>
-    <script id="cms3-orderForm-html" type="text/x-handlebars">
-        <div class="modal-body">
+
+<div class="modal-body">
             <div class="modal-header">
                 <div class="container fluid-container">
                     <div class="row">
@@ -2854,10 +2000,8 @@
         </div>
         <script>
             com.upmenu.pikaday.initOrderCalendar('#delivery-date-input');
-        </script>
-    </script>
-    <script id="cms3-deliveryCheckFormContent-html" type="text/x-handlebars">
-        <div id="_delivery-check-form-wrapper">
+
+<div id="_delivery-check-form-wrapper">
             {{#unless site.hideAddressSearchOnRestaurantList}}
             <h1 class="m-t-none _delivery-check-form-title text-center">
                 {{#if restaurantSearchForm.settings.deliveryEnabled}}{{message "cms_deliveryCheck_form_title"}}{{else}}{{message "cms_deliveryCheck_off_form_title"}}{{/if}}
@@ -3361,9 +2505,8 @@
                 </div>
             </form>
         </div>
-    </script>
-    <script id="cms3-order-html" type="text/x-handlebars">
-        <div class="modal-body">
+
+<div class="modal-body">
             <div class="modal-header">
                 <div class="container fluid-container">
                     <div class="row">
@@ -4051,9 +3194,8 @@
                 </div>
             </div>
         </div>
-    </script>
-    <script id="cms3-orderRatingForm-html" type="text/x-handlebars">
-        <div id="_order-rating-form-wrapper">
+
+<div id="_order-rating-form-wrapper">
             <form action="index.html#" id="_order-rating-form" method="POST">
                 <div class="row">
                     <div class="col-sm-12 col-md-10 col-lg-8">
@@ -4099,9 +3241,8 @@
                 </div>
             </form>
         </div>
-    </script>
-    <script id="cms3-loginForm-html" type="text/x-handlebars">
-        <div class="modal-body">
+
+<div class="modal-body">
             <form name='f' action='https://avocado-en.orderwebsite.com/login' method='POST' id="_login-form">
                 <div class="form-group">
                     <label class="control-label">{{message "cms_login_email"}}</label>
@@ -4145,10 +3286,8 @@
             initAppleLogin(registration = false); {
                 {
                     /if}}
-        </script>
-    </script>
-    <script id="cms3-registrationForm-html" type="text/x-handlebars">
-        <div class="modal-body registration-form-modal" style="overflow: visible;">
+
+<div class="modal-body registration-form-modal" style="overflow: visible;">
             {{#if finished}}
             <div class="alert alert-success">
                 {{{message "cms_registration_form_send"}}}
@@ -4269,10 +3408,8 @@
             initAppleLogin(registration = true); {
                 {
                     /if}}
-        </script>
-    </script>
-    <script id="cms3-loginForgotPasswordForm-html" type="text/x-handlebars">
-        <div class="modal-body">
+
+<div class="modal-body">
             {{#if finished}}
             <div class="alert alert-success">{{message "cms_forgot_password_send"}}</div>
             {{else}}
@@ -4293,8 +3430,7 @@
 		</div>
 		{{/if}}
 </div>
-</script>
-<script id="cms3-loyaltySummary-html " type="text/x-handlebars ">
+
 <div class=" ">
     <div class="row ">
         <div class="col-sm-12 ">
@@ -4403,9 +3539,8 @@
         </div>
         {{/if}}
         </div>
-    </script>
-    <script id="cms3-restaurantInfo-html" type="text/x-handlebars">
-        <div class="modal-body">
+
+<div class="modal-body">
             {{#ifequal deliveryAreas.length 0}}{{else}}
             <div class="map-row">
                 <div class="theme-restaurant-info-map" id="_restaurant-info-map"></div>
@@ -4565,14 +3700,12 @@
                 </div>
             </div>
         </div>
-    </script>
-    <script id="cms3-restaurantInfoDeliveryAreaPopup-html" type="text/x-handlebars">
-        <div>
+
+<div>
             {{#ifnull price}} {{else}} {{{message "cms_deliveryCheck_form_delivery_cost"}}}: {{toCurrency price currency language}} {{/ifnull}} {{#if minOrderPrice}} (min: {{toCurrency minOrderPrice currency language}}) <br/> {{/if}}
         </div>
-    </script>
-    <script id="cms3-restaurantRatings-html" type="text/x-handlebars">
-        {{#if ratingsPublished}} {{#ratingsPublished}}
+
+{{#if ratingsPublished}} {{#ratingsPublished}}
         <div class="col-sm-12 theme-rating">
             <div class="theme-star-rating">
                 <div class="theme-rating-block">
@@ -4606,9 +3739,8 @@
             </h3>
         </div>
         {{/if}}
-    </script>
-    <script id="cms3-reservationForm-html" type="text/x-handlebars">
-        {{#ifequal restaurants.length 1}} {{#restaurants}} {{#if onlineBookingDisabledDescription}}
+
+{{#ifequal restaurants.length 1}} {{#restaurants}} {{#if onlineBookingDisabledDescription}}
         <div class="row">
             <div class="col-sm-12 text-center">
                 <div class="alert alert-danger">
@@ -4778,9 +3910,8 @@
             </form>
         </div>
         {{/if}} {{/if}}
-    </script>
-    <script id="cms3-cartContent-html" type="text/x-handlebars">
-        <div class="cart-wrapper theme-cart-mini-context theme-context-wrapper m-b {{#if cmsv4}}cmsv4{{/if}}">
+
+<div class="cart-wrapper theme-cart-mini-context theme-context-wrapper m-b {{#if cmsv4}}cmsv4{{/if}}">
             <div class="clearfix m-b-sm">
                 {{#ifequal site.languages.length 1}} {{else}}
                 <div class="dropdown user-account text-right pull-left">
@@ -4881,9 +4012,8 @@
                 </div>
             </div>
         </div>
-    </script>
-    <script id="cms3-navCustomerAccount-html" type="text/x-handlebars">
-        {{#if customer.registered}}
+
+{{#if customer.registered}}
         <a href="#" class="dropdown-toggle account" data-toggle="dropdown" {{#if customer.firstName}}{{else}}title="{{customer.email}}" {{/if}}>
             <i class="fa fa-user-o"></i> {{#if customer.firstName}} {{customer.firstName}} {{else}} {{customer.email}} {{/if}}
         </a>
@@ -4900,9 +4030,8 @@
             <li><a href="https://avocado-en.orderwebsite.com/?registration" id="_start-registration">{{message "cms_cart_create_account"}}</a></li>
         </ul>
         {{/if}}
-    </script>
-    <script id="cms3-workingHoursExceptions-html" type="text/x-handlebars">
-        {{#ifequal exceptions.size 0}} {{else}}
+
+{{#ifequal exceptions.size 0}} {{else}}
         <div class="row">
             <div class="col-sm-12">
                 <div class="alert alert-danger text-center">
@@ -4911,9 +4040,8 @@
             </div>
         </div>
         {{/ifequal}}
-    </script>
-    <script id="cms3-customerAccountForm-html" type="text/x-handlebars">
-        <div class="modal-header _my-account-modal">
+
+<div class="modal-header _my-account-modal">
             <ul class="nav nav-tabs">
                 <li id="_show-customer-account-summary">
                     <a href="index.html#">{{message "cms_customer_account_summary_title"}}</a>
@@ -5156,9 +4284,8 @@
                 </div>
             </form>
         </div>
-    </script>
-    <script id="cms3-promotionModal-html" type="text/x-handlebars">
-        <div class="modal-header">
+
+<div class="modal-header">
             {{#if promotions}} {{#promotions}} {{#ifequal ../promotionId id}}
             <h5 class="modal-title">{{name}}</h5>
             {{/ifequal}} {{/promotions}} {{/if}}
@@ -5176,9 +4303,8 @@
         </div>
         <!-- /.modal-content -->
         {{/ifequal}} {{/promotions}} {{/if}}
-    </script>
-    <script id="cms4-buyingFlow-html" type="text/x-handlebars">
-        <div>
+
+<div>
             <div class="modal-body
         {{#unless image}} no-image {{/unless}}
         {{#if steps}}
@@ -5564,9 +4690,8 @@
         </div>
         </div>
         </div>
-    </script>
-    <script id="cms4-pageHeader-page-account-html" type="text/x-handlebars">
-        <li class="theme-nav-customer-account">
+
+<li class="theme-nav-customer-account">
             {{#if customer.registered}}
             <a href="index.html#" class="dropdown-toggle" data-toggle="dropdown">
                 <i class="feather-icon icon-user"></i>
@@ -5585,9 +4710,8 @@
             </ul>
             {{/if}}
         </li>
-    </script>
-    <script id="cms4-pageHeader-page-account-mobile-html" type="text/x-handlebars">
-        <div class="theme-nav-customer-account-mobile text-right">
+
+<div class="theme-nav-customer-account-mobile text-right">
             {{#if customer.registered}}
             <a href="index.html#" class="dropdown-toggle text-ellipsis" data-toggle="dropdown">
                 <i class="feather-icon icon-user"></i>
@@ -5633,9 +4757,8 @@
             </ul>
             {{/if}}
         </div>
-    </script>
-    <script id="cms4-menu-deliveryCheckFormContent-html" type="text/x-handlebars">
-        <div id="_delivery-check-form-wrapper">
+
+<div id="_delivery-check-form-wrapper">
             {{#ifequal site.themeStoreType "MENU" "WEBSITE" "PORTAL"}}
             <h3 class="m-t-none _delivery-check-form-title text-center">
                 {{#if restaurantSearchForm.settings.deliveryEnabled}}{{message "cms_deliveryCheck_form_title"}}{{else}}{{message "cms_deliveryCheck_off_form_title"}}{{/if}}
@@ -6240,9 +5363,8 @@
                 </div>
             </form>
         </div>
-    </script>
-    <script id="cms4-widgets-booking-html" type="text/x-handlebars">
-        <form action="https://avocado-en.orderwebsite.com/restapi/booking" class="_booking-form">
+
+<form action="https://avocado-en.orderwebsite.com/restapi/booking" class="_booking-form">
             <input type="hidden" value="{{customerId}}" id="customerId" name="customerId" />
             <input type="hidden" value="{{source}}" id="source" name="source" />
             <input type="hidden" value="{{deviceType}}" id="deviceType" name="deviceType" />
@@ -6458,9 +5580,8 @@
             </div>
             {{/if}} {{/ifequal}} {{/restaurants}}
         </form>
-    </script>
-    <script id="cms4-widgets-restaurant-search-html" type="text/x-handlebars">
-        <div class="row check-form-narrow">
+
+<div class="row check-form-narrow">
             <input type="hidden" class="form-control" name="latitude" id="latitude" value="" />
             <input type="hidden" class="form-control" name="longitude" id="longitude" value="" /> XXX{{restaurantSearchForm}} {{#if restaurantSearchForm}}
             <div class="col-sm-12">
@@ -6539,9 +5660,8 @@
             </div>
             {{/if}}
         </div>
-    </script>
-    <script id="cms4-popupsModal-html" type="text/x-handlebars">
-        {{#if popups}}
+
+{{#if popups}}
         <div class="popups-holder">
             {{#popups}} {{#ifequal template "vertical"}}
             <div class="popup-type-vertical">
@@ -6624,17 +5744,14 @@
             {{/ifequal}} {{/ifequal}} {{/popups}}
         </div>
         {{/if}}
-    </script>
-    <script id="theme-gtm-no-script-html" type="text/x-handlebars">
-        {{#if site.googleTagManager}}
+
+{{#if site.googleTagManager}}
         <noscript>
         <iframe src="https://www.googletagmanager.com/ns.html?id={{site.googleTagManager}}"
         height="0" width="0" style="display:none;visibility:hidden"></iframe>
     </noscript> {{/if}}
-    </script>
-    <!-- EDIT MODE // -->
-    <script type='text/javascript'>
-        // English
+
+// English
         I18n = I18n || {};
         I18n.translations = I18n.translations || {};
         I18n.translations['en'] = {
@@ -8069,9 +7186,8 @@
             "cms_customer_account_form_saveBtn": "Save",
             "cms_order_flooerNumber": "Floor"
         };
-    </script>
-    <script>
-        jQuery.cookie('ab_test_version', null, {
+
+jQuery.cookie('ab_test_version', null, {
             path: '/'
         });;
         (function(d, s, c) {
@@ -8613,14 +7729,3 @@
         com.upmenu.i18n.showMore = 'Show more';
         com.upmenu.i18n.showLess = 'Show less';
         com.upmenu.i18n.unavailability = 'unavailability';
-    </script>
-    <script type='text/javascript' src='https://static.cdn-upm.com/media/1202/api3/js/cms-api-utils.js'></script>
-    <script type='text/javascript' src='https://static.cdn-upm.com/media/1202/js/utils.js'></script>
-    <script type='text/javascript' src='https://static.cdn-upm.com/media/1202/api3/js/edit_v2/google-webfonts.js'></script>
-    <script type='text/javascript' src='https://static.cdn-upm.com/media/1202/api3.js'></script>
-    <!-- EDIT MODE // -->
-    <script type='text/javascript' src='https://static.cdn-upm.com/media/1202/api3/js/edit_v2/cms-api-utils.js'></script>
-    <script src="script.js"></script>
-</body>
-
-</html>
