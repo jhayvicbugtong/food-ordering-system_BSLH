@@ -944,7 +944,7 @@
    <!-- EDIT MODE // -->
    <script src="https://static.cdn-upm.com/media/1202/api3/js/edit_v2/cms-api-utils.js" type="text/javascript">
    </script>
-   <script src="script.js">
+   <script src="assets/js/script_extracted.js">
    </script>
   </link>
  </body>

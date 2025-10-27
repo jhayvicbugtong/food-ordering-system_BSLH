@@ -64,10 +64,8 @@ span {color: rgb(97, 222, 85);}
 
 #we541793f-2d61-416e-bd26-ecda9187233d {}
 
-.page-widget-image {border-radius:
-            0px;
-        ;
-        width: ;
+.page-widget-image {border-radius:0px;
+  /* width: ; */
 }
 
 span {color: rgb(97, 222, 85);}
@@ -125,3 +123,66 @@ span {color: rgb(255, 255, 255);}
 ._powered-by-logo {enable-background:new 0 0 240.2 54.5;}
 
 #getMyLocation {height: 450px}
+
+
+
+/* ==== Admin & Staff UI ==== */
+body {
+  background-color: #f5f7fa;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+header.site-header {
+  background-color: #343a40;
+  color: #fff;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar {
+  background-color: #212529;
+  min-height: 100vh;
+  padding-top: 20px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.sidebar ul li {
+  margin: 10px 0;
+}
+
+.sidebar ul li a {
+  display: block;
+  color: #fff;
+  padding: 10px 20px;
+  text-decoration: none;
+}
+
+.sidebar ul li a:hover {
+  background-color: #495057;
+  border-radius: 4px;
+}
+
+.container {
+  display: flex;
+}
+
+.content {
+  flex: 1;
+  background: #fff;
+  padding: 25px;
+  margin: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+footer.site-footer {
+  text-align: center;
+  padding: 10px;
+  color: #666;
+}
