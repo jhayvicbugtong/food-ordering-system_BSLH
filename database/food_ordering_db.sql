@@ -10,8 +10,8 @@ CREATE TABLE users (
 );
 
 INSERT INTO users (name, email, password, role) VALUES
-('Admin', 'admin@example.com', '$2y$10$u7o6wHhLqf2fR8tFqTcV1eG1k2v2d1Yw3zO6Z0c4bqH1c9wQw1u3K', 'admin'),
-('Staff', 'staff@example.com', '$2y$10$u7o6wHhLqf2fR8tFqTcV1eG1k2v2d1Yw3zO6Z0c4bqH1c9wQw1u3K', 'staff');
+('Admin', 'admin@example.com', '1234', 'admin'),
+('Staff', 'staff@example.com', '1234', 'staff');
 
 -- //(password: password123)
 -- // admin@example.com
