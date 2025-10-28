@@ -1,0 +1,323 @@
+/* ===== Layout + base ===== */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #212529; /* ensures no light strip shows on the far left */
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+  background-color: #f5f7fa; /* main app background for the content area */
+}
+
+/* The outer flex wrapper that holds sidebar + main area */
+.container {
+  display: flex;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  /* NOTE:
+     sidebar is fixed now, so .container visually "starts" after sidebar,
+     but we still keep display:flex so markup doesn't break.
+  */
+}
+
+/* ===== Top header bar ===== */
+.site-header {
+  background-color: #343a40;
+  color: #fff;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  /* shift header to the right so it doesn't sit under the fixed sidebar */
+  margin-left: 220px; /* must match sidebar width */
+}
+
+.site-header .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #fff;
+}
+
+.site-header .brand img {
+  height: 28px;
+  width: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.site-header .user-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  color: #ced4da;
+}
+
+.site-header .user-area a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* ===== Sidebar navigation ===== */
+.sidebar {
+  background-color: #212529;
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+
+  /* make it hug the left edge and run full height */
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+
+  padding-top: 20px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #2c2f33;
+  z-index: 1000; /* keep it above content background */
+}
+
+.sidebar .section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #6c757d;
+  padding: 0 20px;
+  margin: 20px 0 8px;
+  letter-spacing: .05em;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.sidebar ul li {
+  margin: 2px 0;
+}
+
+.sidebar ul li a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  background-color: transparent;
+  border-radius: 0; /* we'll handle radius on hover/active */
+}
+
+.sidebar ul li a:hover {
+  background-color: #495057;
+  border-radius: 4px;
+}
+
+.sidebar ul li a.active {
+  background-color: #343a40;
+  border-left-color: #5cfa63; /* avocado accent */
+  border-radius: 4px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.sidebar ul li a i {
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+  color: #adb5bd;
+}
+
+.sidebar .logout {
+  margin-top: auto;
+  padding: 20px;
+  border-top: 1px solid #343a40;
+}
+
+.sidebar .logout a {
+  background: #343a40;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  padding: 10px 12px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== Main content area ===== */
+.content {
+  flex: 1;
+  background: transparent;
+  padding: 20px;
+
+  /* this is how we avoid content hiding under the fixed sidebar */
+  margin-left: 220px; /* must match sidebar width */
+  margin-top: 20px;
+}
+
+/* ===== Card blocks on dashboard ===== */
+.dashboard-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  border-left: 4px solid #5cfa63;
+  padding: 16px 18px;
+}
+
+.stat-card h5 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+.stat-card .value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #212529;
+  line-height: 1.2;
+}
+
+.stat-card .hint {
+  font-size: 12px;
+  color: #20c997;
+  margin-top: 4px;
+}
+
+/* ===== Generic content panel ===== */
+.content-card {
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+}
+
+.content-card-header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.content-card-header .left h2 {
+  font-size: 18px;
+  color: #212529;
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.content-card-header .left p {
+  font-size: 13px;
+  color: #6c757d;
+  margin: 4px 0 0;
+}
+
+.content-card-header .right .btn-primary {
+  background-color: #5cfa63; /* avocado green */
+  border: 0;
+  color: #000;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.content-card-header .right .btn-primary:hover {
+  filter: brightness(0.9);
+}
+
+/* ===== Tables ===== */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.data-table thead th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 10px 12px;
+  border-bottom: 1px solid #dee2e6;
+  white-space: nowrap;
+}
+
+.data-table tbody td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #f1f3f5;
+  color: #212529;
+  vertical-align: top;
+}
+
+/* ===== Badges for status / availability ===== */
+.badge {
+  display: inline-block;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.badge-success {
+  background: #d3ffe0;
+  color: #0f5132;
+}
+
+.badge-warning {
+  background: #fff3cd;
+  color: #664d03;
+}
+
+.badge-danger {
+  background: #f8d7da;
+  color: #842029;
+}
+
+/* ===== Footer ===== */
+.site-footer {
+  text-align: center;
+  padding: 10px;
+  color: #666;
+  font-size: 12px;
+  background: transparent;
+
+  /* shift footer text so it aligns with the content area, not under sidebar */
+  margin-left: 220px; /* match sidebar width */
+}
