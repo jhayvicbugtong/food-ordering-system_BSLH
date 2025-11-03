@@ -110,17 +110,18 @@ $menuData = [
                 </div>
 
                 <div class="menu-item-actions">
-                  <div class="qty-control">
-                    <button class="qty-btn" type="button">-</button>
-                    <div class="qty-value">1</div>
-                    <button class="qty-btn" type="button">+</button>
-                  </div>
+  <div class="qty-control">
+    <button class="qty-btn minus" type="button">-</button>
+    <div class="qty-value">1</div>
+    <button class="qty-btn plus" type="button">+</button>
+  </div>
 
-                  <button class="add-btn" type="button">
-                    <i class="bi bi-plus-circle-fill" style="font-size:14px;color:#000;"></i>
-                    Add
-                  </button>
-                </div>
+  <button class="add-btn" type="button">
+    <i class="bi bi-plus-circle-fill" style="font-size:14px;color:#000;"></i>
+    Add
+  </button>
+</div>
+
               </div>
             </div>
           <?php endforeach; ?>
@@ -137,5 +138,112 @@ $menuData = [
   <!-- Address Modal + JS -->
   <?php include __DIR__ . '/includes/address-modal.php'; ?>
 
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  // ✅ Quantity controls
+  function initQuantityControls() {
+    const qtyControls = document.querySelectorAll('.qty-control');
+
+    qtyControls.forEach(control => {
+      const minusBtn = control.querySelector('.qty-btn.minus');
+      const plusBtn = control.querySelector('.qty-btn.plus');
+      const qtyValue = control.querySelector('.qty-value');
+      let quantity = parseInt(qtyValue.textContent);
+
+      minusBtn.addEventListener('click', () => {
+        if (quantity > 1) {
+          quantity--;
+          qtyValue.textContent = quantity;
+        }
+      });
+
+      plusBtn.addEventListener('click', () => {
+        quantity++;
+        qtyValue.textContent = quantity;
+      });
+    });
+  }
+
+  // ✅ Add to cart, update qty if existing, and delete
+  function initAddToCart() {
+    const addButtons = document.querySelectorAll('.add-btn');
+    const cartItems = document.getElementById('cartItems');
+    const cartSubtotal = document.getElementById('cartSubtotal');
+    const cartTotal = document.getElementById('cartTotal');
+    const deliveryFee = parseFloat(document.getElementById('cartDeliveryFee').textContent.replace(/[₱,]/g, ''));
+
+    addButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const menuItem = button.closest('.menu-item-card');
+        const name = menuItem.querySelector('.menu-item-name').textContent.trim();
+        const price = parseFloat(menuItem.querySelector('.menu-item-price').textContent.replace(/[₱,]/g, ''));
+        const qty = parseInt(menuItem.querySelector('.qty-value').textContent);
+        const totalLine = price * qty;
+
+        // Check if item already exists in cart
+        const existingLine = Array.from(cartItems.querySelectorAll('.cart-line'))
+          .find(line => line.querySelector('.cart-line-name').textContent.includes(name));
+
+        if (existingLine) {
+          // ✅ Update existing quantity and price
+          const nameElem = existingLine.querySelector('.cart-line-name');
+          const priceElem = existingLine.querySelector('.cart-line-price');
+
+          // Extract current quantity
+          const currentQty = parseInt(nameElem.textContent.match(/^(\d+)x/)?.[1] || 1);
+          const newQty = currentQty + qty;
+          const newTotal = price * newQty;
+
+          nameElem.textContent = `${newQty}x ${name}`;
+          priceElem.textContent = `₱${newTotal.toFixed(2)}`;
+        } else {
+          // ✅ Create new cart line
+          const cartLine = document.createElement('div');
+          cartLine.classList.add('cart-line');
+          cartLine.innerHTML = `
+            <div class="cart-line-main">
+              <div class="cart-line-name">${qty}x ${name}</div>
+            </div>
+            <div class="cart-line-right">
+              <div class="cart-line-price">₱${totalLine.toFixed(2)}</div>
+              <button class="cart-delete-btn" type="button" title="Remove">
+                <i class="bi bi-trash" style="color:#d00; font-size:14px;"></i>
+              </button>
+            </div>
+          `;
+
+          // Attach delete event
+          cartLine.querySelector('.cart-delete-btn').addEventListener('click', () => {
+            cartLine.remove();
+            updateCartTotals();
+          });
+
+          cartItems.appendChild(cartLine);
+        }
+
+        // Update totals
+        updateCartTotals();
+      });
+    });
+
+    // ✅ Update subtotal + total
+    function updateCartTotals() {
+      let subtotal = 0;
+      const prices = cartItems.querySelectorAll('.cart-line-price');
+      prices.forEach(p => {
+        subtotal += parseFloat(p.textContent.replace(/[₱,]/g, ''));
+      });
+
+      cartSubtotal.textContent = `₱${subtotal.toFixed(2)}`;
+      cartTotal.textContent = `₱${(subtotal + deliveryFee).toFixed(2)}`;
+    }
+  }
+
+  // Initialize everything
+  initQuantityControls();
+  initAddToCart();
+});
+</script>
 </body>
 </html>

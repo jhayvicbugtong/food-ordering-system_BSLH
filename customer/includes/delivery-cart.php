@@ -82,21 +82,7 @@
 
   <div class="cart-items" id="cartItems">
     <!-- Example cart line -->
-    <div class="cart-line">
-      <div class="cart-line-main">
-        <div class="cart-line-name">1x Original Bente Sais Lomi</div>
-        <div class="cart-line-meta">No chili • Extra egg</div>
-      </div>
-      <div class="cart-line-price">₱89.00</div>
-    </div>
-
-    <div class="cart-line">
-      <div class="cart-line-main">
-        <div class="cart-line-name">1x Tapsilog</div>
-        <div class="cart-line-meta">Garlic rice, egg</div>
-      </div>
-      <div class="cart-line-price">₱110.00</div>
-    </div>
+    
   </div>
 
   <div class="cart-summary">

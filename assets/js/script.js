@@ -7729,3 +7729,30 @@ jQuery.cookie('ab_test_version', null, {
         com.upmenu.i18n.showMore = 'Show more';
         com.upmenu.i18n.showLess = 'Show less';
         com.upmenu.i18n.unavailability = 'unavailability';
+
+        // assets/js/quantity-control.js
+
+function initQuantityControls() {
+  const qtyControls = document.querySelectorAll('.qty-control');
+
+  qtyControls.forEach(control => {
+    const minusBtn = control.querySelector('.qty-btn.minus');
+    const plusBtn = control.querySelector('.qty-btn.plus');
+    const qtyValue = control.querySelector('.qty-value');
+    let quantity = parseInt(qtyValue.textContent);
+
+    minusBtn.addEventListener('click', () => {
+      if (quantity > 1) {
+        quantity--;
+        qtyValue.textContent = quantity;
+      }
+    });
+
+    plusBtn.addEventListener('click', () => {
+      quantity++;
+      qtyValue.textContent = quantity;
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initQuantityControls);
