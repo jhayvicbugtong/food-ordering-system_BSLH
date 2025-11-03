@@ -15,4 +15,26 @@ function require_role($role) {
         exit();
     }
 }
+
+// Additional helper functions
+function is_logged_in() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    return isset($_SESSION['user_id']);
+}
+
+function get_user_role() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    return $_SESSION['role'] ?? null;
+}
+
+function get_user_name() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    return $_SESSION['name'] ?? null;
+}
 ?>

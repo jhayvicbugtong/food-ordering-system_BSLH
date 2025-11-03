@@ -2,56 +2,59 @@
 include __DIR__ . '/includes/header.php';
 ?>
 
-<div class="container">
+<div class="container-fluid">
   <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
-  <main class="content">
+  <main class="main-content">
     <h2 class="mb-4">Staff Dashboard</h2>
     <p class="mb-4 text-muted" style="font-size:14px;">
-      Logged in as <strong><?= $_SESSION['name'] ?></strong>. Below are tasks for your shift.
+      Logged in as <strong><?= htmlspecialchars(get_user_name() ?? 'Staff') ?></strong>. Below are tasks for your shift.
     </p>
 
-    <!-- SHIFT SNAPSHOT -->
-    <section class="dashboard-row">
-      <div class="stat-card">
-        <h5>Orders To Prepare</h5>
-        <div class="value">6</div>
-        <div class="hint">Kitchen queue</div>
+    <div class="row g-3 mb-4">
+      <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+          <h5>Orders To Prepare</h5>
+          <div class="value">6</div>
+          <div class="hint">Kitchen queue</div>
+        </div>
       </div>
-
-      <div class="stat-card">
-        <h5>For Pickup / Ready</h5>
-        <div class="value">2</div>
-        <div class="hint">Waiting at counter</div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+          <h5>For Pickup / Ready</h5>
+          <div class="value">2</div>
+          <div class="hint">Waiting at counter</div>
+        </div>
       </div>
-
-      <div class="stat-card">
-        <h5>Out for Delivery</h5>
-        <div class="value">2</div>
-        <div class="hint">1 delayed</div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+          <h5>Out for Delivery</h5>
+          <div class="value">2</div>
+          <div class="hint">1 delayed</div>
+        </div>
       </div>
-
-      <div class="stat-card">
-        <h5>POS (Walk-in) Sales Today</h5>
-        <div class="value">₱2,130</div>
-        <div class="hint">Cash / GCash</div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+          <h5>POS (Walk-in) Sales Today</h5>
+          <div class="value">₱2,130</div>
+          <div class="hint">Cash / GCash</div>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <!-- ACTIVE ORDERS (ONLINE + POS) -->
-    <section class="content-card">
+    <section class="content-card mb-4">
       <div class="content-card-header">
         <div class="left">
           <h2>Active Orders</h2>
           <p>Online and walk-in (POS)</p>
         </div>
         <div class="right">
-          <button class="btn-primary">Open POS</button>
+          <button class="btn btn-success">Open POS</button>
         </div>
       </div>
 
-      <div class="table-wrapper">
-        <table class="data-table">
+      <div class="table-responsive">
+        <table class="table table-hover">
           <thead>
             <tr>
               <th>Order #</th>
@@ -67,7 +70,7 @@ include __DIR__ . '/includes/header.php';
               <td>#3321</td>
               <td>
                 Online Delivery<br>
-                <small>Brgy. Central</small>
+                <small class="text-muted">Brgy. Central</small>
               </td>
               <td>
                 Lomi Special x2<br>
@@ -79,12 +82,11 @@ include __DIR__ . '/includes/header.php';
                 <button class="btn btn-sm btn-outline-secondary">Mark Ready</button>
               </td>
             </tr>
-
             <tr>
               <td>#3320</td>
               <td>
                 Pickup ASAP<br>
-                <small>Ana Cruz</small>
+                <small class="text-muted">Ana Cruz</small>
               </td>
               <td>
                 Lomi Special x1
@@ -95,12 +97,11 @@ include __DIR__ . '/includes/header.php';
                 <button class="btn btn-sm btn-outline-secondary">Customer Picked Up</button>
               </td>
             </tr>
-
             <tr>
               <td>#POS-118</td>
               <td>
                 Walk-in POS<br>
-                <small>Dine-in</small>
+                <small class="text-muted">Dine-in</small>
               </td>
               <td>
                 Lomi + Softdrinks
@@ -111,12 +112,11 @@ include __DIR__ . '/includes/header.php';
                 <button class="btn btn-sm btn-outline-secondary" disabled>Done</button>
               </td>
             </tr>
-
             <tr>
               <td>#3319</td>
               <td>
                 Delivery<br>
-                <small>Phase 2, Palm Drive</small>
+                <small class="text-muted">Phase 2, Palm Drive</small>
               </td>
               <td>
                 Lomi Special x1<br>
@@ -133,7 +133,6 @@ include __DIR__ . '/includes/header.php';
       </div>
     </section>
 
-    <!-- PICKUP / COUNTER QUEUE -->
     <section class="content-card">
       <div class="content-card-header">
         <div class="left">
@@ -142,8 +141,8 @@ include __DIR__ . '/includes/header.php';
         </div>
       </div>
 
-      <div class="table-wrapper">
-        <table class="data-table">
+      <div class="table-responsive">
+        <table class="table table-hover">
           <thead>
             <tr>
               <th>Order #</th>
@@ -167,7 +166,6 @@ include __DIR__ . '/includes/header.php';
                 <button class="btn btn-sm btn-outline-secondary">Picked Up ✔</button>
               </td>
             </tr>
-
             <tr>
               <td>#3317</td>
               <td>Walk-in POS</td>

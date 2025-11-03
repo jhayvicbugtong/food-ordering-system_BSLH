@@ -1739,3 +1739,24 @@ section {
   filter:brightness(.92);
 }
 
+/* Image preview styling */
+.img-thumbnail {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Modal styling */
+.modal-content {
+    border-radius: 10px;
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Loading state */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}

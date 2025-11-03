@@ -2,10 +2,10 @@
 include __DIR__ . '/includes/header.php';
 ?>
 
-<div class="container">
+<div class="container-fluid">
   <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
-  <main class="content">
+  <main class="main-content">
 
     <section class="content-card">
       <div class="content-card-header">
@@ -14,12 +14,12 @@ include __DIR__ . '/includes/header.php';
           <p>All active orders right now</p>
         </div>
         <div class="right">
-          <button class="btn-primary">Refresh</button>
+          <button class="btn btn-success">Refresh</button>
         </div>
       </div>
 
-      <div class="table-wrapper">
-        <table class="data-table">
+      <div class="table-responsive">
+        <table class="table table-hover">
           <thead>
             <tr>
               <th>Order #</th>
@@ -31,7 +31,6 @@ include __DIR__ . '/includes/header.php';
               <th>Handler</th>
             </tr>
           </thead>
-
           <tbody>
             <tr>
               <td>#1043</td>
@@ -42,21 +41,20 @@ include __DIR__ . '/includes/header.php';
               </td>
               <td>
                 Jane Cruz<br>
-                <small>jane@example.com</small>
+                <small class="text-muted">jane@example.com</small>
               </td>
               <td>
                 <strong>Pickup</strong><br>
-                <small>Counter</small>
+                <small class="text-muted">Counter</small>
               </td>
               <td>
                 <span class="badge badge-warning">Preparing</span>
               </td>
               <td>
-                <?= $_SESSION['name'] ?><br>
-                <small>(Kitchen)</small>
+                <?= htmlspecialchars(get_user_name() ?? 'Staff') ?><br>
+                <small class="text-muted">(Kitchen)</small>
               </td>
             </tr>
-
             <tr>
               <td>#1042</td>
               <td>9:58 AM</td>
@@ -65,21 +63,20 @@ include __DIR__ . '/includes/header.php';
               </td>
               <td>
                 Leo Santos<br>
-                <small>leo@example.com</small>
+                <small class="text-muted">leo@example.com</small>
               </td>
               <td>
                 <strong>Delivery</strong><br>
-                14 Palm Drive, Phase 2
+                <small class="text-muted">14 Palm Drive, Phase 2</small>
               </td>
               <td>
                 <span class="badge badge-success">Out for delivery</span>
               </td>
               <td>
                 Rex P.<br>
-                <small>(Rider)</small>
+                <small class="text-muted">(Rider)</small>
               </td>
             </tr>
-
             <tr>
               <td>#1041</td>
               <td>9:31 AM</td>
@@ -88,21 +85,20 @@ include __DIR__ . '/includes/header.php';
               </td>
               <td>
                 Ava Lim<br>
-                <small>ava@example.com</small>
+                <small class="text-muted">ava@example.com</small>
               </td>
               <td>
                 <strong>Pickup</strong><br>
-                <small>Counter</small>
+                <small class="text-muted">Counter</small>
               </td>
               <td>
                 <span class="badge badge-success">Ready</span>
               </td>
               <td>
                 Janelle R.<br>
-                <small>(Front Desk)</small>
+                <small class="text-muted">(Front Desk)</small>
               </td>
             </tr>
-
             <tr>
               <td>#1040</td>
               <td>9:05 AM</td>
@@ -112,18 +108,18 @@ include __DIR__ . '/includes/header.php';
               </td>
               <td>
                 Chris Dela Cruz<br>
-                <small>chrisdc@example.com</small>
+                <small class="text-muted">chrisdc@example.com</small>
               </td>
               <td>
                 <strong>Delivery</strong><br>
-                9 Horizon Blk 3, Lot 7
+                <small class="text-muted">9 Horizon Blk 3, Lot 7</small>
               </td>
               <td>
                 <span class="badge badge-danger">Driver issue</span>
               </td>
               <td>
-                <?= $_SESSION['name'] ?><br>
-                <small>(Dispatch)</small>
+                <?= htmlspecialchars(get_user_name() ?? 'Staff') ?><br>
+                <small class="text-muted">(Dispatch)</small>
               </td>
             </tr>
           </tbody>

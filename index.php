@@ -37,7 +37,7 @@
           available for delivery or pickup, Monday to Sunday.
         </h4>
 
-        <a class="hero-cta" href="/food-ordering-system_BSLH/customer/index.php">
+        <a class="hero-cta" href="/index.php">
           Order online 
         </a>
       </div>
