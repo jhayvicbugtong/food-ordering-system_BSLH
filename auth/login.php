@@ -323,7 +323,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <div class="back-link">
-      <a href="/food-ordering-system_BSLH/index_cleaned_full.php">← Back to Customer Page</a>
+      <a href="../index.php">← Back to Customer Page</a>
     </div>
   </main>
 

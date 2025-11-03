@@ -17,7 +17,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <nav class="nav-links">
 
       <a
-        href="/food-ordering-system_BSLH/customer/index.php"
+        href="/food-ordering-system_BSLH/index.php"
         class="<?php echo ($currentPage === 'index.php' ? 'active' : ''); ?>"
       >
         Home
