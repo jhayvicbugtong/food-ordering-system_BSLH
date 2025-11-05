@@ -28,10 +28,21 @@ include __DIR__ . '/includes/header.php';
           <h2>Current Menu</h2>
           <p>Your live items</p>
         </div>
+
+        <div class="rigth">
+           <div class="menu-search-bar mb-3">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" id="searchInput" placeholder="Search here...">
+        </div>
+      </div>
+        </div>
       </div>
 
+     
+
       <div class="table-responsive">
-        <table class="table table-hover" id="menuTable">
+        <table class="table table-hover table-vcenter" id="menuTable">
           <thead>
             <tr>
               <th>Image</th>
@@ -133,6 +144,7 @@ include __DIR__ . '/includes/header.php';
 // --- Define modal variables in a higher scope ---
 let menuModalInstance = null;
 let currentPage = 1; // Keep track of the current page
+let searchTimeout = null; // For search debounce
 
 // --- Setup SweetAlert Toast for success messages ---
 const Toast = Swal.mixin({
@@ -152,10 +164,21 @@ $(document).ready(function() {
     // --- Initialize modal instance ---
     menuModalInstance = new bootstrap.Modal($('#menuModal')[0]);
     
-    // Load initial menu items (page 1)
-    loadMenuItems(currentPage);
+    // Load initial menu items (page 1, no search)
+    loadMenuItems(currentPage, '');
 
     // --- Event Handlers ---
+
+    // NEW: Search input handler (with debounce)
+    $('#searchInput').on('keyup', function() {
+        clearTimeout(searchTimeout); // Clear previous timer
+        const searchTerm = $(this).val();
+        
+        // Set a new timer
+        searchTimeout = setTimeout(function() {
+            loadMenuItems(1, searchTerm); // Always reset to page 1 on a new search
+        }, 400); // Wait 400ms after user stops typing
+    });
 
     // Handle form submission
     $('#menuForm').on('submit', function(e) {
@@ -195,7 +218,7 @@ $(document).ready(function() {
         deleteItem(productId);
     });
     
-    // *** NEW: Pagination click handler ***
+    // UPDATED: Pagination click handler
     $('#paginationNavContainer').on('click', '.page-link', function(e) {
         e.preventDefault();
         const page = $(this).data('page');
@@ -205,23 +228,31 @@ $(document).ready(function() {
             return; // Do nothing if disabled or current
         }
         
-        loadMenuItems(page);
+        // Pass current search term when changing pages
+        const searchTerm = $('#searchInput').val();
+        loadMenuItems(page, searchTerm);
     });
 });
 
 // --- Functions ---
 
-function loadMenuItems(page = 1) {
+// UPDATED: Now accepts a search term
+function loadMenuItems(page = 1, search = '') {
     currentPage = page; // Store the current page
+    const currentSearch = search; // Store current search
+    
     $.ajax({
         url: 'actions/get_menu_items.php',
         type: 'GET',
-        data: { page: page }, // Send page number to server
+        data: { 
+            page: page,
+            search: currentSearch // Send page and search term
+        },
         dataType: 'json', // Expect a JSON response
         success: function(response) {
             if (response.success) {
                 $('#menuTableBody').html(response.html);
-                buildPagination(response.pagination); // Call new function
+                buildPagination(response.pagination);
             } else {
                  Swal.fire({
                     icon: 'error',
@@ -255,7 +286,8 @@ function saveMenuItem() {
                 if (result.success) {
                     Swal.fire('Success!', result.message, 'success');
                     resetForm();
-                    loadMenuItems(currentPage); // Reload the CURRENT page
+                    // Reload the current page and search
+                    loadMenuItems(currentPage, $('#searchInput').val()); 
                     menuModalInstance.hide();
                 } else {
                     Swal.fire({
@@ -344,7 +376,8 @@ function deleteItem(productId) {
                 success: function(res) {
                     if (res.success) {
                         Swal.fire('Deleted!', res.message, 'success');
-                        loadMenuItems(currentPage); // Reload the CURRENT page
+                        // Reload the current page and search
+                        loadMenuItems(currentPage, $('#searchInput').val());
                     } else {
                         Swal.fire('Error!', res.message, 'error');
                     }
@@ -363,7 +396,7 @@ function resetForm() {
     $('#imagePreview').html('');
 }
 
-// *** NEW: Function to build pagination links ***
+// UPDATED: Function to build pagination links
 function buildPagination(pagination) {
     const { currentPage, totalPages } = pagination;
     const container = $('#paginationNavContainer .pagination');
