@@ -1,5 +1,5 @@
 <footer class="site-footer">
-  <p>&copy; <?= date('Y') ?> Avocado Admin · Internal Use Only</p>
+  <p>&copy; <?= date('Y') ?> Bente Sais Admin · Internal Use Only</p>
 </footer>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
