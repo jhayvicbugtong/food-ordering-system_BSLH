@@ -99,9 +99,13 @@
     </div>
   </div>
 
-  <a class="checkout-btn" href="/food-ordering-system_BSLH/customer/checkout.php">
+  <!-- <a class="checkout-btn" href="/food-ordering-system_BSLH/customer/checkout.php">
   Go to checkout
-</a>
+</a> -->
+<button type="button" class="checkout-btn" onclick="window.location.href='/food-ordering-system_BSLH/customer/checkout.php'">
+  Go to checkout
+</button>
+
 
 
 </aside>

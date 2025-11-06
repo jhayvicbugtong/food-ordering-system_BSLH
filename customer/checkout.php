@@ -370,7 +370,7 @@ function renderSummaryFromCart() {
   const deliveryEl = document.getElementById('summaryDelivery');
   const totalEl = document.getElementById('summaryTotal');
 
-  if (!itemsEl || !subtotalEl || !deliveryEl || !totalEl) return; // safe-guard if IDs are missing
+  if (!itemsEl || !subtotalEl || !deliveryEl || !totalEl) return;
 
   itemsEl.innerHTML = '';
 
@@ -403,16 +403,13 @@ function renderSummaryFromCart() {
     itemsEl.appendChild(line);
   });
 
-  // set amounts (no tip yet)
   subtotalEl.textContent = currency(cart.subtotal || 0);
   deliveryEl.textContent = currency(cart.deliveryFee || 0);
 
-  // default tip % is 0 if .currentTipPercent not set
   const tipPercent = window.currentTipPercent ?? 0;
   const tipValue = (cart.subtotal || 0) * (tipPercent / 100);
   totalEl.textContent = currency((cart.subtotal || 0) + (cart.deliveryFee || 0) + tipValue);
 
-  // wire quantity +/- edits
   itemsEl.querySelectorAll('.mini-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const name = btn.getAttribute('data-name');
@@ -424,17 +421,15 @@ function renderSummaryFromCart() {
       if (action === 'plus') c.items[idx].qty += 1;
       if (action === 'minus') c.items[idx].qty = Math.max(1, c.items[idx].qty - 1);
 
-      // recompute subtotal/total
       c.subtotal = c.items.reduce((s,i)=> s + i.qty * i.unitPrice, 0);
       c.total = c.subtotal + (c.deliveryFee || 0);
       localStorage.setItem('bslh_cart', JSON.stringify(c));
 
-      renderSummaryFromCart(); // re-render with same tipPercent
+      renderSummaryFromCart();
       applyTipPercent(window.currentTipPercent ?? 0);
     });
   });
 
-  // clicking "Edit" goes back to menu to adjust
   itemsEl.querySelectorAll('.edit-link').forEach(a => {
     a.addEventListener('click', (e) => {
       e.preventDefault();
@@ -453,7 +448,7 @@ function applyTipPercent(pct) {
   if (totalEl) totalEl.textContent = currency(subtotal + delivery + tip);
 }
 
-/* Tip buttons (checkout right panel) */
+/* Tip buttons */
 (function initTipButtons(){
   const group = document.getElementById('tipButtons');
   if (!group) return;
@@ -493,52 +488,68 @@ function cancelCheckout() {
   }
 }
 
-/* Highlight selected radios within their groups */
-document.querySelectorAll('.split-col, .checkout-card').forEach(group => {
-  const radios = group.querySelectorAll('input[type="radio"]');
-  radios.forEach(radio => {
-    radio.addEventListener('change', function() {
-      group.querySelectorAll('.radio-block').forEach(lbl => lbl.classList.remove('selected'));
-      this.closest('.radio-block').classList.add('selected');
+/* ===========================
+   RADIO HIGHLIGHTS (by name)
+   =========================== */
+/* This makes each group independent: Payment, Order type, When */
+(function initRadioHighlights(){
+  const addressCard = document.getElementById('addressCard');
+
+  function bindRadioGroupByName(name, options = {}) {
+    const radios = Array.from(document.querySelectorAll(`input[type="radio"][name="${name}"]`));
+    if (!radios.length) return;
+
+    const update = () => {
+      radios.forEach(r => {
+        const block = r.closest('.radio-block');
+        if (block) block.classList.toggle('selected', r.checked);
+      });
+
+      // optional per-group side effects
+      if (options.afterUpdate) options.afterUpdate();
+    };
+
+    radios.forEach(r => {
+      r.addEventListener('change', update);
+
+      // Make the whole label clickable + update highlight instantly
+      const block = r.closest('.radio-block');
+      if (block) {
+        block.addEventListener('click', (e) => {
+          const input = block.querySelector('input[type="radio"]');
+          if (input && !input.checked) {
+            input.checked = true;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        });
+      }
     });
+
+    // initial state
+    update();
+  }
+
+  // Payment group
+  bindRadioGroupByName('payment_method');
+
+  // Order type group (also toggles the Address card visibility)
+  bindRadioGroupByName('ordertype', {
+    afterUpdate: () => {
+      const selected = document.querySelector(`input[name="ordertype"]:checked`);
+      if (addressCard) {
+        addressCard.classList.toggle('hidden', !selected || selected.value !== 'delivery');
+      }
+    }
   });
-});
 
-/* Delivery vs Pickup toggle (step1) */
-const radioDelivery = document.getElementById('radioDelivery');
-const radioPickup   = document.getElementById('radioPickup');
-const addressCard   = document.getElementById('addressCard');
-
-function activateDelivery() {
-  if (!radioDelivery || !radioPickup || !addressCard) return;
-  radioDelivery.classList.add('selected');
-  radioDelivery.querySelector('input').checked = true;
-
-  radioPickup.classList.remove('selected');
-  radioPickup.querySelector('input').checked = false;
-
-  addressCard.classList.remove('hidden');
-}
-
-function activatePickup() {
-  if (!radioDelivery || !radioPickup || !addressCard) return;
-  radioPickup.classList.add('selected');
-  radioPickup.querySelector('input').checked = true;
-
-  radioDelivery.classList.remove('selected');
-  radioDelivery.querySelector('input').checked = false;
-
-  addressCard.classList.add('hidden');
-}
-
-if (radioDelivery) radioDelivery.addEventListener('click', activateDelivery);
-if (radioPickup)   radioPickup.addEventListener('click', activatePickup);
+  // When group
+  bindRadioGroupByName('when');
+})();
 
 /* ===========================
    CONFIRMATION (STEP 2)
    =========================== */
 
-/* Render the confirmation (left and right columns) from snapshot/localStorage */
 function hydrateConfirmation() {
   const last = JSON.parse(localStorage.getItem('bslh_last_order') || '{}');
   const cart = last.cart || getCart();
@@ -548,7 +559,6 @@ function hydrateConfirmation() {
   const tipEl   = document.getElementById('confirmTip');
   const totEl   = document.getElementById('confirmTotal');
 
-  // If confirmation block isn't on this view, just skip
   if (itemsEl && subEl && tipEl && totEl) {
     itemsEl.innerHTML = '';
 
@@ -579,7 +589,6 @@ function hydrateConfirmation() {
     }
   }
 
-  // Right-side meta (guard each in case IDs are not present yet)
   const orderTypeEl = document.getElementById('confirmOrderType');
   const orderTimeEl = document.getElementById('confirmOrderTime');
   const paymentEl   = document.getElementById('confirmPayment');
@@ -609,11 +618,9 @@ if (placeOrderBtn) {
   placeOrderBtn.addEventListener('click', function () {
     const cart = getCart();
 
-    // tip from checkout UI
     const tipPercent = Number(window.currentTipPercent ?? 0);
     const tipValue   = (cart.subtotal || 0) * (tipPercent / 100);
 
-    // gather payment / order type / when
     const paymentLabel = document.querySelector('input[name="payment_method"]:checked')
       ?.closest('.radio-left')?.querySelector('span')?.textContent?.trim() || '';
 
@@ -623,40 +630,33 @@ if (placeOrderBtn) {
     const whenVal = document.querySelector('input[name="when"]:checked')?.value || 'asap';
     const orderTimeMsg = (whenVal === 'asap') ? 'As soon as possible' : 'For your chosen time';
 
-    // contact fields
     const firstName = document.querySelector('input[placeholder="first name"]')?.value || '';
     const lastName  = document.querySelector('input[placeholder="last name"]')?.value  || '';
     const phone     = document.querySelector('input[placeholder="+63 956 244 6616"]')?.value || '';
     const email     = document.querySelector('input[type="email"]')?.value || '';
 
-    // snapshot
     const snapshot = { cart, tipPercent, tipValue, paymentLabel, orderType, orderTimeMsg, firstName, lastName, phone, email };
     localStorage.setItem('bslh_last_order', JSON.stringify(snapshot));
 
-    // hide checkout form, show confirmation
     if (checkoutScreen) checkoutScreen.classList.add('hidden');
     if (confirmScreen)  confirmScreen.classList.remove('hidden');
 
-    // progress dots
     if (step1Dot) { step1Dot.classList.add('done'); step1Dot.classList.remove('active'); }
     if (step2Dot) step2Dot.classList.add('active');
 
-    // render confirmation now
     hydrateConfirmation();
   });
 }
 
 /* Boot */
 document.addEventListener('DOMContentLoaded', function () {
-  renderSummaryFromCart();   // fills the right summary on step 1
-  // default tip 0% active already
-
-  // If user reloads while already on confirmation (step 2), render it
+  renderSummaryFromCart();
   if (confirmScreen && !confirmScreen.classList.contains('hidden')) {
     hydrateConfirmation();
   }
 });
 </script>
+
 
 
 </body>
