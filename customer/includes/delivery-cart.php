@@ -76,7 +76,6 @@
   <div class="cart-header">
     <div>Your order</div>
     <span class="small-note" style="font-size:12px;line-height:1.2;font-weight:500;color:#6c757d;">
-      (sample data)
     </span>
   </div>
 
@@ -88,7 +87,7 @@
   <div class="cart-summary">
     <div class="cart-summary-row">
       <div>Sub-total</div>
-      <div id="cartSubtotal">₱199.00</div>
+      <div id="cartSubtotal">₱0.00</div>
     </div>
     <div class="cart-summary-row">
       <div>Delivery</div>
@@ -96,7 +95,7 @@
     </div>
     <div class="cart-summary-row total">
       <div>Total</div>
-      <div id="cartTotal">₱199.00</div>
+      <div id="cartTotal">₱0.00</div>
     </div>
   </div>
 
