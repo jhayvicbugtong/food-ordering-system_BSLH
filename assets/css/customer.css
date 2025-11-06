@@ -89,12 +89,12 @@ body {
 /* ✅ active state + hover for normal links */
 .nav-links a.active,
 .nav-links a:hover {
-  color: var(--accent);
+  color: #fff;
 }
 
 /* order button base */
 .order-btn {
-  background-color: var(--accent);
+  background-color: rgba(92,250,99,0.4);
   color: #000;
   font-weight: 600;
   font-size: 14px;
