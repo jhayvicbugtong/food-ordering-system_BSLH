@@ -41,15 +41,18 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <!-- ORDER PIPELINE OVERVIEW -->
+    <span id="top"></span>
     <div class="content-card mb-4">
       <div class="content-card-header">
         <div class="left">
           <h2>Order Pipeline</h2>
           <p>Live status of all active orders</p>
         </div>
-        <div class="right">
-          <button class="btn btn-success">View All Orders</button>
-        </div>
+        <!-- <div class="right">
+          <a class="btn btn-success" href="food-ordering-system_BSLH/admin/reports.php">
+            <i class="bi bi-graph-up"></i> View Reports
+          </a>
+        </div> -->
       </div>
 
       <div class="table-responsive">
@@ -117,7 +120,9 @@ include __DIR__ . '/includes/header.php';
           <p>What's selling and how people pay</p>
         </div>
         <div class="right">
-          <button class="btn btn-success">View Reports</button>
+          <a class="btn btn-success" href="reports.php">
+            <i class="bi bi-graph-up"></i> View Reports
+          </a>
         </div>
       </div>
 
@@ -129,7 +134,7 @@ include __DIR__ . '/includes/header.php';
               <thead>
                 <tr>
                   <th>Top Items (Today)</th>
-                  <th>Qty Sold</th>
+                  <th>Qty Sold</sup></th>
                   <th>₱ Sales</th>
                 </tr>
               </thead>

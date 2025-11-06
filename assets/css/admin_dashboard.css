@@ -188,7 +188,7 @@ body {
   flex-wrap: wrap;
   gap: 12px;
   align-items: flex-start;
-  margin-bottom: 16px;
+  
 }
 
 .content-card-header .left h2 {
@@ -343,4 +343,117 @@ body {
 
 .sidebar-overlay.show {
   display: block;
+}
+
+/* ----- Menu Page Enhancements (from user request) ----- */
+
+/* Vertically align table content */
+.table-vcenter td,
+.table-vcenter th {
+  vertical-align: middle;
+}
+
+.menu-table-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.menu-table-img-placeholder {
+  width: 70px;
+  height: 70px;
+  border-radius: 8px;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #adb5bd;
+  font-size: 24px;
+  border: 1px solid #e0e0e0;
+}
+
+.menu-item-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: #212529;
+  margin-bottom: 2px;
+}
+
+.menu-item-desc {
+  font-size: 13px;
+  color: #6c757d;
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-item-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #212529;
+}
+
+.table .btn-group .btn {
+  display: inline-flex; /* Use inline-flex for better alignment */
+  align-items: center;
+  gap: 5px;
+}
+
+/* ----- Modal Form Enhancements (from user request) ----- */
+.modal-content {
+    border-radius: 10px;
+    border: 0;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 16px 24px;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    padding: 12px 24px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #343a40;
+  margin-bottom: 4px;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--avocado-green);
+  box-shadow: 0 0 0 3px rgba(92, 250, 99, 0.3);
+}
+
+#imagePreview .img-thumbnail {
+    max-height: 150px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+}
+
+/* NEW: Search Bar Style */
+.menu-search-bar {
+  max-width: 400px; /* or 100% if you prefer */
+}
+
+.menu-search-bar .form-control {
+  border-left: 0;
+}
+.menu-search-bar .input-group-text {
+  background-color: #fff;
+  border-right: 0;
 }
