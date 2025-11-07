@@ -37,9 +37,9 @@
           available for delivery or pickup, Monday to Sunday.
         </h4>
 
-        <a class="hero-cta" href="/food-ordering-system_BSLH/customer/menu.php">
-          Order online 
-        </a>
+        <a class="hero-cta" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
+  Order online
+</a>
       </div>
 
       <div class="hero-right">
@@ -67,7 +67,9 @@
           garlic rice, crispy toppings, silog meals, and pancit for sharing.
           Everything is cooked fresh, served fast, and priced for barkada.
         </p>
-        <a class="about-cta" href="/food-ordering-system_BSLH/customer/menu.php">Order now</a>
+        <a class="about-cta" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
+  Order now
+</a>
       </div>
     </div>
   </section>
