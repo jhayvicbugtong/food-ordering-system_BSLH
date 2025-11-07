@@ -9,7 +9,7 @@
     <a href="/food-ordering-system_BSLH/customer/about-us.php">About us</a>
     <a href="/food-ordering-system_BSLH/customer/gallery.php">Gallery</a>
     <a href="/food-ordering-system_BSLH/customer/contact.php">Contact</a>
-    <a href="/food-ordering-system_BSLH/customer/menu.php">Order online</a>
+    <a href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">Order online</a>
     <a href="/food-ordering-system_BSLH/auth/login.php">Staff / Admin Login</a>
   </div>
 

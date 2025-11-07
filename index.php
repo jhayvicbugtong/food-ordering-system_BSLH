@@ -37,8 +37,9 @@
           available for delivery or pickup, Monday to Sunday.
         </h4>
 
-        <a class="hero-cta" href="/food-ordering-system_BSLH/customer/menu.php">
-          Order online 
+        <!-- Go to customer login, then redirect to menu.php -->
+        <a class="hero-cta" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
+          Order online
         </a>
       </div>
 
@@ -67,7 +68,11 @@
           garlic rice, crispy toppings, silog meals, and pancit for sharing.
           Everything is cooked fresh, served fast, and priced for barkada.
         </p>
-        <a class="about-cta" href="/food-ordering-system_BSLH/customer/index.php">Order now</a>
+
+        <!-- Go to customer login, then redirect to menu.php -->
+        <a class="about-cta" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
+          Order now
+        </a>
       </div>
     </div>
   </section>
@@ -106,7 +111,7 @@
     </div>
   </section>
 
-  <!-- MIDDLE SPLIT SECTION (like the avocado "healthy / desserts / coffee / fresh") -->
+  <!-- MIDDLE SPLIT SECTION -->
   <section class="middle-split-section">
     <div class="middle-split-inner">
       <div class="col-split split-text-block">
@@ -155,7 +160,8 @@
           and silog packs. Message us, and we'll prep based on your schedule.
         </h4>
         <div class="cta-center-btn">
-          <a class="cta-btn" href="/food-ordering-system_BSLH/customer/index.php">
+          <!-- Go to customer login, then redirect to menu.php -->
+          <a class="cta-btn" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
             Order online
           </a>
         </div>

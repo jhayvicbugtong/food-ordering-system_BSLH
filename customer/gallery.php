@@ -118,7 +118,7 @@
           You can order bowls, silog, pancit trays, and more online.
           We’ll prep it fresh for pickup or delivery.
         </p>
-        <a class="gallery-cta-btn" href="/food-ordering-system_BSLH/customer/menu.php">
+        <a class="gallery-cta-btn" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
           Order online
         </a>
       </div>

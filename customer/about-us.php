@@ -146,7 +146,7 @@
           silog sets for sharing. Message us, or order directly from the site.
         </p>
 
-        <a class="cta-btn" href="/food-ordering-system_BSLH/customer/menu.php">
+        <a class="cta-btn" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
           Order online
         </a>
       </div>
