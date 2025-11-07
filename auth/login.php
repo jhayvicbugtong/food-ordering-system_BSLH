@@ -3,40 +3,66 @@ require_once __DIR__ . '/../includes/db_connect.php';
 session_start();
 
 $error = '';
+$emailVal = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
+    $email    = trim($_POST['email'] ?? '');
+    $password = (string)($_POST['password'] ?? '');
+    $emailVal = $email;
 
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $user = $result->fetch_assoc();
-
-    // NOTE: currently plain-text password check
-    if ($user && $password === $user['password']) {
-    $_SESSION['user_id'] = $user['id'];
-    $_SESSION['name']    = $user['name'];
-    $_SESSION['role']    = $user['role'];
-
-    $role = strtolower(trim($user['role']));
-
-    if ($role === 'admin') {
-        header("Location: ../admin/index.php");
-        exit();
-    } elseif ($role === 'staff') {
-        header("Location: ../staff/index.php");
-        exit();
+    if ($email === '' || $password === '') {
+        $error = 'Please enter your email and password.';
     } else {
-        $error = "Unauthorized role.";
+        // Case-insensitive match on email
+        $stmt = $conn->prepare("SELECT id, name, email, password, role FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user   = $result->fetch_assoc();
+        $stmt->close();
+
+        $ok = false;
+        if ($user) {
+            $stored = (string)($user['password'] ?? '');
+
+            if ($stored === '' || $stored === 'NULL') {
+                $error = 'This account has no password set. Ask an admin to set one.';
+            } else {
+                // Accept modern hashed passwords OR legacy plaintext
+                if (strpos($stored, '$') === 0) {
+                    // bcrypt/argon hash
+                    $ok = password_verify($password, $stored);
+                } else {
+                    // legacy plaintext fallback
+                    $ok = hash_equals($stored, $password);
+                }
+            }
+        }
+
+        if ($ok) {
+            $role = strtolower(trim((string)($user['role'] ?? '')));
+
+            if ($role !== 'admin' && $role !== 'staff') {
+                // This portal is only for staff/admin
+                $error = 'Unauthorized role for this portal. Please use the customer login.';
+            } else {
+                // Set session keys
+                $_SESSION['user_id'] = (int)$user['id'];
+                $_SESSION['name']    = (string)$user['name'];
+                $_SESSION['role']    = $role;
+
+                if ($role === 'admin') {
+                    header("Location: ../admin/index.php");
+                } else { // staff
+                    header("Location: ../staff/index.php");
+                }
+                exit();
+            }
+        } elseif (!$error) {
+            $error = "Invalid email or password!";
+        }
     }
-} else {
-    $error = "Invalid email or password!";
 }
-
-}
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -59,9 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       --radius-lg: 16px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -74,7 +98,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       color: #212529;
     }
 
-    /* Outer shell */
     .auth-shell {
       background: var(--bg-card);
       border-radius: var(--radius-lg);
@@ -86,7 +109,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       border: 1px solid var(--border-card);
     }
 
-    /* Left side branding */
     .auth-aside {
       background-color: var(--bg-dark);
       color: var(--text-light);
@@ -99,7 +121,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       position: relative;
     }
 
-    /* green accent bar on the top-left */
     .auth-aside::before {
       content: "";
       position: absolute;
@@ -152,12 +173,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       color: var(--text-dim);
     }
 
-    .aside-bottom strong {
-      color: #fff;
-      font-weight: 500;
-    }
+    .aside-bottom strong { color: #fff; font-weight: 500; }
 
-    /* Right side form */
     .auth-main {
       flex: 1;
       padding: 32px;
@@ -167,9 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       justify-content: center;
     }
 
-    .auth-header {
-      margin-bottom: 24px;
-    }
+    .auth-header { margin-bottom: 24px; }
 
     .auth-header h2 {
       margin: 0;
@@ -186,24 +201,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       line-height: 1.4;
     }
 
-    .alert-danger {
-      font-size: 14px;
-      padding: 10px 12px;
-      border-radius: 8px;
-    }
+    .alert-danger { font-size: 14px; padding: 10px 12px; border-radius: 8px; }
 
-    .form-label {
-      font-size: 13px;
-      font-weight: 500;
-      color: #343a40;
-      margin-bottom: 4px;
-    }
+    .form-label { font-size: 13px; font-weight: 500; color: #343a40; margin-bottom: 4px; }
 
-    .form-control {
-      font-size: 14px;
-      border-radius: 8px;
-      padding: 10px 12px;
-    }
+    .form-control { font-size: 14px; border-radius: 8px; padding: 10px 12px; }
 
     .btn-login {
       background-color: var(--accent);
@@ -217,42 +219,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       cursor: pointer;
       box-shadow: 0 8px 20px rgba(92,250,99,0.4);
     }
-    .btn-login:hover {
-      filter: brightness(.92);
-    }
+    .btn-login:hover { filter: brightness(.92); }
 
-    .back-link {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 13px;
-    }
+    .back-link { text-align: center; margin-top: 20px; font-size: 13px; }
+    .back-link a { color: #6c757d; text-decoration: none; }
+    .back-link a:hover { color: #000; }
 
-    .back-link a {
-      color: #6c757d;
-      text-decoration: none;
-    }
-    .back-link a:hover {
-      color: #000;
-    }
-
-    /* Mobile layout: stack */
     @media (max-width: 700px) {
-      .auth-shell {
-        flex-direction: column;
-        width: 420px;
-        max-width: 94%;
-      }
-      .auth-aside {
-        width: 100%;
-        min-width: 100%;
-        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-      }
-      .auth-main {
-        width: 100%;
-      }
-      .site-footer {
-        margin-top: 24px;
-      }
+      .auth-shell { flex-direction: column; width: 420px; max-width: 94%; }
+      .auth-aside { width: 100%; min-width: 100%; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+      .auth-main { width: 100%; }
+      .site-footer { margin-top: 24px; }
     }
   </style>
 </head>
@@ -264,9 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <aside class="auth-aside">
     <div>
       <div class="brand-block">
-        <div class="brand-logo">
-          BS
-        </div>
+        <div class="brand-logo">BS</div>
         <div class="brand-text">
           <h1>Bente Sais Lomi House</h1>
           <p>Staff & Admin Portal</p>
@@ -306,6 +281,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           name="email"
           class="form-control"
           required
+          value="<?= htmlspecialchars($emailVal) ?>"
           placeholder="you@example.com">
       </div>
 
