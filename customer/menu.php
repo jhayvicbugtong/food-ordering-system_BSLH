@@ -255,10 +255,10 @@ usort($categories, fn($a,$b)=>strcmp($a['label'],$b['label'])); // sort by label
 
       // rebuild from storage
       const cart = getCart();
-      if (cart.items.length) {
-        cart.items.forEach(it => appendOrUpdateLine(it.name, it.unitPrice, it.qty));
-        updateCartTotals();
-      }
+if (cart.items.length) {
+  cart.items.forEach(it => appendOrUpdateLine(it.name, it.unitPrice, it.qty, { fromStorage: true }));
+  updateCartTotals(); // okay to compute/sync totals; no qty changes happen here
+}
 
       addButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -273,53 +273,73 @@ usort($categories, fn($a,$b)=>strcmp($a['label'],$b['label'])); // sort by label
         });
       });
 
-      function appendOrUpdateLine(name, unitPrice, addQty) {
-        // DOM
-        const existingLine = Array.from(cartItemsEl.querySelectorAll('.cart-line'))
-          .find(line => line.querySelector('.cart-line-name').textContent.includes(name));
+      function appendOrUpdateLine(name, unitPrice, addQty, opts = {}) {
+  const fromStorage = !!opts.fromStorage;
 
-        // cart obj
-        const existingIdx = cart.items.findIndex(i => i.name === name);
+  // Find existing DOM line by exact name (avoid `.includes`)
+  let existingLine = null;
+  cartItemsEl.querySelectorAll('.cart-line').forEach(line => {
+    if (line.dataset.name === name) existingLine = line;
+  });
 
-        if (existingLine) {
-          const nameElem = existingLine.querySelector('.cart-line-name');
-          const priceElem = existingLine.querySelector('.cart-line-price');
+  // Find existing cart entry
+  const existingIdx = cart.items.findIndex(i => i.name === name);
+  const currentCartQty = existingIdx > -1 ? Number(cart.items[existingIdx].qty || 0) : 0;
 
-          const currentQty = parseInt(nameElem.textContent.match(/^(\d+)x/)?.[1] || 1);
-          const newQty = currentQty + addQty;
-          const newTotal = unitPrice * newQty;
+  // Target quantity to show/write
+  // - when rebuilding from storage: the qty we pass in is already the exact qty to display
+  // - on user add: increase existing cart qty by addQty
+  const targetQty = fromStorage ? addQty : (currentCartQty + addQty);
 
-          nameElem.textContent = `${newQty}x ${name}`;
-          priceElem.textContent = `₱${newTotal.toFixed(2)}`;
+  if (existingLine) {
+    // Update DOM
+    const nameElem  = existingLine.querySelector('.cart-line-name');
+    const priceElem = existingLine.querySelector('.cart-line-price');
+    nameElem.textContent  = `${targetQty}x ${name}`;
+    priceElem.textContent = `₱${(unitPrice * targetQty).toFixed(2)}`;
 
-          if (existingIdx > -1) cart.items[existingIdx] = { name, qty: newQty, unitPrice };
-        } else {
-          const cartLine = document.createElement('div');
-          cartLine.classList.add('cart-line');
-          const lineTotal = unitPrice * addQty;
-          cartLine.innerHTML = `
-            <div class="cart-line-main">
-              <div class="cart-line-name">${addQty}x ${name}</div>
-            </div>
-            <div class="cart-line-right">
-              <div class="cart-line-price">₱${lineTotal.toFixed(2)}</div>
-              <button class="cart-delete-btn" type="button" title="Remove">
-                <i class="bi bi-trash" style="color:#d00; font-size:14px;"></i>
-              </button>
-            </div>
-          `;
-          cartLine.querySelector('.cart-delete-btn').addEventListener('click', () => {
-            cartLine.remove();
-            const idx = cart.items.findIndex(i => i.name === name);
-            if (idx > -1) cart.items.splice(idx, 1);
-            updateCartTotals();
-          });
-          cartItemsEl.appendChild(cartLine);
+    // Update cart ONLY on user add
+    if (!fromStorage && existingIdx > -1) {
+      cart.items[existingIdx].qty = targetQty;
+      cart.items[existingIdx].unitPrice = unitPrice; // keep price in sync
+    }
+  } else {
+    // Create DOM line
+    const cartLine = document.createElement('div');
+    cartLine.classList.add('cart-line');
+    cartLine.dataset.name = name; // exact key
+    const lineTotal = unitPrice * targetQty;
+    cartLine.innerHTML = `
+      <div class="cart-line-main">
+        <div class="cart-line-name">${targetQty}x ${name}</div>
+      </div>
+      <div class="cart-line-right">
+        <div class="cart-line-price">₱${lineTotal.toFixed(2)}</div>
+        <button class="cart-delete-btn" type="button" title="Remove">
+          <i class="bi bi-trash" style="color:#d00; font-size:14px;"></i>
+        </button>
+      </div>
+    `;
+    cartLine.querySelector('.cart-delete-btn').addEventListener('click', () => {
+      cartLine.remove();
+      const idx = cart.items.findIndex(i => i.name === name);
+      if (idx > -1) cart.items.splice(idx, 1);
+      updateCartTotals();
+    });
+    cartItemsEl.appendChild(cartLine);
 
-          if (existingIdx > -1) cart.items[existingIdx].qty += addQty;
-          else cart.items.push({ name, qty: addQty, unitPrice });
-        }
+    // Update cart ONLY on user add
+    if (!fromStorage) {
+      if (existingIdx > -1) {
+        cart.items[existingIdx].qty = targetQty;
+        cart.items[existingIdx].unitPrice = unitPrice;
+      } else {
+        cart.items.push({ name, qty: targetQty, unitPrice });
       }
+    }
+  }
+}
+
 
       function updateCartTotals() {
         let subtotal = 0;

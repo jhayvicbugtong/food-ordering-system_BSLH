@@ -25,64 +25,21 @@
     </div>
   </div>
 
-  <!-- FULFILLMENT BOX (delivery / pickup + address / pickup time) -->
-  <div class="fulfillment-card">
-    <!-- mode dropdown row -->
-    <div class="fulfillment-row">
-      <button class="fulfillment-mode-btn" id="fulfillmentModeBtn">
-        <i class="bi bi-truck" id="fulfillmentModeIcon"></i>
-        <span id="fulfillmentModeText">Delivery</span>
-        <i class="bi bi-caret-down-fill caret"></i>
-      </button>
-
-      <!-- dropdown menu -->
-      <div class="fulfillment-dropdown" id="fulfillmentDropdown" style="display:none;">
-        <button class="fulfillment-option active" data-mode="delivery">
-          <i class="bi bi-truck"></i>
-          <span>Delivery</span>
-        </button>
-        <button class="fulfillment-option" data-mode="pickup">
-          <i class="bi bi-bag-check"></i>
-          <span>Pickup</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- address / pickup section -->
-    <div class="fulfillment-extra" id="fulfillmentExtra">
-      <!-- Delivery mode view (shown by default) -->
-      <button class="address-btn" id="addressBtn">
-        <i class="bi bi-geo-alt-fill"></i>
-        <span id="addressText">Enter delivery address</span>
-      </button>
-
-      <!-- Pickup mode view (hidden initially) -->
-      <div class="pickup-info" id="pickupInfo" style="display:none;">
-        <div class="pickup-label">
-          <i class="bi bi-shop"></i>
-          <div class="pickup-lines">
-            <div class="pickup-title">Pickup</div>
-            <div class="pickup-time">ASAP • Ready in ~15 min</div>
-          </div>
-        </div>
-        <button class="pickup-change-btn" id="pickupChangeBtn">
-          Change
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CART -->
+   <!-- CART -->
   <div class="cart-header">
     <div>Your order</div>
     <span class="small-note" style="font-size:12px;line-height:1.2;font-weight:500;color:#6c757d;">
     </span>
   </div>
 
-  <div class="cart-items" id="cartItems">
-    <!-- Example cart line -->
-    
+  <!-- FULFILLMENT BOX (delivery / pickup + address / pickup time) -->
+  <div class="fulfillment-card cart-items" id="cartItems">
+
   </div>
+
+ 
+
+ 
 
   <div class="cart-summary">
     <div class="cart-summary-row">

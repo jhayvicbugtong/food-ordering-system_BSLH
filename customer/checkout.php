@@ -39,6 +39,13 @@ $payment_label  = "Credit/Debit Card (On Delivery or Pickup)";
 
 </head>
 
+  <style>
+  .input-error { border-color:#EF4444 !important; outline-color:#EF4444 !important; }
+  .input-err-msg { color:#B91C1C; font-size:12px; margin-top:6px; }
+  .field-wrap { display:flex; flex-direction:column; }
+</style>
+
+
 <body class="checkout-page">
 
 <?php include __DIR__ . '/includes/header.php'; ?>
@@ -78,17 +85,19 @@ $payment_label  = "Credit/Debit Card (On Delivery or Pickup)";
     <div class="checkout-card">
   <h2 class="checkout-block-title">Payment</h2>
 
-  <label class="radio-block selected">
+  <!-- GCash -->
+  <label class="radio-block selected" id="rbGcash">
     <div class="radio-left">
-      <input type="radio" name="payment_method" value="card" checked>
-      <span>Credit/Debit Card (On Delivery or Pickup)</span>
+      <input type="radio" name="payment_method" value="gcash" checked>
+      <span>GCash</span>
     </div>
     <div class="radio-right">
       <i class="bi bi-credit-card"></i>
     </div>
   </label>
 
-  <label class="radio-block">
+  <!-- Cash -->
+  <label class="radio-block" id="rbCash">
     <div class="radio-left">
       <input type="radio" name="payment_method" value="cash">
       <span>Cash</span>
@@ -98,6 +107,51 @@ $payment_label  = "Credit/Debit Card (On Delivery or Pickup)";
     </div>
   </label>
 </div>
+
+<!-- GCASH PAYMENT MODAL -->
+<div class="addr-modal-overlay" id="gcashModalOverlay" style="display:none;">
+  <div class="addr-modal" role="dialog" aria-labelledby="gcashTitle" aria-modal="true">
+    <div class="addr-modal-header">
+      <div class="addr-modal-mode-select">
+        <div class="addr-mode-label" id="gcashTitle">GCash Payment</div>
+        <button class="addr-mode-toggle" type="button" disabled>
+          <span>Details</span>
+          <i class="bi bi-wallet2"></i>
+        </button>
+      </div>
+      <button class="addr-close-btn" id="gcashCloseBtn" type="button" aria-label="Close">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="addr-input-block">
+      <label class="addr-input-label" style="gap:8px;">
+        <i class="bi bi-person"></i>
+        <input type="text" id="gcashName" class="addr-input" placeholder="GCash name of the sender" autocomplete="off">
+      </label>
+
+      <label class="addr-input-label" style="gap:8px; margin-top:8px;">
+        <i class="bi bi-cash-coin"></i>
+        <input type="number" id="gcashAmount" class="addr-input" min="0" step="0.01" placeholder="Amount sent (incl. ₱5 fee)">
+      </label>
+      <small style="color:#6B7280; display:block; margin:6px 0 0 34px;">
+        Note: Please add <b>₱5.00</b> for the transaction fee. Suggested: <b id="gcashSuggested">—</b>
+      </small>
+
+      <label class="addr-input-label" style="gap:8px; margin-top:8px;">
+        <i class="bi bi-upc-scan"></i>
+        <input type="text" id="gcashRef" class="addr-input" placeholder="GCash reference number" autocomplete="off">
+      </label>
+
+      <div id="gcashError" style="display:none; margin-top:10px; color:#B91C1C; background:#FEF2F2; border:1px solid #FECACA; padding:8px 10px; border-radius:8px; font-size:13px;"></div>
+    </div>
+
+    <button class="addr-confirm-btn" id="gcashConfirmBtn" type="button">
+      Save GCash details
+    </button>
+  </div>
+</div>
+
 
     <!-- ORDER TYPE + WHEN -->
     <div class="checkout-card split-two">
@@ -136,6 +190,55 @@ $payment_label  = "Credit/Debit Card (On Delivery or Pickup)";
     </div>
   </label>
 </div>
+<!-- DELIVERY TIME MODAL (reusing your addr-modal styles) -->
+<div class="addr-modal-overlay" id="timeModalOverlay" style="display:none;">
+  <div class="addr-modal">
+    <div class="addr-modal-header">
+      <div class="addr-modal-mode-select">
+        <div class="addr-mode-label">When</div>
+        <button class="addr-mode-toggle" type="button" disabled>
+          <span>Specific time</span>
+          <i class="bi bi-clock-history"></i>
+        </button>
+      </div>
+
+      <button class="addr-close-btn" id="timeCloseBtn" type="button" aria-label="Close">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- TIME PICKER CONTENT -->
+    <div class="addr-input-block">
+      <label class="addr-input-label" style="gap:8px;">
+        <i class="bi bi-calendar-date"></i>
+        <input type="date" id="timeDate" class="addr-input" />
+      </label>
+
+      <label class="addr-input-label" style="gap:8px; margin-top:8px;">
+        <i class="bi bi-alarm"></i>
+        <input type="time" id="timeTime" class="addr-input" step="300"/>
+      </label>
+
+      <!-- quick picks -->
+      <div class="addr-controls-row" style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+        <button type="button" class="addr-small-btn time-chip" data-mins="30">+30 min</button>
+        <button type="button" class="addr-small-btn time-chip" data-mins="60">+1 hr</button>
+        <button type="button" class="addr-small-btn time-chip" data-mins="90">+1.5 hr</button>
+        <button type="button" class="addr-small-btn time-chip" data-mins="120">+2 hr</button>
+        <small id="timeNote" style="color:#6B7280; margin-left:4px;">Lead time: <b>15 min</b></small>
+      </div>
+
+      <!-- inline error -->
+      <div id="timeError" style="display:none; margin-top:8px; color:#B91C1C; background:#FEF2F2; border:1px solid #FECACA; padding:8px 10px; border-radius:8px; font-size:13px;"></div>
+    </div>
+
+    <!-- CONFIRM BUTTON -->
+    <button class="addr-confirm-btn" id="timeConfirmBtn" type="button">
+      Use this time
+    </button>
+  </div>
+</div>
+
     </div>
 
     <!-- ADDRESS -->
@@ -153,42 +256,16 @@ $payment_label  = "Credit/Debit Card (On Delivery or Pickup)";
         <input class="form-input" type="text" placeholder="Street / purok / house no.">
       </div>
 
-      <div class="form-row two-col">
-        <div class="col">
-          <label class="form-label">City *</label>
-          <input class="form-input" type="text" placeholder="City / Barangay">
-        </div>
-        <div class="col">
-          <label class="form-label">ZIP / Postal code</label>
-          <input class="form-input" type="text" placeholder="ZIP / postal">
-        </div>
-      </div>
 
       <div class="form-row two-col">
-        <div class="col">
-          <label class="form-label">State / Province *</label>
-          <select class="form-input">
-            <option>- select -</option>
-            <option>Batangas</option>
-            <!-- <option>Cavite</option>
-            <option>Laguna</option> -->
-          </select>
-        </div>
         <div class="col">
           <label class="form-label">Floor number</label>
           <input class="form-input" type="text" placeholder="Optional">
         </div>
-      </div>
-
-      <div class="form-row two-col">
         <div class="col">
           <label class="form-label">Apt. / Landmark</label>
           <input class="form-input" type="text" placeholder="Apartment, landmark, etc.">
         </div>
-        <!-- <div class="col">
-          <label class="form-label">Company name</label>
-          <input class="form-input" type="text" placeholder="Company / Building">
-        </div> -->
       </div>
     </div>
 
@@ -348,6 +425,331 @@ $payment_label  = "Credit/Debit Card (On Delivery or Pickup)";
 <?php include __DIR__ . '/includes/footer.php'; ?>
 
 <script>
+
+  /* ===========================
+   GCash Modal + Integration
+   =========================== */
+
+/* ---- helpers from your page ---- */
+function currency(n){ return `₱${(Number(n)||0).toFixed(2)}`; }
+function getCart() {
+  try { return JSON.parse(localStorage.getItem('bslh_cart')) || { items:[], subtotal:0, deliveryFee:0, total:0 }; }
+  catch(e){ return { items:[], subtotal:0, deliveryFee:0, total:0 }; }
+}
+function getCurrentTipPercent(){ return Number(window.currentTipPercent ?? 0); }
+function computeCurrentTotalPlusFee(){
+  const cart = getCart();
+  const sub = cart.subtotal || 0;
+  const del = cart.deliveryFee || 0;
+  const tip = sub * (getCurrentTipPercent()/100);
+  const total = sub + del + tip;
+  return { total, suggested: total + 5 };
+}
+
+/* ---- DOM ---- */
+const rbGcash = document.querySelector('input[type="radio"][name="payment_method"][value="gcash"]');
+const rbCash  = document.querySelector('input[type="radio"][name="payment_method"][value="cash"]');
+
+const gcashModalOverlay = document.getElementById('gcashModalOverlay');
+const gcashCloseBtn     = document.getElementById('gcashCloseBtn');
+const gcashConfirmBtn   = document.getElementById('gcashConfirmBtn');
+
+const gcashName   = document.getElementById('gcashName');
+const gcashAmount = document.getElementById('gcashAmount');
+const gcashRef    = document.getElementById('gcashRef');
+const gcashError  = document.getElementById('gcashError');
+const gcashSuggEl = document.getElementById('gcashSuggested');
+
+/* ---- storage ---- */
+function saveGcash(obj){ localStorage.setItem('bslh_gcash_payment', JSON.stringify(obj||{})); }
+function getGcash(){
+  try { return JSON.parse(localStorage.getItem('bslh_gcash_payment')) || null; }
+  catch(e){ return null; }
+}
+
+/* ---- modal open/close ---- */
+function openGcashModal(prefillFromTotals=true){
+  if (prefillFromTotals) {
+    const { suggested } = computeCurrentTotalPlusFee();
+    if (gcashSuggEl) gcashSuggEl.textContent = currency(suggested);
+    if (!gcashAmount.value) gcashAmount.value = suggested.toFixed(2);
+  }
+  gcashError.style.display='none';
+  gcashModalOverlay.style.display='flex';
+}
+function closeGcashModal(){ gcashModalOverlay.style.display='none'; }
+
+if (gcashCloseBtn) gcashCloseBtn.addEventListener('click', closeGcashModal);
+if (gcashModalOverlay) {
+  gcashModalOverlay.addEventListener('click', (e)=>{ if (e.target === gcashModalOverlay) closeGcashModal(); });
+}
+
+/* ---- always-allow reopen by clicking selected GCash card ---- */
+(function wireGcashCardAlwaysOpens(){
+  const block = document.getElementById('rbGcash');
+  if (block) {
+    block.addEventListener('click', (e)=>{
+      if (rbGcash && rbGcash.checked) { // already on GCash -> reopen to edit
+        e.preventDefault();
+        openGcashModal(true);
+      }
+    });
+  }
+})();
+
+/* ---- open modal when GCash chosen the first time ---- */
+if (rbGcash) {
+  rbGcash.addEventListener('change', ()=>{
+    if (rbGcash.checked) {
+      const existing = getGcash();
+      if (!existing) openGcashModal(true);
+    }
+  });
+}
+
+/* ---- optional: clear saved gcash when switching to cash ---- */
+if (rbCash) {
+  rbCash.addEventListener('change', ()=>{
+    if (rbCash.checked) {
+      localStorage.removeItem('bslh_gcash_payment');
+    }
+  });
+}
+
+/* ---- confirm validation + save ---- */
+if (gcashConfirmBtn) {
+  gcashConfirmBtn.addEventListener('click', ()=>{
+    const name = (gcashName.value || '').trim();
+    const ref  = (gcashRef.value || '').trim();
+    const amt  = Number(gcashAmount.value || 0);
+
+    const { suggested } = computeCurrentTotalPlusFee();
+
+    if (!name)  return showGcashError('Please enter the GCash sender name.');
+    if (!amt || isNaN(amt)) return showGcashError('Please enter the amount sent.');
+    if (amt + 1e-6 < suggested) return showGcashError(`Amount must include ₱5 fee. Suggested: ${currency(suggested)}.`);
+    if (ref.length < 6) return showGcashError('Please enter a valid GCash reference number.');
+
+    const payload = { name, amount: amt, reference: ref, suggested };
+    saveGcash(payload);
+
+    // Let other code refresh displays if needed
+    document.dispatchEvent(new CustomEvent('gcash:updated', { detail: payload }));
+
+    closeGcashModal();
+  });
+}
+function showGcashError(msg){
+  gcashError.textContent = msg;
+  gcashError.style.display = 'block';
+}
+
+/* ---- guard Create order if GCash is selected but data missing ---- */
+(function guardPlaceOrderForGcash(){
+  const placeOrderBtn  = document.getElementById('placeOrderBtn');
+  if (!placeOrderBtn) return;
+
+  placeOrderBtn.addEventListener('click', (e)=>{
+    const selectedPay = document.querySelector('input[name="payment_method"]:checked')?.value || '';
+    if (selectedPay !== 'gcash') return; // nothing to do
+
+    const data = getGcash();
+    const { suggested } = computeCurrentTotalPlusFee();
+
+    if (!data || !data.name || !data.reference || !data.amount || (Number(data.amount) + 1e-6 < suggested)) {
+      // open modal and block order creation
+      e.preventDefault();
+      openGcashModal(true);
+      return;
+    }
+
+    // else: continue; your existing “Create order” handler will run
+  }, { capture: true });
+})();
+
+/* ---- if your totals change (tip %, etc.), keep suggested amount fresh ---- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  if (rbGcash?.checked) {
+    const { suggested } = computeCurrentTotalPlusFee();
+    if (gcashSuggEl) gcashSuggEl.textContent = currency(suggested);
+  }
+});
+document.addEventListener('gcash:updated', ()=>{/* hook for UI if desired */});
+
+  /* ===== Specific-time modal config (adjust if needed) ===== */
+const STORE_OPEN_24  = "00:00"; // HH:MM (24h)
+const STORE_CLOSE_24 = "23:59";
+const LEAD_MINUTES   = 15;
+
+/* ===== Elements ===== */
+const timeModalOverlay = document.getElementById('timeModalOverlay');
+const timeCloseBtn     = document.getElementById('timeCloseBtn');
+const timeConfirmBtn   = document.getElementById('timeConfirmBtn');
+const timeDateInput    = document.getElementById('timeDate');
+const timeTimeInput    = document.getElementById('timeTime');
+const timeError        = document.getElementById('timeError');
+
+/* ===== Helpers ===== */
+function pad(n){ return String(n).padStart(2,'0'); }
+function tzOffsetISO(date){
+  const off = -date.getTimezoneOffset();
+  const sign = off >= 0 ? '+' : '-';
+  const hh = pad(Math.floor(Math.abs(off)/60));
+  const mm = pad(Math.abs(off)%60);
+  return `${sign}${hh}:${mm}`;
+}
+function setMinDateToday(){
+  const now = new Date();
+  const y = now.getFullYear(), m = pad(now.getMonth()+1), d = pad(now.getDate());
+  timeDateInput.min = `${y}-${m}-${d}`;
+  if (!timeDateInput.value) timeDateInput.value = `${y}-${m}-${d}`;
+}
+function defaultRoundedTimePlusLead(){
+  const now = new Date(Date.now() + LEAD_MINUTES*60000);
+  const roundedMs = Math.ceil(now.getTime()/(5*60000))*(5*60000);
+  const rounded = new Date(roundedMs);
+  timeTimeInput.value = `${pad(rounded.getHours())}:${pad(rounded.getMinutes())}`;
+}
+function clampToStoreHours(dateObj){
+  const [oh, om] = STORE_OPEN_24.split(':').map(Number);
+  const [ch, cm] = STORE_CLOSE_24.split(':').map(Number);
+  const d = new Date(dateObj);
+  const open = new Date(d);  open.setHours(oh, om, 0, 0);
+  const close= new Date(d); close.setHours(ch, cm, 59, 999);
+  return d >= open && d <= close;
+}
+function applyLeadTimeIfToday(dateStr, timeStr){
+  const now = new Date();
+  const selected = new Date(`${dateStr}T${timeStr}:00`);
+  const minAllowed = new Date(now.getTime() + LEAD_MINUTES*60000);
+  const today = now.toISOString().slice(0,10);
+  if (dateStr === today && selected < minAllowed) {
+    const roundedMs = Math.ceil(minAllowed.getTime()/(5*60000))*(5*60000);
+    const r = new Date(roundedMs);
+    return `${pad(r.getHours())}:${pad(r.getMinutes())}`;
+  }
+  return timeStr;
+}
+function showTimeError(msg){ timeError.style.display='block'; timeError.textContent = msg; }
+function clearTimeError(){ timeError.style.display='none'; timeError.textContent=''; }
+function getSavedSpecificTime(){
+  try { return JSON.parse(localStorage.getItem('bslh_delivery_time')) || null; } catch(e){ return null; }
+}
+
+/* ===== Open/close modal ===== */
+function openTimeModal(){
+  setMinDateToday();
+  defaultRoundedTimePlusLead();
+  clearTimeError();
+  if (timeModalOverlay) timeModalOverlay.style.display='flex';
+}
+function closeTimeModal(){ if (timeModalOverlay) timeModalOverlay.style.display='none'; }
+
+/* overlay click & close button */
+if (timeModalOverlay) {
+  timeModalOverlay.addEventListener('click', (e)=>{ if (e.target === timeModalOverlay) closeTimeModal(); });
+}
+if (timeCloseBtn) timeCloseBtn.addEventListener('click', closeTimeModal);
+
+/* quick chips */
+document.querySelectorAll('.time-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    const mins = Number(chip.dataset.mins || 0);
+    const base = new Date();
+    const t = new Date(base.getTime() + Math.max(mins, LEAD_MINUTES)*60000);
+    const y = t.getFullYear(), m = pad(t.getMonth()+1), d = pad(t.getDate());
+    timeDateInput.value = `${y}-${m}-${d}`;
+    timeTimeInput.value = `${pad(t.getHours())}:${pad(t.getMinutes())}`;
+    clearTimeError();
+  });
+});
+
+/* confirm -> validate & save */
+/* confirm -> validate & save (REPLACEMENT) */
+if (timeConfirmBtn) {
+  timeConfirmBtn.addEventListener('click', ()=>{
+    clearTimeError();
+    const d = timeDateInput.value;
+    const t = timeTimeInput.value;
+    if (!d || !t) { showTimeError('Please choose both date and time.'); return; }
+
+    const adj = applyLeadTimeIfToday(d, t);
+    if (adj !== t) timeTimeInput.value = adj;
+
+    const selected = new Date(`${d}T${timeTimeInput.value}:00`);
+    if (!clampToStoreHours(selected)) {
+      showTimeError(`Selected time is outside store hours (${STORE_OPEN_24}–${STORE_CLOSE_24}).`);
+      return;
+    }
+
+    const payload = {
+      type: 'scheduled',
+      iso: `${d}T${timeTimeInput.value}:00${tzOffsetISO(selected)}`,
+      readable: selected.toLocaleString([], { dateStyle:'medium', timeStyle:'short' })
+    };
+    localStorage.setItem('bslh_delivery_time', JSON.stringify(payload));
+
+    // announce update so other parts can refresh labels
+    document.dispatchEvent(new CustomEvent('deliverytime:updated', { detail: payload }));
+
+    // If you show a label like #whenText elsewhere, update it now (safe if it doesn't exist)
+    const whenText = document.getElementById('whenText');
+    if (whenText) whenText.textContent = payload.readable;
+
+    closeTimeModal();
+  });
+}
+
+
+/* ===== AUTO-TRIGGER WHEN "SPECIFIC" IS CHOSEN ===== */
+(function autoTriggerSpecificRadio(){
+  const radios = document.querySelectorAll('input[type="radio"][name="when"]');
+  if (!radios.length) return;
+
+  let prev = document.querySelector('input[name="when"]:checked')?.value || null;
+
+  function onUpdate() {
+    // highlight the cards if you already do that elsewhere
+    radios.forEach(r=>{
+      const block = r.closest('.radio-block');
+      if (block) block.classList.toggle('selected', r.checked);
+    });
+
+    const current = document.querySelector('input[name="when"]:checked')?.value;
+    const turnedSpecific = (prev !== 'specific' && current === 'specific');
+    prev = current;
+
+    if (turnedSpecific) {
+      const hasSaved = !!getSavedSpecificTime();
+      if (!hasSaved) openTimeModal();
+    }
+  }
+
+  radios.forEach(r=>{
+    r.addEventListener('change', onUpdate);
+
+    // make the whole label clickable (optional / matches your pattern)
+    const block = r.closest('.radio-block');
+    if (block) {
+      block.addEventListener('click', ()=>{
+        const input = block.querySelector('input[type="radio"]');
+        if (input && !input.checked) {
+          input.checked = true;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    }
+  });
+
+  // initial state + open on load if specific is already checked and no saved time yet
+  onUpdate();
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const current = document.querySelector('input[name="when"]:checked')?.value;
+    if (current === 'specific' && !getSavedSpecificTime()) openTimeModal();
+  });
+})();
+
+
 /* ===========================
    CART + CHECKOUT RENDERING
    =========================== */
@@ -655,6 +1057,214 @@ document.addEventListener('DOMContentLoaded', function () {
     hydrateConfirmation();
   }
 });
+
+  /* ===== Make "Specific time" open the modal ALWAYS, and keep UI in sync ===== */
+(function specificTimeAlwaysOpen(){
+  // helper
+  function getSavedSpecificTime(){
+    try { return JSON.parse(localStorage.getItem('bslh_delivery_time')) || null; }
+    catch(e){ return null; }
+  }
+  function updateWhenTextFromStorage(){
+    const lbl = document.getElementById('whenText');
+    if (!lbl) return;
+    const t = getSavedSpecificTime();
+    lbl.textContent = (t && t.readable) ? t.readable : '—';
+  }
+  function openTimePicker(){
+    // handle whichever name you used for the opener
+    if (typeof window.openDeliveryTimeModal === 'function') {
+      window.openDeliveryTimeModal();
+    } else if (typeof window.openTimeModal === 'function') {
+      window.openTimeModal();
+    }
+  }
+
+  const inputSpecific = document.querySelector('input[name="when"][value="specific"]');
+  const inputAsap     = document.querySelector('input[name="when"][value="asap"]');
+  const blockSpecific = inputSpecific ? inputSpecific.closest('.radio-block') : null;
+
+  if (!inputSpecific) return;
+
+  // 1) Open modal when switching to "specific" and no time saved yet
+  inputSpecific.addEventListener('change', ()=>{
+    if (inputSpecific.checked && !getSavedSpecificTime()) {
+      openTimePicker();
+    }
+  });
+
+  // 2) Open modal even if "specific" is already selected (to edit/change)
+  if (blockSpecific) {
+    blockSpecific.addEventListener('click', (e)=>{
+      // If you clicked the same selected block, let you edit the time
+      if (inputSpecific.checked) {
+        e.preventDefault(); // don't toggle anything, just open editor
+        openTimePicker();
+      }
+    });
+    // Keyboard accessibility (Enter/Space on the block)
+    blockSpecific.addEventListener('keydown', (e)=>{
+      if ((e.key === 'Enter' || e.key === ' ') && inputSpecific.checked) {
+        e.preventDefault();
+        openTimePicker();
+      }
+    });
+  }
+
+  // 3) Optional: if switching back to ASAP, clear saved time
+  if (inputAsap) {
+    inputAsap.addEventListener('change', ()=>{
+      if (inputAsap.checked) {
+        localStorage.removeItem('bslh_delivery_time');
+        updateWhenTextFromStorage();
+      }
+    });
+  }
+
+  // 4) Keep any label in sync whenever time changes
+  document.addEventListener('deliverytime:updated', updateWhenTextFromStorage);
+
+  // 5) On load: if "specific" already selected but time missing, open once;
+  //             otherwise just update any label
+  document.addEventListener('DOMContentLoaded', ()=>{
+    updateWhenTextFromStorage();
+    if (inputSpecific.checked && !getSavedSpecificTime()) {
+      openTimePicker();
+    }
+  });
+})();
+
+  /* ===========================
+   REQUIRED-FIELD VALIDATION
+   Blocks "Create order" until valid
+   =========================== */
+
+(function checkoutRequiredValidation(){
+  const placeOrderBtn = document.getElementById('placeOrderBtn');
+  if (!placeOrderBtn) return;
+
+  // --- helpers ---
+  function $(sel, root=document){ return root.querySelector(sel); }
+  function createMsg(msg){
+    const s = document.createElement('div');
+    s.className = 'input-err-msg';
+    s.textContent = msg;
+    return s;
+  }
+  function clearError(el){
+    if (!el) return;
+    el.classList.remove('input-error');
+    const next = el.nextElementSibling;
+    if (next && next.classList.contains('input-err-msg')) next.remove();
+  }
+  function setError(el, msg){
+    if (!el) return;
+    el.classList.add('input-error');
+    // remove old message if any
+    const next = el.nextElementSibling;
+    if (next && next.classList.contains('input-err-msg')) next.remove();
+    el.insertAdjacentElement('afterend', createMsg(msg));
+  }
+  function scrollToFirstError(errEls){
+    if (!errEls.length) return;
+    errEls[0].scrollIntoView({behavior:'smooth', block:'center'});
+    errEls[0].focus?.();
+  }
+  function getScheduledTime(){
+    try { return JSON.parse(localStorage.getItem('bslh_delivery_time')) || null; }
+    catch(e){ return null; }
+  }
+  function getGcash(){
+    try { return JSON.parse(localStorage.getItem('bslh_gcash_payment')) || null; }
+    catch(e){ return null; }
+  }
+  function computeCurrentTotalPlusFee(){
+    // uses your existing getCart & currentTipPercent if present
+    const cart = (typeof getCart === 'function') ? getCart() : {subtotal:0, deliveryFee:0};
+    const sub = cart.subtotal || 0;
+    const del = cart.deliveryFee || 0;
+    const tipPct = Number(window.currentTipPercent ?? 0);
+    const tipVal = sub * (tipPct/100);
+    const total = sub + del + tipVal;
+    return { total, suggested: total + 5 };
+  }
+
+  // Validate email/phone lightly
+  const emailOk = (v)=> /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim());
+  const phoneOk = (v)=> String(v||'').replace(/[^\d]/g,'').length >= 10; // allow +63 or local; min 10 digits
+
+  // Main gate
+  placeOrderBtn.addEventListener('click', function(e){
+    const errs = [];
+
+    // Clear old inline errors
+    [
+      $('input[placeholder="Street / purok / house no."]'),
+      $('input[placeholder="first name"]'),
+      $('input[placeholder="last name"]'),
+      $('input[placeholder="+63 956 244 6616"]'),
+      $('input[type="email"]'),
+    ].forEach(clearError);
+
+    // 1) Required basics
+    const orderType = $('input[name="ordertype"]:checked')?.value || 'delivery';
+    const street    = $('input[placeholder="Street / purok / house no."]');
+    const firstName = $('input[placeholder="first name"]');
+    const lastName  = $('input[placeholder="last name"]');
+    const phone     = $('input[placeholder="+63 956 244 6616"]');
+    const email     = $('input[type="email"]');
+
+    // Street required only if Delivery
+    if (orderType === 'delivery') {
+      if (!street || !street.value.trim()) { setError(street, 'Street is required.'); errs.push(street); }
+    }
+
+    if (!firstName || !firstName.value.trim()) { setError(firstName, 'First name is required.'); errs.push(firstName); }
+    if (!lastName  || !lastName.value.trim())  { setError(lastName,  'Last name is required.');  errs.push(lastName); }
+    if (!phone || !phone.value.trim())         { setError(phone,     'Phone is required.');      errs.push(phone); }
+    else if (!phoneOk(phone.value))            { setError(phone,     'Please enter a valid phone number.'); errs.push(phone); }
+
+    if (!email || !email.value.trim())         { setError(email,     'Email is required.');      errs.push(email); }
+    else if (!emailOk(email.value))            { setError(email,     'Please enter a valid email address.'); errs.push(email); }
+
+    // 2) WHEN validation (specific requires chosen time)
+    const whenVal = $('input[name="when"]:checked')?.value || 'asap';
+    if (whenVal === 'specific') {
+      const t = getScheduledTime();
+      if (!t || !t.readable) {
+        // Open your time modal & block
+        if (typeof window.openTimeModal === 'function') window.openTimeModal();
+        errs.push($('input[name="when"][value="specific"]') || $('input[name="when"]'));
+      }
+    }
+
+    // 3) Payment validation if GCash
+    const payVal = $('input[name="payment_method"]:checked')?.value || '';
+    if (payVal === 'gcash') {
+      const data = getGcash();
+      const { suggested } = computeCurrentTotalPlusFee();
+
+      if (!data || !data.name || !data.reference || !data.amount || (Number(data.amount) + 1e-6 < suggested)) {
+        // Open GCash modal & block
+        if (typeof window.openGcashModal === 'function') window.openGcashModal(true);
+        const gcashBlock = document.getElementById('rbGcash') || $('input[name="payment_method"][value="gcash"]');
+        if (gcashBlock) errs.push(gcashBlock);
+      }
+    }
+
+    // If any errors, stop the default flow (prevents proceeding to step 2)
+    if (errs.length) {
+      e.preventDefault();
+      e.stopImmediatePropagation(); // stop other click handlers for this click
+      scrollToFirstError(errs);
+      return false;
+    }
+    // else allow your existing "Create order" handler to continue
+  }, { capture: true }); // capture ensures we run before your existing handler
+})();
+
+
+
 </script>
 
 
