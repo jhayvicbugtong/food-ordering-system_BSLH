@@ -1,27 +1,36 @@
 <?php
 // admin/reports.php
-// ============ CONFIGURE YOUR DB COLUMN NAMES HERE ============
-// Adjust these if your schema differs.
+include __DIR__ . '/includes/header.php'; // Includes db_connect.php
+include __DIR__ . '/includes/sidebar.php';
+
+// ============ NEW DB CONFIG (online_food_ordering_db.sql) ============
 $DB = [
   'TABLE_ORDERS'   => 'orders',
-  'COL_ID'         => 'id',
-  'COL_CUSTOMER'   => 'customer_name',     // e.g. full name or contact name
-  'COL_TYPE'       => 'order_type',        // e.g. 'Delivery','Pickup','POS'
-  'COL_STATUS'     => 'status',            // e.g. 'pending','preparing','ready','delivered','completed','cancelled'
-  'COL_PAY_STATUS' => 'payment_status',    // 'paid' / 'unpaid'
-  'COL_PAY_METHOD' => 'payment_method',    // 'Cash','GCash','BankTransfer','POS','Walk-in'
-  'COL_TOTAL'      => 'total_amount',      // numeric
-  'COL_CREATED'    => 'created_at',        // DATETIME or TIMESTAMP
-];
+  'TABLE_CUST'     => 'order_customer_details',
+  'TABLE_PAY'      => 'order_payment_details',
+  
+  'COL_ORDER_ID'   => 'order_id', // This is the foreign key in all tables
+  'COL_ORDER_NUM'  => 'order_number',
+  'COL_USER_ID'    => 'user_id',
+  
+  'COL_CUST_NAME'  => 'customer_first_name', // Will combine with last_name
+  'COL_CUST_LNAME' => 'customer_last_name',
+  
+  'COL_TYPE'       => 'order_type',
+  'COL_STATUS'     => 'status', // 'pending','confirmed','preparing','ready','out_for_delivery','delivered','completed','cancelled'
+  
+  'COL_PAY_STATUS' => 'payment_status', // 'pending','paid','failed'
+  'COL_PAY_METHOD' => 'payment_method', // 'cash','gcash','card'
+  'COL_PAY_AMOUNT' => 'amount_paid',
+  'COL_PAY_DATE'   => 'paid_at',
 
+  'COL_TOTAL'      => 'total_amount',
+  'COL_CREATED'    => 'created_at',
+];
 // =============================================================
 
-include __DIR__ . '/includes/header.php';
-include __DIR__ . '/includes/sidebar.php';
-//require_once __DIR__ . '/../customer/includes/db_connect.php'; // mysqli $conn
-
 if (!isset($conn) || !($conn instanceof mysqli)) {
-  die('<div class="alert alert-danger m-4">DB connection not found. Check <code>customer/includes/db_connect.php</code>.</div>');
+  die('<div class="alert alert-danger m-4">DB connection not found. Check <code>includes/db_connect.php</code>.</div>');
 }
 
 // --- Helpers ---
@@ -31,78 +40,109 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 // --- Inputs (defaults: last 7 days) ---
 $start = isset($_GET['start']) && $_GET['start'] !== '' ? $_GET['start'] : date('Y-m-d', strtotime('-6 days'));
 $end   = isset($_GET['end'])   && $_GET['end']   !== '' ? $_GET['end']   : date('Y-m-d');
-
-// Optional: show revenue as PAID only or COMPLETED (delivered+completed)
 $revMode = $_GET['rev_mode'] ?? 'completed'; // 'completed' | 'paid'
-
-// CSV export?
 $isExport = isset($_GET['export']) && $_GET['export'] === '1';
 
 // Build base range
 $from = $start . ' 00:00:00';
 $to   = $end   . ' 23:59:59';
 
-// --- SQL snippets from config ---
-$T = $DB['TABLE_ORDERS'];
-$ID= $DB['COL_ID']; $CUS=$DB['COL_CUSTOMER']; $TYPE=$DB['COL_TYPE']; $STAT=$DB['COL_STATUS'];
-$PST=$DB['COL_PAY_STATUS']; $PM=$DB['COL_PAY_METHOD']; $TOT=$DB['COL_TOTAL']; $CRT=$DB['COL_CREATED'];
+// --- Table Aliases for Queries ---
+$T_O = $DB['TABLE_ORDERS'];
+$T_C = $DB['TABLE_CUST'];
+$T_P = $DB['TABLE_PAY'];
+
+// --- SQL Columns ---
+$O_ID = $DB['COL_ORDER_ID'];
+$O_CREATED = $DB['COL_CREATED'];
+$O_STATUS = $DB['COL_STATUS'];
+$O_TOTAL = $DB['COL_TOTAL'];
+$O_TYPE = $DB['COL_TYPE'];
+$C_FNAME = $DB['COL_CUST_NAME'];
+$C_LNAME = $DB['COL_CUST_LNAME'];
+$P_STATUS = $DB['COL_PAY_STATUS'];
+$P_METHOD = $DB['COL_PAY_METHOD'];
+$P_DATE = $DB['COL_PAY_DATE'];
+$P_AMOUNT = $DB['COL_PAY_AMOUNT'];
+
 
 // Revenue filter
 if ($revMode === 'paid') {
-  $revWhere = "($CRT BETWEEN ? AND ?) AND $PST='paid'";
+  // Revenue is SUM(amount_paid) from 'order_payment_details' where status is 'paid'
+  $revWhere = "($T_P.$P_DATE BETWEEN ? AND ?) AND $T_P.$P_STATUS = 'paid'";
 } else {
-  // delivered/completed count as revenue; adjust if your statuses differ
-  $revWhere = "($CRT BETWEEN ? AND ?) AND $STAT IN ('delivered','completed')";
+  // Revenue is SUM(total_amount) from 'orders' where status is 'delivered' or 'completed'
+  $revWhere = "($T_O.$O_CREATED BETWEEN ? AND ?) AND $T_O.$O_STATUS IN ('delivered','completed')";
 }
 
 // -------- Summary: total sales + total orders ----------
 $sum = ['revenue'=>0,'orders'=>0];
 
-// if ($stmt = $conn->prepare("SELECT COALESCE(SUM($TOT),0) FROM $T WHERE $revWhere")) {
-//   $stmt->bind_param('ss', $from, $to);
-//   $stmt->execute(); $stmt->bind_result($sum['revenue']); $stmt->fetch(); $stmt->close();
-// }
-// if ($stmt = $conn->prepare("SELECT COUNT(*) FROM $T WHERE $CRT BETWEEN ? AND ?")) {
-//   $stmt->bind_param('ss', $from, $to);
-//   $stmt->execute(); $stmt->bind_result($sum['orders']); $stmt->fetch(); $stmt->close();
-// }
+if ($revMode === 'paid') {
+    $sql = "SELECT COALESCE(SUM($T_P.$P_AMOUNT),0) FROM $T_P WHERE $T_P.$P_DATE BETWEEN ? AND ? AND $T_P.$P_STATUS = 'paid'";
+} else {
+    $sql = "SELECT COALESCE(SUM($T_O.$O_TOTAL),0) FROM $T_O WHERE $T_O.$O_CREATED BETWEEN ? AND ? AND $T_O.$O_STATUS IN ('delivered','completed')";
+}
+
+if ($stmt = $conn->prepare($sql)) {
+  $stmt->bind_param('ss', $from, $to);
+  $stmt->execute(); $stmt->bind_result($sum['revenue']); $stmt->fetch(); $stmt->close();
+}
+
+if ($stmt = $conn->prepare("SELECT COUNT(*) FROM $T_O WHERE $O_CREATED BETWEEN ? AND ?")) {
+  $stmt->bind_param('ss', $from, $to);
+  $stmt->execute(); $stmt->bind_result($sum['orders']); $stmt->fetch(); $stmt->close();
+}
 
 // -------- Payment method breakdown (paid only) ----------
 $payRows = [];
-// if ($stmt = $conn->prepare("SELECT COALESCE($PM,'Unknown') AS method, COUNT(*) AS cnt, COALESCE(SUM($TOT),0) AS amt
-//                             FROM $T
-//                             WHERE $CRT BETWEEN ? AND ? AND $PST='paid'
-//                             GROUP BY COALESCE($PM,'Unknown')
-//                             ORDER BY amt DESC")) {
-//   $stmt->bind_param('ss', $from, $to);
-//   $stmt->execute();
-//   $res = $stmt->get_result();
-//   while ($r = $res->fetch_assoc()) { $payRows[] = $r; }
-//   $stmt->close();
-// }
+$sql = "SELECT 
+            COALESCE($P_METHOD,'Unknown') AS method, 
+            COUNT($O_ID) AS cnt, 
+            COALESCE(SUM($P_AMOUNT),0) AS amt
+        FROM $T_P
+        WHERE $P_DATE BETWEEN ? AND ? AND $P_STATUS='paid'
+        GROUP BY COALESCE($P_METHOD,'Unknown')
+        ORDER BY amt DESC";
+
+if ($stmt = $conn->prepare($sql)) {
+  $stmt->bind_param('ss', $from, $to);
+  $stmt->execute();
+  $res = $stmt->get_result();
+  while ($r = $res->fetch_assoc()) { $payRows[] = $r; }
+  $stmt->close();
+}
 
 // -------- Orders list (all in range) ----------
 $orders = [];
-// if ($stmt = $conn->prepare("SELECT $ID, $CUS, $TYPE, $PST, $PM, $STAT, $TOT, $CRT
-//                             FROM $T
-//                             WHERE $CRT BETWEEN ? AND ?
-//                             ORDER BY $CRT DESC")) {
-//   $stmt->bind_param('ss', $from, $to);
-//   $stmt->execute();
-//   $res = $stmt->get_result();
-//   while ($r = $res->fetch_assoc()) { $orders[] = $r; }
-//   $stmt->close();
-// }
+$sql = "SELECT 
+            o.$O_ID, o.$O_CREATED, o.$O_TYPE, o.$O_STATUS, o.$O_TOTAL,
+            CONCAT(ocd.$C_FNAME, ' ', ocd.$C_LNAME) as customer_name,
+            opd.$P_STATUS, opd.$P_METHOD
+        FROM $T_O o
+        LEFT JOIN $T_C ocd ON o.$O_ID = ocd.$O_ID
+        LEFT JOIN $T_P opd ON o.$O_ID = opd.$O_ID
+        WHERE o.$O_CREATED BETWEEN ? AND ?
+        ORDER BY o.$O_CREATED DESC";
+
+if ($stmt = $conn->prepare($sql)) {
+  $stmt->bind_param('ss', $from, $to);
+  $stmt->execute();
+  $res = $stmt->get_result();
+  while ($r = $res->fetch_assoc()) { $orders[] = $r; }
+  $stmt->close();
+}
 
 // CSV Export
 if ($isExport) {
   header('Content-Type: text/csv; charset=UTF-8');
   header('Content-Disposition: attachment; filename="orders_'.$start.'_to_'.$end.'.csv"');
   $out = fopen('php://output', 'w');
+  // Use new column names for CSV header
   fputcsv($out, ['Order ID','Customer','Type','Payment Status','Payment Method','Status','Total','Created At']);
   foreach ($orders as $r) {
     fputcsv($out, [
-      $r[$ID], $r[$CUS], $r[$TYPE], $r[$PST], $r[$PM], $r[$STAT], $r[$TOT], $r[$CRT]
+      $r[$O_ID], $r['customer_name'], $r[$O_TYPE], $r[$P_STATUS], $r[$P_METHOD], $r[$O_STATUS], $r[$O_TOTAL], $r[$O_CREATED]
     ]);
   }
   fclose($out);
@@ -128,7 +168,6 @@ if ($isExport) {
         </div>
       </div>
 
-      <!-- Filters -->
       <form class="row g-3 align-items-end" method="get">
         <div class="col-md-3">
           <label class="form-label">Start date</label>
@@ -152,7 +191,6 @@ if ($isExport) {
       </form>
     </div>
 
-    <!-- Summary Cards -->
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-lg-3">
         <div class="stat-card">
@@ -186,7 +224,6 @@ if ($isExport) {
       </div>
     </div>
 
-    <!-- Payment Breakdown -->
     <div class="content-card mb-4">
       <div class="content-card-header">
         <div class="left">
@@ -219,7 +256,7 @@ if ($isExport) {
             <?php else: ?>
               <?php foreach ($payRows as $r): ?>
               <tr>
-                <td><?= h($r['method']) ?></td>
+                <td><?= h(ucfirst($r['method'])) ?></td>
                 <td><?= h(number_format($r['cnt'])) ?></td>
                 <td><?= h(peso($r['amt'])) ?></td>
               </tr>
@@ -230,7 +267,6 @@ if ($isExport) {
       </div>
     </div>
 
-    <!-- Orders Table -->
     <div class="content-card">
       <div class="content-card-header">
         <div class="left">
@@ -259,32 +295,33 @@ if ($isExport) {
             <?php else: ?>
               <?php foreach ($orders as $r): ?>
                 <tr>
-                  <td>#<?= h($r[$ID]) ?></td>
-                  <td><?= h($r[$CUS]) ?></td>
-                  <td><?= h($r[$TYPE]) ?></td>
+                  <td>#<?= h($r[$O_ID]) ?></td>
+                  <td><?= h($r['customer_name']) ?></td>
+                  <td><?= h(ucfirst($r[$O_TYPE])) ?></td>
                   <td>
-                    <span class="badge <?= $r[$PST]==='paid'?'badge-success':'badge-warning' ?>">
-                      <?= h(ucfirst($r[$PST])) ?>
+                    <span class="badge <?= $r[$P_STATUS]==='paid'?'badge-success':'badge-warning' ?>">
+                      <?= h(ucfirst($r[$P_STATUS] ?? 'N/A')) ?>
                     </span>
                   </td>
-                  <td><?= h($r[$PM] ?? '—') ?></td>
+                  <td><?= h(ucfirst($r[$P_METHOD] ?? '—')) ?></td>
                   <td>
                     <?php
                       $map = [
                         'pending' => 'badge-warning',
-                        'preparing' => 'badge-warning',
+                        'confirmed' => 'badge-primary',
+                        'preparing' => 'badge-info',
                         'ready' => 'badge-success',
                         'out_for_delivery' => 'badge-info',
-                        'delivered' => 'badge-success',
+                        'delivered' => 'badge-secondary',
                         'completed' => 'badge-secondary',
                         'cancelled' => 'badge-danger',
                       ];
-                      $cls = $map[$r[$STAT]] ?? 'badge-light';
+                      $cls = $map[$r[$O_STATUS]] ?? 'badge-light';
                     ?>
-                    <span class="badge <?= h($cls) ?>"><?= h(ucwords(str_replace('_',' ',$r[$STAT]))) ?></span>
+                    <span class="badge <?= h($cls) ?>"><?= h(ucwords(str_replace('_',' ',$r[$O_STATUS]))) ?></span>
                   </td>
-                  <td><?= h(peso($r[$TOT])) ?></td>
-                  <td><?= h(date('Y-m-d H:i', strtotime($r[$CRT]))) ?></td>
+                  <td><?= h(peso($r[$O_TOTAL])) ?></td>
+                  <td><?= h(date('Y-m-d H:i', strtotime($r[$O_CREATED]))) ?></td>
                 </tr>
               <?php endforeach; ?>
             <?php endif; ?>
@@ -295,7 +332,6 @@ if ($isExport) {
   </main>
 </div>
 
-<!-- PRINT STYLES -->
 <style>
 @media print {
   body { background: #fff; }

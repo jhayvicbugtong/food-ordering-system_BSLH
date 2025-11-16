@@ -1,163 +1,331 @@
 <?php
 // customer/auth/login.php
+
+// --- THIS IS THE CORRECTED LINE ---
+require_once __DIR__ . '/../../includes/db_connect.php';
 session_start();
 
-// --- Build base URL dynamically (works even if the folder name changes) ---
-$BASE_URL = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/'); // e.g. /food-ordering-system_BSLH
+// --- ADDED THIS BLOCK ---
+// Dynamically get the base URL and the 'next' redirect parameter
+$BASE_URL = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/');
 if ($BASE_URL === '/') $BASE_URL = '';
-
-// Where to go after login
 $next = isset($_GET['next']) && $_GET['next'] !== ''
   ? $_GET['next']
   : $BASE_URL . '/customer/menu.php';
 
-// DB
-require_once __DIR__ . '/../../includes/db_connect.php';
-
-// Already logged in? go
-if (!empty($_SESSION['customer_id'])) {
-  header('Location: ' . $next);
+// If user is already logged in, send them to their destination
+if (!empty($_SESSION['user_id']) && $_SESSION['role'] === 'customer') {
+  header("Location: ".$next);
   exit;
 }
 
-$err = '';
-$email_val = '';
+// Helper function for sanitizing output
+function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+// --- END ADDED BLOCK ---
+
+
+$error = '';
+$emailVal = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $email = trim($_POST['email'] ?? '');
-  $pass  = (string)($_POST['password'] ?? '');
-  $email_val = $email;
+    $email    = trim($_POST['email'] ?? '');
+    $password = (string)($_POST['password'] ?? '');
+    $emailVal = $email;
 
-  if ($email === '' || $pass === '') {
-    $err = 'Please enter your email and password.';
-  } else {
-    // Only allow CUSTOMER role here (staff/admin have their own portal)
-    $sql = "SELECT id, name, email, password, role
-            FROM users
-            WHERE LOWER(email) = LOWER(?) AND role = 'customer'
-            LIMIT 1";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('s', $email);
-    $stmt->execute();
-    $res  = $stmt->get_result();
-    $user = $res->fetch_assoc();
-    $stmt->close();
-
-    $ok = false;
-    if ($user) {
-      $stored = (string)($user['password'] ?? '');
-      // Accept hashed (bcrypt/argon) OR legacy plaintext
-      if ($stored !== '' && $stored[0] === '$') {
-        $ok = password_verify($pass, $stored);
-      } else {
-        $ok = hash_equals($stored, $pass);
-      }
-    }
-
-    if ($ok) {
-      $_SESSION['customer_id']    = (int)$user['id'];
-      $_SESSION['customer_name']  = (string)$user['name'];
-      $_SESSION['customer_email'] = (string)$user['email'];
-      $_SESSION['customer_role']  = 'customer';
-      header('Location: ' . $next);
-      exit;
+    if ($email === '' || $password === '') {
+        $error = 'Please enter your email and password.';
     } else {
-      $err = 'Invalid email or password, or this email is not a customer account.';
-    }
-  }
-}
+        // NEW SCHEMA: Use user_id, first_name, and check for hashed password
+        // This query is already correct for your new schema!
+        $stmt = $conn->prepare("SELECT user_id, first_name, email, password, role FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user   = $result->fetch_assoc();
+        $stmt->close();
 
-function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+        $ok = false;
+        if ($user) {
+            $stored = (string)($user['password'] ?? '');
+
+            if ($stored === '' || $stored === 'NULL') {
+                $error = 'This account has no password set. Ask an admin to set one.';
+            } else {
+                // NEW SCHEMA: Assumes password_verify for hashes.
+                if (strpos($stored, '$') === 0) {
+                    $ok = password_verify($password, $stored);
+                } else {
+                    // Fallback for any legacy plaintext passwords
+                    $ok = hash_equals($stored, $password);
+                }
+            }
+        }
+
+        if ($ok) {
+            $role = strtolower(trim((string)($user['role'] ?? '')));
+
+            // --- FIX: This login is for CUSTOMERS only ---
+            if ($role !== 'customer') {
+                // This portal is only for customers
+                $error = 'Unauthorized role for this portal. Please use the Staff/Admin login.';
+            } else {
+                // NEW SCHEMA: Set session keys using user_id and first_name
+                $_SESSION['user_id'] = (int)$user['user_id'];
+                $_SESSION['name']    = (string)$user['first_name'];
+                $_SESSION['role']    = $role;
+                $_SESSION['email']   = (string)$user['email']; // Also useful to store email
+
+                // --- FIX: Redirect to the 'next' URL, not a hardcoded one ---
+                header("Location: " . $next); // Was: header("Location: ../menu.php");
+                exit();
+            }
+        } elseif (!$error) {
+            $error = "Invalid email or password!";
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=0"/>
-  <title>Customer Sign in • Bente Sais Lomi House</title>
+  <meta charset="UTF-8">
+  <title>Sign in | Bente Sais Lomi House</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <!-- Optional site css -->
-  <link rel="stylesheet" href="<?= h($BASE_URL) ?>/assets/css/customer.css"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
-    :root{
-      --bg-dark:#0f172a;
-      --bg-card:#ffffff;
-      --text-light:#e2e8f0;
-      --text-dim:#94a3b8;
-      --accent:#65f457;
-      --radius:14px;
-      --border:1px solid rgba(0,0,0,.08);
+    /* ... [your existing CSS styles] ... */
+    :root {
+      --bg-dark: #212529;
+      --bg-card: #ffffff;
+      --text-light: #f8f9fa;
+      --text-dim: #adb5bd;
+      --accent: #5cfa63; /* avocado green */
+      --border-card: rgba(0,0,0,0.08);
+      --radius-lg: 16px;
     }
-    body{background:#eef2f7;margin:0;font-family:Inter,system-ui,Segoe UI,Arial}
-    .auth-shell{max-width:980px;margin:48px auto;padding:0 16px}
-    .auth-card{display:grid;grid-template-columns:340px 1fr;background:#fff;border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,.08);overflow:hidden;border:var(--border)}
-    .auth-left{background:var(--bg-dark);color:var(--text-light);padding:28px;position:relative}
-    .auth-left::before{content:"";position:absolute;top:0;left:0;height:4px;width:100%;background:var(--accent)}
-    .brand{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-    .brand-badge{width:36px;height:36px;border-radius:10px;background:radial-gradient(circle at 30% 30%,#8bff89,#3af13a 40%,#1ea21e 100%);display:flex;align-items:center;justify-content:center;color:#0b2b0b;font-weight:700}
-    .auth-left h3{margin:6px 0 2px;font-size:18px}
-    .auth-left small{color:var(--text-dim)}
-    .auth-right{padding:32px;background:#fff}
-    .auth-right h2{margin:0 0 4px}
-    .auth-right p{margin:6px 0 16px;color:#64748b}
-    .form-group{margin-bottom:12px}
-    .form-control{width:100%;padding:12px 14px;border:1px solid #e5e7eb;border-radius:10px;font:inherit}
-    .btn-primary{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:12px 16px;border:0;border-radius:12px;background:var(--accent);color:#0b2b0b;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(101,244,87,.35)}
-    .btn-primary:hover{filter:brightness(.98)}
-    .auth-links{margin-top:10px;font-size:14px}
-    .auth-links a{color:#155e75;text-decoration:none}
-    .error{background:#fee2e2;color:#7f1d1d;border:1px solid #fecaca;padding:10px 12px;border-radius:10px;margin-bottom:12px}
-    @media(max-width:860px){.auth-card{grid-template-columns:1fr}.auth-left{display:none}}
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background-color: #f5f7fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #212529;
+    }
+
+    .auth-shell {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+      display: flex;
+      width: 900px;
+      max-width: 95%;
+      overflow: hidden;
+      border: 1px solid var(--border-card);
+    }
+
+    .auth-aside {
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      padding: 32px 28px;
+      width: 40%;
+      min-width: 260px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .auth-aside::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 4px;
+      width: 100%;
+      background: var(--accent);
+    }
+
+    .brand-block {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      height: 36px;
+      width: 36px;
+      border-radius: 8px;
+      background: radial-gradient(circle at 30% 30%, #5cfa63 0%, #1c1f1f 70%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #000;
+      font-size: 14px;
+      line-height: 1;
+      box-shadow: 0 8px 20px rgba(92,250,99,0.5);
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .brand-text p {
+      margin: 2px 0 0;
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--text-dim);
+    }
+
+    .aside-bottom {
+      font-size: 12px;
+      line-height: 1.4;
+      color: var(--text-dim);
+    }
+
+    .aside-bottom strong { color: #fff; font-weight: 500; }
+
+    .auth-main {
+      flex: 1;
+      padding: 32px;
+      background: var(--bg-card);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .auth-header { margin-bottom: 24px; }
+
+    .auth-header h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: #212529;
+      line-height: 1.2;
+    }
+
+    .auth-header p {
+      margin: 6px 0 0;
+      font-size: 14px;
+      color: #6c757d;
+      line-height: 1.4;
+    }
+
+    .alert-danger { font-size: 14px; padding: 10px 12px; border-radius: 8px; }
+
+    .form-label { font-size: 13px; font-weight: 500; color: #343a40; margin-bottom: 4px; }
+
+    .form-control { font-size: 14px; border-radius: 8px; padding: 10px 12px; }
+
+    .btn-login {
+      background-color: var(--accent);
+      border: 0;
+      width: 100%;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(92,250,99,0.4);
+    }
+    .btn-login:hover { filter: brightness(.92); }
+
+    .back-link { text-align: center; margin-top: 20px; font-size: 13px; }
+    .back-link a { color: #6c757d; text-decoration: none; }
+    .back-link a:hover { color: #000; }
+
+    @media (max-width: 700px) {
+      .auth-shell { flex-direction: column; width: 420px; max-width: 94%; }
+      .auth-aside { width: 100%; min-width: 100%; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+      .auth-main { width: 100%; }
+      .site-footer { margin-top: 24px; }
+    }
   </style>
 </head>
 <body>
-  <div class="auth-shell">
-    <div class="auth-card">
-      <!-- LEFT / BRAND PANEL -->
-      <div class="auth-left">
-        <div class="brand">
-          <div class="brand-badge">BS</div>
-          <div>
-            <h3>Bente Sais Lomi House</h3>
-            <small>Customer Portal</small>
-          </div>
-        </div>
-        <p style="margin-top:10px">
-          Order your favorites, track deliveries, and save your address for faster checkout.
-        </p>
-        <div style="margin-top:auto;font-size:13px;color:#cbd5e1">
-          Reminder: Use your customer account. Staff/Admin should use the staff portal.
+
+<div class="auth-shell">
+  
+  <aside class="auth-aside">
+    <div>
+      <div class="brand-block">
+        <div class="brand-logo">BS</div>
+        <div class="brand-text">
+          <h1>Bente Sais Lomi House</h1>
+          <p>Customer Portal</p> 
         </div>
       </div>
 
-      <!-- RIGHT / LOGIN FORM -->
-      <div class="auth-right">
-        <h2>Sign in</h2>
-        <p>Use your registered email and password.</p>
-
-        <?php if ($err): ?><div class="error"><?= h($err) ?></div><?php endif; ?>
-
-        <form method="post" novalidate>
-          <div class="form-group">
-            <label>Email</label>
-            <input class="form-control" type="email" name="email" value="<?= h($email_val) ?>" placeholder="you@example.com" required autofocus>
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input class="form-control" type="password" name="password" required>
-          </div>
-          <button class="btn-primary" type="submit">Continue</button>
-
-          <div class="auth-links">
-            New here?
-            <a href="register.php?next=<?= urlencode($next) ?>">Create an account</a>
-            &nbsp; • &nbsp;
-            <a href="<?= h($BASE_URL) ?>/index.php">← Back to Customer Page</a>
-          </div>
-        </form>
+      <div style="margin-top:24px; font-size:13px; line-height:1.5; color:#dee2e6;">
+        Sign in to place orders, track deliveries, and view your history.
       </div>
     </div>
-  </div>
+
+    <div class="aside-bottom">
+      <div><strong>Note:</strong> Staff and Admins must use the Staff Portal.</div>
+    </div>
+  </aside>
+
+  <main class="auth-main">
+    <div class="auth-header">
+      <h2>Customer Sign in</h2>
+      <p>Use your registered email and password.</p>
+    </div>
+
+    <?php if ($error): ?>
+      <div class="alert alert-danger">
+        <?= htmlspecialchars($error) ?>
+      </div>
+    <?php endif; ?>
+
+    <form method="POST" autocomplete="off">
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input
+          type="email"
+          name="email"
+          class="form-control"
+          required
+          value="<?= htmlspecialchars($emailVal) ?>"
+          placeholder="you@example.com">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input
+          type="password"
+          name="password"
+          class="form-control"
+          required
+          placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="btn-login">Continue</button>
+    </form>
+
+    <div class="back-link" style="text-align: center; margin-top: 20px; font-size: 13px;">
+      Don't have an account? 
+      <a href="register.php?next=<?= h(urlencode($next)) ?>" style="color:#0b2b0b; font-weight: 600;">Register here</a>
+      <div style="margin-top: 12px;">
+        <a href="../../index.php" style="color: #6c757d;">← Back to Home Page</a>
+      </div>
+    </div>
+    </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

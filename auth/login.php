@@ -1,4 +1,5 @@
 <?php
+// --- FIX 1: Added a '/' before ../ ---
 require_once __DIR__ . '/../includes/db_connect.php';
 session_start();
 
@@ -13,8 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email === '' || $password === '') {
         $error = 'Please enter your email and password.';
     } else {
-        // Case-insensitive match on email
-        $stmt = $conn->prepare("SELECT id, name, email, password, role FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1");
+        // --- FIX 2: Use new schema columns (user_id, first_name) ---
+        $stmt = $conn->prepare("SELECT user_id, first_name, email, password, role FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -28,12 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stored === '' || $stored === 'NULL') {
                 $error = 'This account has no password set. Ask an admin to set one.';
             } else {
-                // Accept modern hashed passwords OR legacy plaintext
+                // Use new schema's hashed password
                 if (strpos($stored, '$') === 0) {
-                    // bcrypt/argon hash
                     $ok = password_verify($password, $stored);
                 } else {
-                    // legacy plaintext fallback
+                    // Fallback for any legacy plaintext passwords
                     $ok = hash_equals($stored, $password);
                 }
             }
@@ -42,18 +42,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($ok) {
             $role = strtolower(trim((string)($user['role'] ?? '')));
 
-            if ($role !== 'admin' && $role !== 'staff') {
+            // Updated to include 'driver' as a valid staff role
+            if ($role !== 'admin' && $role !== 'staff' && $role !== 'driver') {
                 // This portal is only for staff/admin
                 $error = 'Unauthorized role for this portal. Please use the customer login.';
             } else {
-                // Set session keys
-                $_SESSION['user_id'] = (int)$user['id'];
-                $_SESSION['name']    = (string)$user['name'];
+                // --- FIX 3: Set session keys using new column names ---
+                $_SESSION['user_id'] = (int)$user['user_id'];
+                $_SESSION['name']    = (string)$user['first_name'];
                 $_SESSION['role']    = $role;
+                $_SESSION['email']   = (string)$user['email'];
 
                 if ($role === 'admin') {
                     header("Location: ../admin/index.php");
-                } else { // staff
+                } else { // staff or driver
                     header("Location: ../staff/index.php");
                 }
                 exit();
@@ -71,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Sign in | Bente Sais Lomi House</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <!-- Bootstrap (for form controls) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
@@ -237,7 +238,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="auth-shell">
   
-  <!-- LEFT / BRAND PANEL -->
   <aside class="auth-aside">
     <div>
       <div class="brand-block">
@@ -260,7 +260,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </aside>
 
-  <!-- RIGHT / LOGIN FORM -->
   <main class="auth-main">
     <div class="auth-header">
       <h2>Sign in</h2>

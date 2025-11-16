@@ -9,22 +9,17 @@
   <meta name="description" content="Comfort food, done right. Hot lomi, silog meals, and pancit — available for delivery or pickup."/>
   <meta name="robots" content="index,follow"/>
 
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 
-  <!-- Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
 
-  <!-- Our landing styles -->
   <link rel="stylesheet" href="/food-ordering-system_BSLH/assets/css/customer.css"/>
 </head>
 
 <body>
 
-  <!-- NAV / HEADER -->
   <?php include __DIR__ . '/customer/includes/header.php'; ?>
 
-  <!-- HERO -->
   <section class="hero-section">
     <div class="section-inner">
       <div class="hero-left">
@@ -37,7 +32,6 @@
           available for delivery or pickup, Monday to Sunday.
         </h4>
 
-        <!-- Go to customer login, then redirect to menu.php -->
         <a class="hero-cta" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
           Order online
         </a>
@@ -51,7 +45,6 @@
     </div>
   </section>
 
-  <!-- ABOUT / FIT SECTION -->
   <section class="about-section">
     <div class="section-inner" style="flex-direction: row-reverse;">
       <div class="about-img-col">
@@ -69,7 +62,6 @@
           Everything is cooked fresh, served fast, and priced for barkada.
         </p>
 
-        <!-- Go to customer login, then redirect to menu.php -->
         <a class="about-cta" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
           Order now
         </a>
@@ -77,7 +69,6 @@
     </div>
   </section>
 
-  <!-- FEATURES SECTION -->
   <section class="features-section">
     <div class="section-inner" style="flex-direction: column; text-align:center;">
       <div class="features-grid">
@@ -111,7 +102,6 @@
     </div>
   </section>
 
-  <!-- MIDDLE SPLIT SECTION -->
   <section class="middle-split-section">
     <div class="middle-split-inner">
       <div class="col-split split-text-block">
@@ -128,7 +118,7 @@
              alt="Signature Dish">
       </div>
 
-      <div class="col-split split-text-block">
+      <div class_alias="col-split split-text-block">
         <div class="split-title">Always fresh</div>
         <p>
           We cook in small batches, source fresh ingredients,
@@ -138,7 +128,6 @@
     </div>
   </section>
 
-  <!-- CATERING / BULK / MEAL PLAN -->
   <section class="cta-section">
     <div class="cta-block">
 
@@ -160,7 +149,6 @@
           and silog packs. Message us, and we'll prep based on your schedule.
         </h4>
         <div class="cta-center-btn">
-          <!-- Go to customer login, then redirect to menu.php -->
           <a class="cta-btn" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
             Order online
           </a>
@@ -170,7 +158,6 @@
     </div>
   </section>
 
-  <!-- FOOTER -->
   <?php include __DIR__ . '/customer/includes/footer.php'; ?>
 
 </body>

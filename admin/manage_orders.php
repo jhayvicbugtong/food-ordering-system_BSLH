@@ -1,5 +1,34 @@
 <?php
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/includes/header.php'; // Includes db_connect.php
+
+// Fetch orders for the table.
+$orders_query = "
+    SELECT 
+        o.order_id, 
+        o.order_number, 
+        o.order_type, 
+        o.total_amount, 
+        o.status,
+        o.created_at,
+        ocd.customer_first_name, 
+        ocd.customer_last_name,
+        ocd.customer_phone
+    FROM orders o
+    LEFT JOIN order_customer_details ocd ON o.order_id = ocd.order_id
+    ORDER BY 
+        CASE o.status
+            WHEN 'pending' THEN 1
+            WHEN 'confirmed' THEN 2
+            WHEN 'preparing' THEN 3
+            WHEN 'ready' THEN 4
+            WHEN 'out_for_delivery' THEN 5
+            ELSE 6
+        END,
+        o.created_at DESC
+    LIMIT 50;
+";
+$orders_result = $conn->query($orders_query);
+
 ?>
 
 <div class="container-fluid">
@@ -14,7 +43,7 @@ include __DIR__ . '/includes/header.php';
           <p>View and update incoming orders</p>
         </div>
         <div class="right">
-          <button class="btn btn-success" id="btn-refresh">
+          <button class="btn btn-success" id="btn-refresh" onclick="location.reload();">
             <i class="bi bi-arrow-clockwise"></i> Refresh Orders
           </button>
         </div>
@@ -43,126 +72,81 @@ include __DIR__ . '/includes/header.php';
           </thead>
           <tbody>
 
-            <!-- Row: #1001 (has Accept) -->
-            <tr>
-              <td>
-                <strong>#1001</strong><br>
-                <small class="text-muted">10:30 AM</small>
-              </td>
-              <td>
-                Juan Dela Cruz<br>
-                <small class="text-muted">0917-123-4567</small>
-              </td>
-              <td>
-                <span class="badge badge-success">Delivery</span><br>
-                <small class="text-muted">Brgy. San Roque</small>
-              </td>
-              <td>₱199.00</td>
-              <td>
-                <span class="badge badge-warning">Pending</span>
-              </td>
-              <td>
-                <div class="btn-group btn-group-sm">
-                  <button class="btn btn-outline-secondary">View</button>
+            <?php if ($orders_result && $orders_result->num_rows > 0): ?>
+              <?php while($order = $orders_result->fetch_assoc()): ?>
+                <?php
+                  $status = $order['status'];
+                  $status_map = [
+                    'pending' => 'badge-warning',
+                    'confirmed' => 'badge-primary',
+                    'preparing' => 'badge-info',
+                    'ready' => 'badge-success',
+                    'out_for_delivery' => 'badge-info',
+                    'delivered' => 'badge-secondary',
+                    'completed' => 'badge-secondary',
+                    'cancelled' => 'badge-danger',
+                  ];
+                  $status_class = $status_map[$status] ?? 'badge-light';
+                  $customer_name = htmlspecialchars($order['customer_first_name'] . ' ' . $order['customer_last_name']);
+                ?>
+                <tr data-row-id="<?= $order['order_id'] ?>">
+                  <td>
+                    <strong><?= htmlspecialchars($order['order_number'] ?? $order['order_id']) ?></strong><br>
+                    <small class="text-muted"><?= date('g:i A', strtotime($order['created_at'])) ?></small>
+                  </td>
+                  <td>
+                    <?= $customer_name ?><br>
+                    <small class="text-muted"><?= htmlspecialchars($order['customer_phone']) ?></small>
+                  </td>
+                  <td>
+                    <?php if ($order['order_type'] == 'delivery'): ?>
+                      <span class="badge badge-success">Delivery</span>
+                    <?php else: ?>
+                      <span class="badge badge-primary">Pickup</span>
+                    <?php endif; ?>
+                  </td>
+                  <td>₱<?= number_format($order['total_amount'], 2) ?></td>
+                  <td>
+                    <span class="badge <?= $status_class ?>"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?></span>
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <button class="btn btn-outline-secondary">View</button>
 
-                  <!-- UPDATED: add .btn-accept + data-* -->
-                  <button
-                    class="btn btn-outline-success btn-accept"
-                    data-order-id="1001"
-                    data-total="199.00"
-                    data-customer="Juan Dela Cruz"
-                  >
-                    Accept
-                  </button>
-
-                  <button class="btn btn-outline-danger">Reject</button>
-                </div>
-              </td>
-            </tr>
-
-            <!-- Row: #1002 -->
-            <tr>
-              <td>
-                <strong>#1002</strong><br>
-                <small class="text-muted">10:28 AM</small>
-              </td>
-              <td>
-                Maria Clara<br>
-                <small class="text-muted">0921-765-4321</small>
-              </td>
-              <td>
-                <span class="badge badge-primary">Pickup</span><br>
-                <small class="text-muted">ASAP</small>
-              </td>
-              <td>₱89.00</td>
-              <td>
-                <span class="badge badge-success">Preparing</span>
-              </td>
-              <td>
-                <div class="btn-group btn-group-sm">
-                  <button class="btn btn-outline-secondary">View</button>
-                  <button class="btn btn-outline-success">Mark as Ready</button>
-                </div>
-              </td>
-            </tr>
-
-            <!-- Row: #1003 -->
-            <tr>
-              <td>
-                <strong>#1003</strong><br>
-                <small class="text-muted">10:25 AM</small>
-              </td>
-              <td>
-                Jose Rizal<br>
-                <small class="text-muted">0999-111-2222</small>
-              </td>
-              <td>
-                <span class="badge badge-success">Delivery</span><br>
-                <small class="text-muted">Brgy. Poblacion</small>
-              </td>
-              <td>₱480.00</td>
-              <td>
-                <span class="badge badge-info">Out for Delivery</span>
-              </td>
-              <td>
-                <div class="btn-group btn-group-sm">
-                  <button class="btn btn-outline-secondary">View</button>
-                  <button class="btn btn-outline-success">Mark Delivered</button>
-                </div>
-              </td>
-            </tr>
-
-            <!-- Row: #1004 -->
-            <tr>
-              <td>
-                <strong>#1004</strong><br>
-                <small class="text-muted">10:15 AM</small>
-              </td>
-              <td>
-                Andres Bonifacio<br>
-                <small class="text-muted">0918-333-4444</small>
-              </td>
-              <td>
-                <span class="badge badge-primary">Pickup</span><br>
-                <small class="text-muted">10:15 AM</small>
-              </td>
-              <td>₱220.00</td>
-              <td>
-                <span class="badge badge-secondary">Completed</span>
-              </td>
-              <td>
-                <div class="btn-group btn-group-sm">
-                  <button class="btn btn-outline-secondary">View</button>
-                </div>
-              </td>
-            </tr>
+                      <?php if ($status == 'pending'): ?>
+                        <button
+                          class="btn btn-outline-success btn-accept"
+                          data-order-id="<?= $order['order_id'] ?>"
+                          data-total="<?= $order['total_amount'] ?>"
+                          data-customer="<?= $customer_name ?>"
+                        >
+                          Accept
+                        </button>
+                        <button class="btn btn-outline-danger">Reject</button>
+                      <?php elseif ($status == 'confirmed' || $status == 'preparing'): ?>
+                        <button class="btn btn-outline-success">Mark as Ready</button>
+                      <?php elseif ($status == 'ready' && $order['order_type'] == 'delivery'): ?>
+                        <button class="btn btn-outline-success">Mark Out for Delivery</button>
+                      <?php elseif ($status == 'ready' && $order['order_type'] == 'pickup'): ?>
+                        <button class="btn btn-outline-success">Mark Picked Up</button>
+                      <?php elseif ($status == 'out_for_delivery'): ?>
+                         <button class="btn btn-outline-success">Mark Delivered</button>
+                      <?php endif; ?>
+                    </div>
+                  </td>
+                </tr>
+              <?php endwhile; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="6" class="text-center text-muted">No orders found.</td>
+              </tr>
+            <?php endif; ?>
 
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- ===================== Payment Confirmation Modal ===================== -->
     <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content" id="paymentForm">
@@ -202,7 +186,7 @@ include __DIR__ . '/includes/header.php';
                 <select class="form-select" name="payment_method">
                   <option value="Cash">Cash</option>
                   <option value="GCash">GCash</option>
-                  <option value="BankTransfer">Bank Transfer</option>
+                  <option value="Card">Card</option>
                 </select>
               </div>
               <div class="col-6">
@@ -223,22 +207,20 @@ include __DIR__ . '/includes/header.php';
         </form>
       </div>
     </div>
-    <!-- ===================================================================== -->
-
-  </main>
+    </main>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const modalEl = document.getElementById('paymentModal');
+  if (!modalEl) return; // Guard if modal is missing
+  
   const paymentModal = new bootstrap.Modal(modalEl);
-
   const form = document.getElementById('paymentForm');
   const orderCodeEl = document.getElementById('pm-order-code');
   const orderIdInput = document.getElementById('pm-order-id');
   const totalInput = document.getElementById('pm-total');
   const customerInput = document.getElementById('pm-customer');
-
   const paidRadio = document.getElementById('pm-paid');
   const unpaidRadio = document.getElementById('pm-unpaid');
   const methodWrap = document.getElementById('pm-method-wrap');
@@ -255,18 +237,25 @@ document.addEventListener('DOMContentLoaded', function () {
     btn.addEventListener('click', (e) => {
       const b = e.currentTarget;
       const row = b.closest('tr');
-
       const id = b.dataset.orderId;
-      const total = (b.dataset.total || (row.querySelector('td:nth-child(4)')?.textContent || '')).replace(/[₱,\s,]/g,'');
-      const customer = b.dataset.customer || (row.querySelector('td:nth-child(2)')?.childNodes[0].nodeValue.trim());
+      
+      // Use dataset values first, fall back to table text
+      const total = (b.dataset.total || '0').replace(/[₱,\s,]/g,'');
+      const customer = b.dataset.customer || 'N/A';
+      const orderNum = row.querySelector('td:first-child strong')?.textContent || ('#' + id);
 
-      orderCodeEl.textContent = '#' + id;
+      orderCodeEl.textContent = orderNum;
       orderIdInput.value = id;
-      totalInput.value = total;
-      customerInput.value = customer || '';
+      totalInput.value = parseFloat(total).toFixed(2);
+      customerInput.value = customer;
 
-      form.dataset.rowId = id;                 // remember row id to update UI later
-      row.setAttribute('data-row-id', id);
+      form.dataset.rowId = id; // remember row id to update UI later
+      
+      // Find the row again by its data-row-id attribute (which we set in PHP)
+      const dataRow = document.querySelector(`tr[data-row-id="${id}"]`);
+      if (dataRow) {
+         dataRow.dataset.rowId = id; // Ensure it's set
+      }
 
       paidRadio.checked = true;
       toggleMethod();
@@ -278,6 +267,10 @@ document.addEventListener('DOMContentLoaded', function () {
   // Submit accept + payment
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Accepting...';
+    
     const fd = new FormData(form);
 
     try {
@@ -285,17 +278,27 @@ document.addEventListener('DOMContentLoaded', function () {
         method: 'POST',
         body: fd
       });
-      const json = await res.json();
+      
+      const responseText = await res.text();
+      let json;
+      try {
+        json = JSON.parse(responseText);
+      } catch (jsonErr) {
+        throw new Error('Server returned invalid response: ' + responseText);
+      }
 
       if (json.status !== 'ok') {
         throw new Error(json.message || 'Failed to accept order');
       }
 
       // Update UI for the row to "Preparing"
-      const row = document.querySelector(`[data-row-id="${form.dataset.rowId}"]`);
+      const row = document.querySelector(`tr[data-row-id="${form.dataset.rowId}"]`);
       if (row) {
         const badge = row.querySelector('td:nth-child(5) .badge');
-        if (badge) { badge.className = 'badge badge-success'; badge.textContent = 'Preparing'; }
+        if (badge) { 
+          badge.className = 'badge badge-info'; // 'preparing' status
+          badge.textContent = 'Preparing'; 
+        }
         const actions = row.querySelector('.btn-group');
         if (actions) {
           actions.innerHTML = `
@@ -308,6 +311,9 @@ document.addEventListener('DOMContentLoaded', function () {
       paymentModal.hide();
     } catch (err) {
       alert('Error: ' + err.message);
+    } finally {
+       submitBtn.disabled = false;
+       submitBtn.innerHTML = 'Confirm & Accept';
     }
   });
 

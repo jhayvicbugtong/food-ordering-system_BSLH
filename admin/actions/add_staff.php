@@ -11,17 +11,18 @@ require_once __DIR__ . '/../../includes/db_connect.php'; // root/includes/db_con
 
 function jerr($msg, $code=400){ http_response_code($code); echo json_encode(['status'=>'error','message'=>$msg]); exit; }
 
-// Inputs
-$name   = trim($_POST['full_name'] ?? '');
-$email  = trim($_POST['email'] ?? '');
-$pass   = $_POST['password'] ?? '';
-$pass2  = $_POST['password2'] ?? '';
-$phone  = trim($_POST['phone'] ?? '');
-$staff_role = trim($_POST['staff_role'] ?? 'staff');  // kitchen|cashier|rider|manager
-$shift  = trim($_POST['shift'] ?? '');                // morning|mid|evening
-$notes  = trim($_POST['notes'] ?? '');
+// NEW SCHEMA: Use new fields
+$first_name = trim($_POST['first_name'] ?? '');
+$last_name  = trim($_POST['last_name'] ?? '');
+$email      = trim($_POST['email'] ?? '');
+$phone      = trim($_POST['phone'] ?? '');
+$role       = trim($_POST['role'] ?? 'staff'); // 'staff', 'driver', 'admin'
+$pass       = $_POST['password'] ?? '';
+$pass2      = $_POST['password2'] ?? '';
 
-if ($name === '' || $email === '' || $pass === '') jerr('Please complete required fields.');
+
+if ($first_name === '' || $last_name === '' || $email === '' || $pass === '' || $role === '') jerr('Please complete all required fields.');
+if (!in_array($role, ['admin', 'staff', 'driver'])) jerr('Invalid role specified.');
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) jerr('Invalid email.');
 if ($pass !== $pass2) jerr('Passwords do not match.');
 
@@ -32,39 +33,18 @@ $stmt->execute(); $stmt->store_result();
 if ($stmt->num_rows > 0) jerr('Email already exists.');
 $stmt->close();
 
-// Create base user (role = staff). Store password as hash.
+// Create base user. Store password as hash.
 $hash = password_hash($pass, PASSWORD_DEFAULT);
 
-$stmt = $conn->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'staff')");
-$stmt->bind_param('sss', $name, $email, $hash);
-if (!$stmt->execute()) jerr('Failed to insert user.');
+// NEW SCHEMA: Insert into new users table structure
+$sql = "INSERT INTO users (first_name, last_name, email, phone, password, role, is_active) 
+        VALUES (?, ?, ?, ?, ?, ?, 1)";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param('ssssss', $first_name, $last_name, $email, $phone, $hash, $role);
+
+if (!$stmt->execute()) jerr('Failed to insert user: ' . $stmt->error);
 $userId = $stmt->insert_id;
 $stmt->close();
 
-// Try to save extra fields if those columns exist in `users`.
-$columns = [];
-$res = $conn->query("SHOW COLUMNS FROM users");
-if ($res) {
-  while ($c = $res->fetch_assoc()) { $columns[strtolower($c['Field'])] = true; }
-}
-
-$updates = [];
-$params = [];
-$types  = '';
-
-if (isset($columns['phone']) && $phone !== '')      { $updates[] = "phone=?";      $params[] = $phone;      $types.='s'; }
-if (isset($columns['staff_role']) && $staff_role!==''){ $updates[] = "staff_role=?"; $params[] = $staff_role; $types.='s'; }
-if (isset($columns['shift']) && $shift!=='')        { $updates[] = "shift=?";      $params[] = $shift;      $types.='s'; }
-if (isset($columns['notes']) && $notes!=='')        { $updates[] = "notes=?";      $params[] = $notes;      $types.='s'; }
-if (isset($columns['started_at']))                  { $updates[] = "started_at=NOW()"; }
-
-if ($updates) {
-  $sql = "UPDATE users SET ".implode(',', $updates)." WHERE id=?";
-  $params[] = $userId; $types .= 'i';
-  $stmt = $conn->prepare($sql);
-  $stmt->bind_param($types, ...$params);
-  $stmt->execute();
-  $stmt->close();
-}
-
 echo json_encode(['status'=>'ok','id'=>$userId]);
+?>
