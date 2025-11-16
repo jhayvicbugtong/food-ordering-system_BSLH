@@ -3,21 +3,16 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../../includes/db_connect.php';
 
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+// NEW SCHEMA: Use user_id
+$user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
 
-// Get all columns so we can include optional ones safely
-$columns = [];
-if ($res = $conn->query("SHOW COLUMNS FROM users")) {
-  while ($c = $res->fetch_assoc()) $columns[strtolower($c['Field'])] = true;
-}
+// NEW SCHEMA: Select columns that exist in online_food_ordering_db.sql
+$select = "user_id, first_name, last_name, email, phone, role, created_at";
 
-$select = "id,name,email,role";
-$opt = ['phone','staff_role','shift','notes','started_at'];
-foreach ($opt as $c) if (isset($columns[$c])) $select .= ",$c";
-
-if ($id > 0) {
-  $stmt = $conn->prepare("SELECT $select FROM users WHERE role='staff' AND id=? LIMIT 1");
-  $stmt->bind_param('i', $id);
+if ($user_id > 0) {
+  // NEW SCHEMA: Filter by user_id and role
+  $stmt = $conn->prepare("SELECT $select FROM users WHERE role IN ('admin', 'staff', 'driver') AND user_id=? LIMIT 1");
+  $stmt->bind_param('i', $user_id);
   $stmt->execute();
   $row = $stmt->get_result()->fetch_assoc();
   $stmt->close();
@@ -26,7 +21,9 @@ if ($id > 0) {
   exit;
 }
 
-$q = $conn->query("SELECT $select FROM users WHERE role='staff' ORDER BY name");
+// NEW SCHEMA: Filter by role
+$q = $conn->query("SELECT $select FROM users WHERE role IN ('admin', 'staff', 'driver') ORDER BY first_name, last_name");
 $rows = [];
 while ($r = $q->fetch_assoc()) $rows[] = $r;
 echo json_encode(['status'=>'ok','rows'=>$rows]);
+?>

@@ -2,7 +2,9 @@
 $host = "localhost";
 $user = "root";
 $pass = "";
-$dbname = "food_ordering_db";
+// --- MODIFIED ---
+// Changed from "food_ordering_db" to your new database name
+$dbname = "online_food_ordering_db";
 
 $conn = new mysqli($host, $user, $pass, $dbname);
 

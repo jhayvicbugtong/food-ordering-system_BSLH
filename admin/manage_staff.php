@@ -5,15 +5,14 @@ include __DIR__ . '/includes/header.php';
   <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
   <main class="main-content">
-    <!-- ADD STAFF -->
     <section class="content-card mb-4">
       <div class="content-card-header">
         <div class="left">
           <h2>Staff Management</h2>
-          <p>Kitchen, riders, front of house</p>
+          <p>Add new staff members (kitchen, driver, admin, etc.)</p>
         </div>
         <div class="right">
-          <button class="btn btn-success" id="saveStaffTopBtn">
+          <button class="btn btn-success" id="saveStaffTopBtn" type="submit" form="addStaffForm">
             <i class="bi bi-person-plus"></i> Save Staff
           </button>
         </div>
@@ -23,45 +22,32 @@ include __DIR__ . '/includes/header.php';
 
       <form class="row g-3" id="addStaffForm">
         <div class="col-md-4">
-          <label class="form-label">Full Name <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" name="full_name" placeholder="Juan Dela Cruz" required>
+          <label class="form-label">First Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="first_name" placeholder="Juan" required>
         </div>
-
         <div class="col-md-4">
+          <label class="form-label">Last Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="last_name" placeholder="Dela Cruz" required>
+        </div>
+         <div class="col-md-4">
           <label class="form-label">Role <span class="text-danger">*</span></label>
-          <select class="form-select" name="staff_role" required>
-            <option value="kitchen">Cook / Kitchen</option>
-            <option value="cashier">Cashier / Front Desk</option>
-            <option value="rider">Delivery Rider</option>
-            <option value="manager">Manager</option>
+          <select class="form-select" name="role" required>
+            <option value="staff">Staff (Kitchen, Cashier)</option>
+            <option value="driver">Driver</option>
+            <option value="admin">Admin (Full Access)</option>
           </select>
-          <div class="form-text">Stored as sub-role; main role in users.role = "staff".</div>
+          <div class="form-text">This controls their login permissions.</div>
         </div>
-
-        <div class="col-md-4">
-          <label class="form-label">Shift</label>
-          <select class="form-select" name="shift">
-            <option value="morning">Morning (6am - 2pm)</option>
-            <option value="mid">Mid (10am - 6pm)</option>
-            <option value="evening">Evening (2pm - 10pm)</option>
-          </select>
-        </div>
-
-        <div class="col-md-4">
-          <label class="form-label">Contact #</label>
-          <input type="text" class="form-control" name="phone" placeholder="+63 9XX XXX XXXX">
-        </div>
-
-        <div class="col-md-8">
-          <label class="form-label">Notes</label>
-          <input type="text" class="form-control" name="notes" placeholder="Allergic to peanuts, prefers delivery shifts, etc.">
-        </div>
-
-        <!-- Credentials -->
+        
         <div class="col-md-4">
           <label class="form-label">Email <span class="text-danger">*</span></label>
           <input type="email" class="form-control" name="email" placeholder="staff@example.com" required>
         </div>
+        <div class="col-md-4">
+          <label class="form-label">Phone</label>
+          <input type="text" class="form-control" name="phone" placeholder="+63 9XX XXX XXXX">
+        </div>
+
         <div class="col-md-4">
           <label class="form-label">Password <span class="text-danger">*</span></label>
           <input type="password" class="form-control" name="password" placeholder="••••••••" required>
@@ -79,12 +65,11 @@ include __DIR__ . '/includes/header.php';
       </form>
     </section>
 
-    <!-- CURRENT STAFF LIST -->
     <section class="content-card">
       <div class="content-card-header">
         <div class="left">
           <h2>Current Staff</h2>
-          <p>Active team members</p>
+          <p>Active team members with system access</p>
         </div>
       </div>
 
@@ -94,19 +79,18 @@ include __DIR__ . '/includes/header.php';
             <tr>
               <th>Name</th>
               <th>Role</th>
-              <th>Shift</th>
+              <th>Email</th>
               <th>Contact</th>
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="staffTbody"><!-- filled by JS --></tbody>
+          <tbody id="staffTbody"></tbody>
         </table>
       </div>
     </section>
   </main>
 </div>
 
-<!-- SIMPLE EDIT MODAL -->
 <style>
 .simple-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000}
 .simple-modal{width:680px;max-width:94%;background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
@@ -121,43 +105,32 @@ include __DIR__ . '/includes/header.php';
       <button type="button" id="editClose" class="btn btn-outline-secondary btn-sm">Close</button>
     </div>
     <form id="editForm">
-      <input type="hidden" name="id" id="edit_id">
+      <input type="hidden" name="user_id" id="edit_user_id">
       <div class="body">
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label">Full Name</label>
-            <input class="form-control" name="full_name" id="edit_full_name" required>
+            <label class="form-label">First Name</label>
+            <input class="form-control" name="first_name" id="edit_first_name" required>
           </div>
           <div class="col-md-6">
+            <label class="form-label">Last Name</label>
+            <input class="form-control" name="last_name" id="edit_last_name" required>
+          </div>
+           <div class="col-md-6">
             <label class="form-label">Email</label>
             <input class="form-control" name="email" id="edit_email" required>
           </div>
-
-          <div class="col-md-4">
-            <label class="form-label">Role</label>
-            <select class="form-select" name="staff_role" id="edit_staff_role">
-              <option value="kitchen">Cook / Kitchen</option>
-              <option value="cashier">Cashier / Front Desk</option>
-              <option value="rider">Delivery Rider</option>
-              <option value="manager">Manager</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Shift</label>
-            <select class="form-select" name="shift" id="edit_shift">
-              <option value="morning">Morning (6am - 2pm)</option>
-              <option value="mid">Mid (10am - 6pm)</option>
-              <option value="evening">Evening (2pm - 10pm)</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Contact #</label>
+          <div class="col-md-6">
+            <label class="form-label">Phone</label>
             <input class="form-control" name="phone" id="edit_phone">
           </div>
-
-          <div class="col-12">
-            <label class="form-label">Notes</label>
-            <input class="form-control" name="notes" id="edit_notes">
+          <div class="col-md-12">
+            <label class="form-label">Role</label>
+            <select class="form-select" name="role" id="edit_role">
+              <option value="staff">Staff (Kitchen, Cashier)</option>
+              <option value="driver">Driver</option>
+              <option value="admin">Admin (Full Access)</option>
+            </select>
           </div>
 
           <div class="col-md-6">
@@ -200,41 +173,21 @@ document.addEventListener('DOMContentLoaded', () => {
   function badgeForRole(role) {
     role = (role||'').toLowerCase();
     const label =
-      role === 'kitchen' ? 'Kitchen' :
-      role === 'cashier' ? 'Front Desk' :
-      role === 'rider'   ? 'Delivery Rider' :
-      role === 'manager' ? 'Manager' : 'Staff';
+      role === 'admin' ? 'Admin' :
+      role === 'driver' ? 'Driver' : 'Staff';
     const klass =
-      role === 'manager' ? 'badge-danger' :
-      (role === 'cashier' ? 'badge-warning' : 'badge-success');
+      role === 'admin' ? 'badge-danger' :
+      (role === 'driver' ? 'badge-info' : 'badge-success');
     return {label, klass};
   }
 
-  function shiftText(code){
-    return code==='morning' ? 'Morning (6am - 2pm)' :
-           code==='mid'     ? 'Mid (10am - 6pm)' :
-           code==='evening' ? 'Evening (2pm - 10pm)' : '—';
-  }
-
-  function monthYear(dstr){
-    if (!dstr) return '—';
-    const d = new Date(dstr.replace(' ','T'));
-    const opts = {month:'short', year:'numeric'};
-    if (isNaN(d.getTime())) return '—';
-    return d.toLocaleString(undefined, opts);
-  }
-
   function rowHTML(s){
-    const r = badgeForRole(s.staff_role);
-    const started = s.started_at ? `Started: ${monthYear(s.started_at)}` : '';
+    const r = badgeForRole(s.role);
     return `
-      <tr data-id="${s.id}">
-        <td>
-          <strong>${s.name || '—'}</strong><br>
-          <small class="text-muted">${started}</small>
-        </td>
+      <tr data-id="${s.user_id}">
+        <td><strong>${s.first_name || ''} ${s.last_name || ''}</strong></td>
         <td><span class="badge ${r.klass}">${r.label}</span></td>
-        <td>${shiftText(s.shift)}</td>
+        <td>${s.email || '—'}</td>
         <td>${s.phone || '—'}</td>
         <td>
           <div class="btn-group btn-group-sm">
@@ -260,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Add new staff (use API then reload list)
-  topBtn.addEventListener('click', () => form.requestSubmit());
+  // topBtn.addEventListener('click', () => form.requestSubmit()); // This is handled by the button's form attribute
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(form);
@@ -285,9 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const id = tr.getAttribute('data-id');
 
     if (e.target.classList.contains('btn-remove')) {
-      if (!confirm('Remove this staff member?')) return;
+      if (!confirm('Remove this staff member? This is permanent.')) return;
       try{
-        const fd = new FormData(); fd.append('id', id);
+        const fd = new FormData(); fd.append('user_id', id);
         const res = await fetch('actions/delete_staff.php', { method:'POST', body:fd });
         const data = await res.json();
         if (data.status !== 'ok') throw new Error(data.message || 'Delete failed');
@@ -298,21 +251,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (e.target.classList.contains('btn-edit')) {
-      // Load the single row data (reuse list endpoint and pick one) or read from DOM if you prefer
       try{
-        const res = await fetch('actions/list_staff.php?id='+encodeURIComponent(id));
+        const res = await fetch('actions/list_staff.php?user_id='+encodeURIComponent(id));
         const data = await res.json();
         if (data.status !== 'ok' || !data.row) throw new Error('Failed to fetch staff details');
 
         // Fill modal
         editForm.reset();
-        document.getElementById('edit_id').value = data.row.id;
-        document.getElementById('edit_full_name').value = data.row.name || '';
+        document.getElementById('edit_user_id').value = data.row.user_id;
+        document.getElementById('edit_first_name').value = data.row.first_name || '';
+        document.getElementById('edit_last_name').value = data.row.last_name || '';
         document.getElementById('edit_email').value = data.row.email || '';
-        document.getElementById('edit_staff_role').value = (data.row.staff_role || 'kitchen');
-        document.getElementById('edit_shift').value = (data.row.shift || 'morning');
+        document.getElementById('edit_role').value = (data.row.role || 'staff');
         document.getElementById('edit_phone').value = data.row.phone || '';
-        document.getElementById('edit_notes').value = data.row.notes || '';
 
         editBackdrop.style.display = 'flex';
       }catch(err){ showAlert('danger', err.message); }

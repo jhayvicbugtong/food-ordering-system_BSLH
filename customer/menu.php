@@ -1,5 +1,22 @@
 <?php
-// customer/menu.php — DB-driven menu (only available items)
+// customer/menu.php
+// --- FIX: ADDED SESSION GUARD ---
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+// Redirect to login if not a customer
+if (empty($_SESSION['user_id']) || $_SESSION['role'] !== 'customer') {
+    $scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+    $BASE      = preg_replace('#/customer(/.*)?$#', '', $scriptDir);
+    if ($BASE === '/') $BASE = '';
+    
+    $next = $BASE . '/customer/menu.php'; // The page we want to come back to
+    header('Location: ' . $BASE . '/customer/auth/login.php?next=' . urlencode($next));
+    exit;
+}
+// --- END FIX ---
+
+
+// DB-driven menu (Bootstrap 5)
 require_once __DIR__ . '/../includes/db_connect.php';
 
 // ---------- CONFIG ----------
@@ -13,40 +30,28 @@ $COL = [
   'available' => 'is_available',
 ];
 
-// If you have friendly names for categories, map them here:
-$CATEGORY_NAMES = [
-   6  => 'Lomi Bowls',
-   7  => 'Silog Meals',
-   8  => 'Party Trays',
-   9  => 'Drinks',
-   10 => 'Sides',
-   11 => 'Panghimagas',
-];
-
-// Detect actual table name: prefer "product", fallback to "products"
-$table = 'product';
-$chk = $conn->query("SHOW TABLES LIKE 'product'");
-if (!$chk || $chk->num_rows === 0) {
-  $chk2 = $conn->query("SHOW TABLES LIKE 'products'");
-  if ($chk2 && $chk2->num_rows > 0) $table = 'products';
-}
+$table = 'products';
+$cat_table = 'categories';
 
 // Helpers
 function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function peso($n){ return '₱' . number_format((float)$n, 2); }
-function slugify($s){ return strtolower(preg_replace('/[^a-z0-9]+/i', '-', $s)); }
+function slugify($s){ return strtolower(preg_replace('/[^a-z0-9]+/i', '-', preg_replace('/\s+/', '-', $s))); }
 
 // --------- FETCH ITEMS (available only) ----------
 $sql = "SELECT
-          {$COL['id']}   AS id,
-          {$COL['cat']}  AS category_id,
-          {$COL['name']} AS name,
-          {$COL['desc']} AS description,
-          {$COL['price']} AS price,
-          {$COL['img']}   AS image_url
-        FROM `$table`
-        WHERE {$COL['available']} = 1
-        ORDER BY {$COL['cat']} ASC, {$COL['name']} ASC";
+          p.{$COL['id']}   AS id,
+          p.{$COL['cat']}  AS category_id,
+          p.{$COL['name']} AS name,
+          p.{$COL['desc']} AS description,
+          p.{$COL['price']} AS price,
+          p.{$COL['img']}   AS image_url,
+          c.category_name,
+          c.display_order
+        FROM `$table` p
+        JOIN `$cat_table` c ON p.{$COL['cat']} = c.category_id
+        WHERE p.{$COL['available']} = 1 AND c.is_active = 1
+        ORDER BY c.display_order ASC, p.{$COL['name']} ASC";
 
 $res = $conn->query($sql);
 if (!$res) {
@@ -60,18 +65,25 @@ while ($row = $res->fetch_assoc()) {
 
 // Group by category_id
 $grouped = [];
+$categories_map = []; // To store category info dynamically
+
 foreach ($items as $it) {
   $catId = (int)$it['category_id'];
   $grouped[$catId][] = $it;
+
+  if (!isset($categories_map[$catId])) {
+    $categories_map[$catId] = [
+      'id' => $catId,
+      'label' => $it['category_name'],
+      'slug' => slugify($it['category_name']),
+      'order' => (int)$it['display_order']
+    ];
+  }
 }
 
-// Build a list with friendly category names (or “Category {id}”)
-$categories = [];
-foreach ($grouped as $catId => $_rows) {
-  $label = $CATEGORY_NAMES[$catId] ?? ('Category ' . $catId);
-  $categories[] = ['id' => $catId, 'label' => $label, 'slug' => slugify($label)];
-}
-usort($categories, fn($a,$b)=>strcmp($a['label'],$b['label'])); // sort by label
+// Convert map to list and sort by display_order
+$categories = array_values($categories_map);
+usort($categories, fn($a,$b)=> $a['order'] <=> $b['order']);
 
 ?>
 <!DOCTYPE html>
@@ -81,292 +93,433 @@ usort($categories, fn($a,$b)=>strcmp($a['label'],$b['label'])); // sort by label
   <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=0"/>
   <title>Order Online | Bente Sais Lomi House</title>
 
-  <!-- Fonts + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
-
-  <!-- Shared CSS (keep your path) -->
   <link rel="stylesheet" href="/food-ordering-system_BSLH/assets/css/customer.css"/>
 </head>
-<body class="menu-page">
+<body class="menu-page d-flex flex-column min-vh-100">
 
   <?php include __DIR__ . '/includes/header.php'; ?>
 
-  <main class="menu-layout">
-    <!-- LEFT: categories list -->
-    <aside class="menu-categories">
-      <h2>Menu</h2>
-      <ul class="category-list">
-        <?php $first = true; foreach ($categories as $c): ?>
-          <li>
-            <a class="category-link <?= $first ? 'active' : '' ?>" href="#<?= h($c['slug']) ?>">
-              <?= h($c['label']) ?>
-            </a>
-          </li>
-        <?php $first = false; endforeach; ?>
-
-        <?php if (empty($categories)): ?>
-          <li class="text-muted" style="list-style:none;">No available items.</li>
-        <?php endif; ?>
-      </ul>
-    </aside>
-
-    <!-- MIDDLE: items per category -->
-    <section class="menu-items-area">
-      <?php if (empty($categories)): ?>
-        <div class="content-card">
-          <div class="content-card-header">
-            <div class="left">
-              <h3>No available menu items</h3>
-              <p class="text-muted">Please check back later.</p>
-            </div>
+  <main class="container py-4 flex-grow-1">
+    <div class="row g-4">
+      
+     <div class="col-lg-2">
+        <aside class="menu-categories card shadow-sm border-0" style="position: sticky; top: 86px; align-self: start;">
+          <div class="card-body">
+            <h2 class="h6 fw-bold mb-3 text-uppercase">Menu</h2>
+            <ul class="category-list list-unstyled">
+              <?php $first = true; foreach ($categories as $c): ?>
+                <li class="mb-1">
+                  <a class="category-link d-block px-3 py-2 rounded-3 text-decoration-none <?= $first ? 'active' : '' ?>" href="#<?= h($c['slug']) ?>">
+                    <?= h($c['label']) ?>
+                  </a>
+                </li>
+              <?php $first = false; endforeach; ?>
+              <?php if (empty($categories)): ?>
+                <li class="text-muted px-3 py-2 small">No available items.</li>
+              <?php endif; ?>
+            </ul>
           </div>
-        </div>
-      <?php else: ?>
-        <?php foreach ($categories as $c): ?>
-          <?php
-            $catId = $c['id'];
-            $label = $c['label'];
-            $slug  = $c['slug'];
-          ?>
-          <div class="menu-category-block" id="<?= h($slug) ?>">
-            <div class="menu-category-header">
-              <h3><?= h($label) ?></h3>
+        </aside>
+      </div>
+
+      <div class="col-lg-7">
+        <section class="menu-items-area">
+          <?php if (empty($categories)): ?>
+            <div class="card shadow-sm border-0">
+              <div class="card-body text-center py-5">
+                <h3 class="h5 text-muted">No available menu items</h3>
+                <p class="text-muted mb-0">Please check back later.</p>
+              </div>
             </div>
-
-            <?php foreach ($grouped[$catId] as $it): ?>
+          <?php else: ?>
+            <?php foreach ($categories as $c): ?>
               <?php
-                // Image URL from DB (e.g., "uploads/products/xxx.jpg")
-                $imgRel = $it['image_url'] ?: '';
-                // from /customer/menu.php to /uploads/... → prefix "../"
-                $imgWeb = '../' . ltrim($imgRel, '/');
-                // Use a placeholder if missing; also keep onerror fallback
-                $placeholder = '../assets/images/placeholder.png';
+                $catId = $c['id'];
+                $label = $c['label'];
+                $slug  = $c['slug'];
               ?>
-              <div class="menu-item-card">
-                <div class="menu-item-imgwrap">
-                  <img src="<?= h($imgWeb) ?>"
-                       alt="<?= h($it['name']) ?>"
-                       onerror="this.onerror=null;this.src='<?= h($placeholder) ?>';"/>
+              <div class="menu-category-block mb-5" id="<?= h($slug) ?>">
+                <div class="menu-category-header mb-3">
+                  <h3 class="h4 fw-bold mb-0"><?= h($label) ?></h3>
                 </div>
-
-                <div class="menu-item-main">
-                  <div class="menu-item-toprow">
-                    <h4 class="menu-item-name"><?= h($it['name']) ?></h4>
-                    <div class="menu-item-price"><?= h(peso($it['price'])) ?></div>
-                  </div>
-
-                  <div class="menu-item-desc">
-                    <?= h($it['description']) ?>
-                  </div>
-
-                  <div class="menu-item-actions">
-                    <div class="qty-control">
-                      <button class="qty-btn minus" type="button">-</button>
-                      <div class="qty-value">1</div>
-                      <button class="qty-btn plus" type="button">+</button>
+                
+                <div class="d-flex flex-column gap-3">
+                  <?php foreach ($grouped[$catId] as $it): ?>
+                    <?php
+                      $imgRel = $it['image_url'] ?: '';
+                      $imgWeb = '../' . ltrim($imgRel, '/');
+                      $placeholder = '../assets/images/placeholder.png';
+                    ?>
+                    <div class="menu-item-card card shadow-sm border-0 h-100">
+                      <div class="card-body p-3">
+                        <div class="d-flex align-items-start gap-3">
+                          <div class="menu-item-imgwrap rounded overflow-hidden" style="width: 80px; height: 80px; flex-shrink: 0;">
+                            <img src="<?= h($imgWeb) ?>" 
+                                 alt="<?= h($it['name']) ?>" 
+                                 class="img-fluid h-100 w-100"
+                                 style="object-fit: cover;"
+                                 onerror="this.onerror=null;this.src='<?= h($placeholder) ?>';">
+                          </div>
+                          <div class="menu-item-main flex-grow-1">
+                            <div class="menu-item-toprow d-flex justify-content-between align-items-start mb-1">
+                              <h4 class="menu-item-name h6 fw-bold mb-0 me-2"><?= h($it['name']) ?></h4>
+                              <div class="menu-item-price fw-bold text-dark text-nowrap"><?= h(peso($it['price'])) ?></div>
+                            </div>
+                            <div class="menu-item-desc text-muted small mb-2">
+                              <?= h($it['description']) ?>
+                            </div>
+                            <div class="menu-item-actions text-end">
+                              <button class="add-btn btn btn-sm fw-semibold" type="button" data-id="<?= (int)$it['id'] ?>" style="background-color: var(--accent); color: #000;">
+                                <i class="bi bi-plus-circle me-1"></i>
+                                Add
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-
-                    <button class="add-btn" type="button" data-id="<?= (int)$it['id'] ?>">
-                      <i class="bi bi-plus-circle-fill" style="font-size:14px;color:#000;"></i>
-                      Add
-                    </button>
-                  </div>
+                  <?php endforeach; ?>
                 </div>
               </div>
             <?php endforeach; ?>
-          </div>
-        <?php endforeach; ?>
-      <?php endif; ?>
-    </section>
+          <?php endif; ?>
+        </section>
+      </div>
 
-    <!-- RIGHT: delivery/pickup + cart -->
-    <?php include __DIR__ . '/includes/delivery-cart.php'; ?>
+      <div class="col-lg-3">
+        <?php include __DIR__ . '/includes/delivery-cart.php'; ?>
+      </div>
+    </div>
   </main>
 
   <?php include __DIR__ . '/includes/footer.php'; ?>
-
-  <!-- Address Modal + JS -->
   <?php include __DIR__ . '/includes/address-modal.php'; ?>
 
+  
+
   <script>
-  // ------- simple cart persistence in localStorage -------
-  function getCart() {
-    try { return JSON.parse(localStorage.getItem('bslh_cart')) || { items: [], subtotal: 0, deliveryFee: 0, total: 0 }; }
-    catch(e){ return { items: [], subtotal: 0, deliveryFee: 0, total: 0 }; }
-  }
-  function saveCart(cart) { localStorage.setItem('bslh_cart', JSON.stringify(cart)); }
-  function clearCart() { localStorage.removeItem('bslh_cart'); }
-
-  // Sidebar category active state
-  document.querySelectorAll('.category-link').forEach(link => {
-    link.addEventListener('click', function() {
-      document.querySelectorAll('.category-link').forEach(el => el.classList.remove('active'));
-      this.classList.add('active');
-    });
-  });
-  document.addEventListener("DOMContentLoaded", function() {
-    const categoryLinks = document.querySelectorAll('.category-link');
-    const sections = document.querySelectorAll('.menu-category-block');
-
-    categoryLinks.forEach(link => {
-      link.addEventListener('click', function() {
-        categoryLinks.forEach(el => el.classList.remove('active'));
-        this.classList.add('active');
-      });
-    });
-
-    window.addEventListener('scroll', () => {
-      let current = '';
-      sections.forEach(section => {
-        const sectionTop = section.offsetTop - 120;
-        if (window.scrollY >= sectionTop) current = section.getAttribute('id');
-      });
-      categoryLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href') === '#' + current) link.classList.add('active');
-      });
-    });
-  });
-
-  document.addEventListener('DOMContentLoaded', function() {
-    // ✅ Quantity controls
-    function initQuantityControls() {
-      document.querySelectorAll('.qty-control').forEach(control => {
-        const minusBtn = control.querySelector('.qty-btn.minus');
-        const plusBtn = control.querySelector('.qty-btn.plus');
-        const qtyValue = control.querySelector('.qty-value');
-        let quantity = parseInt(qtyValue.textContent) || 1;
-
-        minusBtn.addEventListener('click', () => {
-          if (quantity > 1) { quantity--; qtyValue.textContent = quantity; }
-        });
-        plusBtn.addEventListener('click', () => { quantity++; qtyValue.textContent = quantity; });
-      });
-    }
-
-    // ✅ Add to cart + persist
-    function initAddToCart() {
-      const addButtons = document.querySelectorAll('.add-btn');
-      const cartItemsEl = document.getElementById('cartItems');
-      const cartSubtotalEl = document.getElementById('cartSubtotal');
-      const cartTotalEl = document.getElementById('cartTotal');
-      const deliveryFee = parseFloat((document.getElementById('cartDeliveryFee')?.textContent || '0').replace(/[₱,]/g, ''));
-
-      // rebuild from storage
-      const cart = getCart();
-if (cart.items.length) {
-  cart.items.forEach(it => appendOrUpdateLine(it.name, it.unitPrice, it.qty, { fromStorage: true }));
-  updateCartTotals(); // okay to compute/sync totals; no qty changes happen here
-}
-
-      addButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          const card = button.closest('.menu-item-card');
-          const name = card.querySelector('.menu-item-name').textContent.trim();
-          const price = parseFloat(card.querySelector('.menu-item-price').textContent.replace(/[₱,]/g, ''));
-          const qty = parseInt(card.querySelector('.qty-value').textContent) || 1;
-
-          appendOrUpdateLine(name, price, qty);
-          updateCartTotals();
-          card.querySelector('.qty-value').textContent = '1';
-        });
-      });
-
-      function appendOrUpdateLine(name, unitPrice, addQty, opts = {}) {
-  const fromStorage = !!opts.fromStorage;
-
-  // Find existing DOM line by exact name (avoid `.includes`)
-  let existingLine = null;
-  cartItemsEl.querySelectorAll('.cart-line').forEach(line => {
-    if (line.dataset.name === name) existingLine = line;
-  });
-
-  // Find existing cart entry
-  const existingIdx = cart.items.findIndex(i => i.name === name);
-  const currentCartQty = existingIdx > -1 ? Number(cart.items[existingIdx].qty || 0) : 0;
-
-  // Target quantity to show/write
-  // - when rebuilding from storage: the qty we pass in is already the exact qty to display
-  // - on user add: increase existing cart qty by addQty
-  const targetQty = fromStorage ? addQty : (currentCartQty + addQty);
-
-  if (existingLine) {
-    // Update DOM
-    const nameElem  = existingLine.querySelector('.cart-line-name');
-    const priceElem = existingLine.querySelector('.cart-line-price');
-    nameElem.textContent  = `${targetQty}x ${name}`;
-    priceElem.textContent = `₱${(unitPrice * targetQty).toFixed(2)}`;
-
-    // Update cart ONLY on user add
-    if (!fromStorage && existingIdx > -1) {
-      cart.items[existingIdx].qty = targetQty;
-      cart.items[existingIdx].unitPrice = unitPrice; // keep price in sync
-    }
-  } else {
-    // Create DOM line
-    const cartLine = document.createElement('div');
-    cartLine.classList.add('cart-line');
-    cartLine.dataset.name = name; // exact key
-    const lineTotal = unitPrice * targetQty;
-    cartLine.innerHTML = `
-      <div class="cart-line-main">
-        <div class="cart-line-name">${targetQty}x ${name}</div>
-      </div>
-      <div class="cart-line-right">
-        <div class="cart-line-price">₱${lineTotal.toFixed(2)}</div>
-        <button class="cart-delete-btn" type="button" title="Remove">
-          <i class="bi bi-trash" style="color:#d00; font-size:14px;"></i>
-        </button>
-      </div>
-    `;
-    cartLine.querySelector('.cart-delete-btn').addEventListener('click', () => {
-      cartLine.remove();
-      const idx = cart.items.findIndex(i => i.name === name);
-      if (idx > -1) cart.items.splice(idx, 1);
-      updateCartTotals();
-    });
-    cartItemsEl.appendChild(cartLine);
-
-    // Update cart ONLY on user add
-    if (!fromStorage) {
-      if (existingIdx > -1) {
-        cart.items[existingIdx].qty = targetQty;
-        cart.items[existingIdx].unitPrice = unitPrice;
-      } else {
-        cart.items.push({ name, qty: targetQty, unitPrice });
+  // ------- cart persistence -------
+    function getCart() {
+      try {
+        const cart = JSON.parse(localStorage.getItem('bslh_cart')) || { items: [], subtotal: 0, deliveryFee: 0, total: 0 };
+        if (!Array.isArray(cart.items)) {
+          cart.items = [];
+        }
+        cart.items = cart.items.filter(item => item && (item.id !== null && item.id !== undefined));
+        return cart;
+      } 
+      catch(e){ 
+        return { items: [], subtotal: 0, deliveryFee: 0, total: 0 }; 
       }
     }
-  }
-}
+    function saveCart(cart) { localStorage.setItem('bslh_cart', JSON.stringify(cart)); }
+    function clearCart() { localStorage.removeItem('bslh_cart'); }
+    function currency(n){ return `₱${(Number(n)||0).toFixed(2)}`; }
+
+    
+    // --- Sidebar category active state (scroll spy) ---
+    document.addEventListener("DOMContentLoaded", function() {
+      const categoryLinks = document.querySelectorAll('.category-link');
+      const sections = document.querySelectorAll('.menu-category-block');
+      const stickyHeaderOffset = 100;
+
+      categoryLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const targetId = this.getAttribute('href');
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            const targetPosition = targetElement.offsetTop - stickyHeaderOffset;
+            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+          }
+        });
+      });
+
+      window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop - stickyHeaderOffset - 20;
+          if (window.scrollY >= sectionTop) {
+            current = section.getAttribute('id');
+          }
+        });
+        categoryLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + current) {
+            link.classList.add('active');
+          }
+        });
+      });
+    });
 
 
-      function updateCartTotals() {
+    // --- BOOTSTRAP-BASED CART LOGIC ---
+    document.addEventListener('DOMContentLoaded', function() {
+
+      function addItemToCart(id, name, unitPrice, addQty) {
+        const cart = getCart();
+        const existingIdx = cart.items.findIndex(i => i.id === id); 
+
+        if (existingIdx > -1) {
+          cart.items[existingIdx].qty = Math.min(cart.items[existingIdx].qty + addQty, 50);
+        } else {
+          cart.items.push({ id, name, unitPrice, qty: addQty });
+        }
+        
+        saveCart(cart);
+        renderCartFromStorage();
+        showQuickMessage('🍜 Item added to cart!');
+      }
+      
+      function updateCartQuantity(id, newQty) {
+          const cart = getCart();
+          const existingIdx = cart.items.findIndex(i => i.id === id);
+          if (existingIdx === -1) return;
+
+          if (newQty <= 0) {
+              const cartLine = document.querySelector(`.cart-line[data-id="${id}"]`);
+              animateRemoveItem(id, cartLine);
+              return;
+          }
+
+          if (newQty > 50) {
+              newQty = 50;
+              showQuickMessage('Max quantity is 50');
+          }
+
+          cart.items[existingIdx].qty = newQty;
+          saveCart(cart);
+          renderCartFromStorage();
+      }
+
+      function removeItemFromCart(id) {
+        const cart = getCart();
+        cart.items = cart.items.filter(i => i.id !== id);
+        saveCart(cart);
+        renderCartFromStorage();
+      }
+
+      function renderCartFromStorage() {
+        const cart = getCart();
+        const itemsEl = document.getElementById('cartItems');
+        const subtotalEl = document.getElementById('cartSubtotal');
+        const totalEl = document.getElementById('cartTotal');
+        const deliveryFeeEl = document.getElementById('cartDeliveryFee');
+        const deliveryFeeText = deliveryFeeEl ? (deliveryFeeEl.textContent || '0') : '0';
+        const deliveryFee = parseFloat(deliveryFeeText.replace(/[₱,]/g, '')) || 0;
+
+        if (!itemsEl || !subtotalEl || !totalEl) return;
+        itemsEl.innerHTML = ''; 
+
+        const validItems = cart.items.filter(item => item && (item.id !== null && item.id !== undefined));
+
+        if (validItems.length === 0) {
+          itemsEl.innerHTML = `
+            <div class="cart-empty text-center p-3" style="flex-shrink: 0;">
+              <div class="text-muted small">Your cart is empty</div>
+            </div>
+          `;
+          if (cart.items.length > 0) {
+            cart.items = [];
+            saveCart(cart);
+          }
+          updateCartTotals(0, deliveryFee, subtotalEl, totalEl, deliveryFeeEl);
+          return;
+        }
+
         let subtotal = 0;
-        cart.items.forEach(i => { subtotal += i.qty * i.unitPrice; });
+        validItems.forEach(item => { 
+          const lineTotal = item.unitPrice * item.qty;
+          subtotal += lineTotal;
+
+          const cartLine = document.createElement('div');
+          cartLine.className = 'cart-line card shadow-sm border-0 mb-2';
+          cartLine.dataset.id = item.id;
+          
+          cartLine.innerHTML = `
+            <div class="card-body p-2">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="cart-line-name small fw-semibold me-2">${h(item.name)}</div>
+                <div class="cart-line-price small fw-bold text-nowrap">${currency(lineTotal)}</div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="btn-group btn-group-sm" role="group">
+                  <button class="qty-btn minus btn btn-outline-secondary" type="button" data-id="${item.id}">
+                    <i class="bi bi-dash-lg"></i>
+                  </button>
+                  <span class="qty-value btn btn-light disabled" style="width: 2.5rem;">${item.qty}</span>
+                  <button class="qty-btn plus btn btn-outline-secondary" type="button" data-id="${item.id}"
+                          ${item.qty >= 50 ? 'disabled' : ''}>
+                    <i class="bi bi-plus-lg"></i>
+                  </button>
+                </div>
+                <button class="cart-delete-btn btn btn-sm btn-outline-danger border-0" type="button" title="Remove" data-id="${item.id}">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </div>
+          `;
+          itemsEl.appendChild(cartLine);
+        });
+        
+        attachCartEventListeners();
+        updateCartTotals(subtotal, deliveryFee, subtotalEl, totalEl, deliveryFeeEl);
+      }
+      
+      function h(str) {
+          if (!str) return '';
+          return str.toString()
+              .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+      }
+
+      function attachCartEventListeners() {
+        const itemsEl = document.getElementById('cartItems');
+        if (!itemsEl) return;
+
+        itemsEl.querySelectorAll('.cart-delete-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = Number(btn.dataset.id);
+            const cartLine = btn.closest('.cart-line');
+            animateRemoveItem(id, cartLine);
+          });
+        });
+        
+        itemsEl.querySelectorAll('.qty-btn.minus').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = Number(btn.dataset.id);
+            const qtyEl = btn.closest('.btn-group').querySelector('.qty-value');
+            const newQty = (parseInt(qtyEl.textContent) || 0) - 1;
+            animateQuantityChange(qtyEl);
+            updateCartQuantity(id, newQty);
+          });
+        });
+        
+        itemsEl.querySelectorAll('.qty-btn.plus').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = Number(btn.dataset.id);
+            const qtyEl = btn.closest('.btn-group').querySelector('.qty-value');
+            const newQty = (parseInt(qtyEl.textContent) || 0) + 1;
+            animateQuantityChange(qtyEl);
+            updateCartQuantity(id, newQty);
+          });
+        });
+      }
+
+      function animateRemoveItem(id, element) {
+        if (!element) {
+          removeItemFromCart(id); 
+          return;
+        }
+        element.classList.add('removing');
+        element.addEventListener('transitionend', () => {
+          removeItemFromCart(id);
+          showQuickMessage('🗑️ Item removed');
+        }, { once: true });
+      }
+
+      function animateQuantityChange(qtyEl) {
+        qtyEl.classList.add('changing');
+        qtyEl.addEventListener('animationend', () => {
+          qtyEl.classList.remove('changing');
+        }, { once: true });
+      }
+
+      function updateCartTotals(subtotal, deliveryFee, subtotalEl, totalEl, deliveryFeeEl) {
+        const cart = getCart();
         cart.subtotal = subtotal;
         cart.deliveryFee = deliveryFee || 0;
         cart.total = subtotal + cart.deliveryFee;
 
-        if (cartSubtotalEl) cartSubtotalEl.textContent = `₱${subtotal.toFixed(2)}`;
-        if (cartTotalEl) cartTotalEl.textContent = `₱${cart.total.toFixed(2)}`;
+        subtotalEl.textContent = currency(cart.subtotal);
+        totalEl.textContent = currency(cart.total);
+        if (deliveryFeeEl) deliveryFeeEl.textContent = currency(cart.deliveryFee);
 
+        highlightTotal();
         saveCart(cart);
       }
 
-      const checkoutBtn = document.getElementById('checkoutBtn');
-      if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', () => {
-          const hasItems = (getCart().items || []).length > 0;
-          if (!hasItems) return alert('Your cart is empty.');
-          window.location.href = "/food-ordering-system_BSLH/customer/checkout.php";
-        });
+      function highlightTotal() {
+        const totalRow = document.querySelector('.cart-summary-row.total');
+        if (totalRow) {
+          totalRow.classList.add('highlight');
+          totalRow.addEventListener('animationend', () => {
+            totalRow.classList.remove('highlight');
+          }, { once: true });
+        }
       }
-    }
 
-    initQuantityControls();
-    initAddToCart();
-  });
+      function showQuickMessage(message) {
+        const existingToast = document.querySelector('.bs-toast-container');
+        if (existingToast) existingToast.remove();
+        
+        const toastContainer = document.createElement('div');
+        toastContainer.className = 'bs-toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = "1056";
+        
+        const toastHTML = `
+          <div class="toast fade show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+              <strong class="me-auto">Bente Sais Cart</strong>
+              <button type"button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+              ${message}
+            </div>
+          </div>
+        `;
+        toastContainer.innerHTML = toastHTML;
+        document.body.appendChild(toastContainer);
+        
+        const toastEl = toastContainer.querySelector('.toast');
+        const bsToast = new bootstrap.Toast(toastEl, { delay: 2000 });
+        
+        toastEl.addEventListener('hidden.bs.toast', () => {
+          toastContainer.remove();
+        });
+        
+        bsToast.show();
+      }
+
+      function initAddButtons() {
+        document.querySelectorAll('.add-btn').forEach(button => {
+          button.addEventListener('click', () => {
+            const card = button.closest('.menu-item-card');
+            const id = Number(button.dataset.id); 
+            const name = card.querySelector('.menu-item-name').textContent.trim();
+            const price = parseFloat(card.querySelector('.menu-item-price').textContent.replace(/[₱,]/g, ''));
+            const qty = 1;
+
+            if (!id || !name || isNaN(price)) return;
+            addItemToCart(id, name, price, qty);
+          });
+        });
+
+        const checkoutBtn = document.querySelector('.checkout-btn');
+        if (checkoutBtn) {
+          checkoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const hasItems = (getCart().items || []).length > 0;
+            if (!hasItems) {
+              showQuickMessage('🛒 Your cart is empty!');
+              return;
+            }
+            window.location.href = "/food-ordering-system_BSLH/customer/checkout.php";
+          });
+        }
+      }
+
+      // --- INITIALIZE ---
+      initAddButtons();
+      renderCartFromStorage();
+    });
   </script>
+  
 </body>
 </html>

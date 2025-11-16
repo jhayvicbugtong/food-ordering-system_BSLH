@@ -4,11 +4,12 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Include auth functions and require 'staff' role
+// Include auth functions
 require_once __DIR__ . '/../../includes/auth.php';
-require_role('staff');
+// --- MODIFIED: Allow 'staff' AND 'driver' roles ---
+require_role(['staff', 'driver']);
 
-// Include database connection (good practice, like admin)
+// Include database connection
 require_once __DIR__ . '/../../includes/db_connect.php';
 ?>
 <!DOCTYPE html>
@@ -36,7 +37,7 @@ require_once __DIR__ . '/../../includes/db_connect.php';
           </span>
         </button>
         <div class="brand">
-          <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/logo.png?v=0" alt="Avocado Logo">
+          <img src="../../uploads/logo/logo.png" alt="Avocado Logo">
           <span>
             Bente Sais Lomi House<br>
             <small style="color:#adb5bd;font-weight:400;font-size:12px;line-height:1;">
