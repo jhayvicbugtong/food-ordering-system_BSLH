@@ -1,16 +1,12 @@
 <?php
 // customer/auth/register.php
-session_start();
+require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL and starts session
 
-// --- MODIFIED: Use new base URL logic ---
-$BASE_URL = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/');
-if ($BASE_URL === '/') $BASE_URL = '';
-
+// --- NEW: Use the $BASE_URL from db_connect.php ---
 $next = isset($_GET['next']) && $_GET['next'] !== ''
   ? $_GET['next']
   : $BASE_URL . '/customer/menu.php';
-
-require_once __DIR__ . '/../../includes/db_connect.php'; // Uses new online_food_ordering_db
+// --- END NEW ---
 
 // --- MODIFIED: Check new session keys ---
 if (!empty($_SESSION['user_id']) && $_SESSION['role'] === 'customer') {
@@ -93,6 +89,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
   
   <style>
+    /* ... [your existing CSS styles] ... */
     :root {
       --bg-dark: #212529;
       --bg-card: #ffffff;
@@ -320,7 +317,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
           Already have an account?
           <a href="login.php?next=<?= urlencode($next) ?>" style="color:#0b2b0b; font-weight: 600;">Sign in</a>
           <div style="margin-top: 12px;">
-            <a href="../../index.php">← Back to Customer Page</a>
+            <a href="<?= htmlspecialchars($BASE_URL) ?>/index.php">← Back to Customer Page</a>
           </div>
         </div>
       </form>

@@ -5,8 +5,11 @@ require_once __DIR__ . '/../includes/db_connect.php'; // For auth check
 
 // Redirect to login if not a customer
 if (empty($_SESSION['user_id']) || $_SESSION['role'] !== 'customer') {
-    $BASE_URL = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-    if ($BASE_URL === '/') $BASE_URL = '';
+    // --- FIX: Use robust base URL logic ---
+    $scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+    $BASE_URL = preg_replace('#/customer(/.*)?$#', '', $scriptDir);
+    if ($BASE_URL === '/') $BASE_URL = ''; // Handle root install
+    
     $next = $BASE_URL . '/customer/checkout.php';
     header('Location: ' . $BASE_URL . '/customer/auth/login.php?next=' . urlencode($next));
     exit;
@@ -39,8 +42,8 @@ if ($customer_id) {
   <title>Checkout | Bente Sais Lomi House</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
-  <link rel="stylesheet" href="/food-ordering-system_BSLH/assets/css/customer.css"/>
-  <link rel="stylesheet" href="../assets/css/checkout.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/customer.css"/>
+  <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/checkout.css">
   <style>
     .input-error { border-color:#EF4444 !important; outline-color:#EF4444 !important; }
     .input-err-msg { color:#B91C1C; font-size:12px; margin-top:6px; }
@@ -197,7 +200,7 @@ if ($customer_id) {
     </div>
     <button class="placeorder-btn" id="placeOrderBtn" type="button">Create order</button>
     <div id="formError" style="display:none; text-align:center; font-size:13px; color:#B91C1C; margin-bottom:10px;"></div>
-    <div class="coupon-link"><a href="/food-ordering-system_BSLH/customer/menu.php" id="editCartLink">I want to edit my order</a></div>
+    <div class="coupon-link"><a href="<?php echo htmlspecialchars($MENU); ?>" id="editCartLink">I want to edit my order</a></div>
   </aside>
 </main>
 
@@ -240,7 +243,7 @@ if ($customer_id) {
       <div>
         We've received your order. We'll send updates to your email and phone.
         <br><br>
-        <a href="/food-ordering-system_BSLH/customer/menu.php" class="btn btn-sm btn-success" style="color:black; font-weight:600;">Back to Menu</a>
+        <a href="<?php echo htmlspecialchars($MENU); ?>" class="btn btn-sm btn-success" style="color:black; font-weight:600;">Back to Menu</a>
       </div>
     </div>
   </div>
@@ -304,7 +307,7 @@ function getCart() {
   document.addEventListener('DOMContentLoaded', function () {
     if ((getCart().items || []).length === 0) {
       alert("Your cart is empty. Redirecting to menu.");
-      window.location.href = "/food-ordering-system_BSLH/customer/menu.php";
+      window.location.href = "<?php echo htmlspecialchars($MENU); ?>";
       return;
     }
     
@@ -315,7 +318,7 @@ function getCart() {
     initPlaceOrderButton();
     
     if (elements.editCartLink) {
-        elements.editCartLink.href = "/food-ordering-system_BSLH/customer/menu.php";
+        elements.editCartLink.href = "<?php echo htmlspecialchars($MENU); ?>";
     }
   });
 
@@ -412,7 +415,7 @@ function getCart() {
    =========================== */
   function cancelCheckout() {
     if (confirm("Are you sure you want to leave checkout and go back to the menu?")) {
-      window.location.href = "/food-ordering-system_BSLH/customer/menu.php";
+      window.location.href = "<?php echo htmlspecialchars($MENU); ?>";
     }
   }
 

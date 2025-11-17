@@ -1,6 +1,6 @@
 <?php
 // customer/payment_failed.php
-session_start();
+require_once __DIR__ . '/../includes/db_connect.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -10,8 +10,8 @@ session_start();
   <title>Payment Failed | Bente Sais Lomi House</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
-  <link rel="stylesheet" href="/food-ordering-system_BSLH/assets/css/customer.css"/>
-  <link rel="stylesheet" href="../assets/css/checkout.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/customer.css"/>
+  <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/checkout.css">
 </head>
 <body class="checkout-page">
 
@@ -41,8 +41,8 @@ session_start();
         If you cancelled, you can go back to the menu to modify your cart.
         If your payment failed, please try again. Your cart is still saved.
         <br><br>
-        <a href="/food-ordering-system_BSLH/customer/menu.php" class="btn btn-sm btn-secondary" style="font-weight:600;">Back to Menu</a>
-        <a href="/food-ordering-system_BSLH/customer/checkout.php" class="btn btn-sm btn-success" style="color:black; font-weight:600;">Try Checkout Again</a>
+        <a href="<?= htmlspecialchars($BASE_URL) ?>/customer/menu.php" class="btn btn-sm btn-secondary" style="font-weight:600;">Back to Menu</a>
+        <a href="<?= htmlspecialchars($BASE_URL) ?>/customer/checkout.php" class="btn btn-sm btn-success" style="color:black; font-weight:600;">Try Checkout Again</a>
       </div>
     </div>
   </div>

@@ -1,6 +1,6 @@
 <?php
 // customer/payment_success.php
-session_start();
+require_once __DIR__ . '/../includes/db_connect.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -10,8 +10,8 @@ session_start();
   <title>Payment Successful | Bente Sais Lomi House</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
-  <link rel="stylesheet" href="/food-ordering-system_BSLH/assets/css/customer.css"/>
-  <link rel="stylesheet" href="../assets/css/checkout.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/customer.css"/>
+  <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/checkout.css">
 </head>
 <body class="checkout-page">
 
@@ -130,7 +130,7 @@ session_start();
   function finishOrder() {
     // Clean up storage and go home
     localStorage.removeItem('bslh_pending_order');
-    window.location.href = "/food-ordering-system_BSLH/customer/menu.php";
+    window.location.href = window.BASE_URL + "/customer/menu.php";
   }
 </script>
 </body>

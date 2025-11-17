@@ -1,14 +1,13 @@
 <?php
 // customer/includes/header.php
-// Start session (safe even if already started)
-if (session_status() === PHP_SESSION_NONE) session_start();
+
+// --- MODIFIED: Include db_connect.php to get $BASE_URL and session ---
+require_once __DIR__ . '/../../includes/db_connect.php';
 
 /*
-  Work out the base URL of the project dynamically.
+  Set local $BASE variable from the global $BASE_URL
 */
-$scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-$BASE      = preg_replace('#/customer(/.*)?$#', '', $scriptDir);
-if ($BASE === '/') $BASE = '';
+$BASE = $BASE_URL;
 
 // Current page name for "active" highlight
 $currentPage = basename(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
@@ -52,7 +51,7 @@ function isActive($names, $current) {
   <div class="site-header-inner">
     <a class="brand-left" href="<?= htmlspecialchars($HOME) ?>">
       <div class="logo-container">
-        <img src="/food-ordering-system_BSLH/uploads/logo/logo.png" alt="Logo">
+        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo.png" alt="Logo">
         <div class="logo-glow"></div>
       </div>
       <div class="brand-text">
@@ -136,13 +135,17 @@ function isActive($names, $current) {
       <?php endif; ?>
     </nav>
     
-    <!-- Mobile menu toggle -->
     <button class="mobile-menu-toggle" aria-label="Toggle navigation">
       <span></span>
       <span></span>
       <span></span>
     </button>
   </div>
+  <script>
+    // Make the base URL available to all client-side scripts
+    window.BASE_URL = "<?= htmlspecialchars($BASE_URL, ENT_QUOTES, 'UTF-8') ?>";
+  </script>
+  </header>
 </header>
 
 <style>

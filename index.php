@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/includes/db_connect.php'; ?>
 <!DOCTYPE html>
 <html class="cms4-page" lang="en">
 <head>
@@ -13,7 +14,7 @@
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
 
-  <link rel="stylesheet" href="/food-ordering-system_BSLH/assets/css/customer.css"/>
+  <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/customer.css"/>
 </head>
 
 <body>
@@ -32,7 +33,7 @@
           available for delivery or pickup, Monday to Sunday.
         </h4>
 
-        <a class="hero-cta" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
+        <a class="hero-cta" href="<?= htmlspecialchars($ORDER_BTN_LINK) ?>">
           Order online
         </a>
       </div>
@@ -62,7 +63,7 @@
           Everything is cooked fresh, served fast, and priced for barkada.
         </p>
 
-        <a class="about-cta" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
+        <a class="about-cta" href="<?= htmlspecialchars($ORDER_BTN_LINK) ?>">
           Order now
         </a>
       </div>
@@ -149,7 +150,7 @@
           and silog packs. Message us, and we'll prep based on your schedule.
         </h4>
         <div class="cta-center-btn">
-          <a class="cta-btn" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
+          <a class="cta-btn" href="<?= htmlspecialchars($ORDER_BTN_LINK) ?>">
             Order online
           </a>
         </div>

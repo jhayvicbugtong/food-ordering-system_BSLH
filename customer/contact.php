@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../includes/db_connect.php'; ?>
 <!DOCTYPE html>
 <html class="cms4-page" lang="en">
 <head>
@@ -16,7 +17,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
 
   <!-- Shared styles -->
-  <link rel="stylesheet" href="/food-ordering-system_BSLH/assets/css/customer.css"/>
+  <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/customer.css"/>
 </head>
 
 <body>

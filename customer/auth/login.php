@@ -1,17 +1,15 @@
 <?php
 // customer/auth/login.php
 
-// --- THIS IS THE CORRECTED LINE ---
-require_once __DIR__ . '/../../includes/db_connect.php';
-session_start();
+// THIS IS THE CORRECT PATH FOR THIS FILE
+require_once __DIR__ . '/../../includes/db_connect.php'; // This now provides $BASE_URL
 
-// --- ADDED THIS BLOCK ---
-// Dynamically get the base URL and the 'next' redirect parameter
-$BASE_URL = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/');
-if ($BASE_URL === '/') $BASE_URL = '';
+// --- NEW: Use the $BASE_URL from db_connect.php ---
 $next = isset($_GET['next']) && $_GET['next'] !== ''
   ? $_GET['next']
   : $BASE_URL . '/customer/menu.php';
+// --- END NEW ---
+
 
 // If user is already logged in, send them to their destination
 if (!empty($_SESSION['user_id']) && $_SESSION['role'] === 'customer') {
@@ -21,7 +19,6 @@ if (!empty($_SESSION['user_id']) && $_SESSION['role'] === 'customer') {
 
 // Helper function for sanitizing output
 function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
-// --- END ADDED BLOCK ---
 
 
 $error = '';
@@ -319,7 +316,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       Don't have an account? 
       <a href="register.php?next=<?= h(urlencode($next)) ?>" style="color:#0b2b0b; font-weight: 600;">Register here</a>
       <div style="margin-top: 12px;">
-        <a href="../../index.php" style="color: #6c757d;">← Back to Home Page</a>
+        <a href="<?= htmlspecialchars($BASE_URL) ?>/index.php" style="color: #6c757d;">← Back to Home Page</a>
       </div>
     </div>
     </main>

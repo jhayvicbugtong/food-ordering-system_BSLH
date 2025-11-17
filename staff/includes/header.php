@@ -23,7 +23,7 @@ require_once __DIR__ . '/../../includes/db_connect.php';
   
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-  <link rel="stylesheet" href="<?php echo '/food-ordering-system_BSLH/assets/css/admin_dashboard.css'; ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/admin_dashboard.css">
 </head>
 <body>
 
@@ -31,13 +31,8 @@ require_once __DIR__ . '/../../includes/db_connect.php';
   <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center">
       <div class="d-flex align-items-center">
-        <button class="navbar-toggler me-3" type="button" id="sidebarToggle">
-          <span class="navbar-toggler-icon">
-            <i class="bi bi-list" style="color: white; font-size: 1.5rem;"></i>
-          </span>
-        </button>
         <div class="brand">
-          <img src="../../uploads/logo/logo.png" alt="Avocado Logo">
+          <img src="<?= htmlspecialchars($BASE_URL) ?>/uploads/logo/logo.png" alt="Avocado Logo">
           <span>
             Bente Sais Lomi House<br>
             <small style="color:#adb5bd;font-weight:400;font-size:12px;line-height:1;">
@@ -48,7 +43,7 @@ require_once __DIR__ . '/../../includes/db_connect.php';
       </div>
       <div class="user-area">
         <span><?= htmlspecialchars(get_user_name() ?? 'Staff User') ?></span>
-        <a href="<?php echo '/food-ordering-system_BSLH/auth/logout.php'; ?>">Logout</a>
+        <a href="<?= htmlspecialchars($BASE_URL) ?>/auth/logout.php">Logout</a>
       </div>
     </div>
   </div>

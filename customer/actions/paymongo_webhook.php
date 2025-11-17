@@ -10,7 +10,11 @@ error_log("=== NEW WEBHOOK REQUEST ===");
 require_once __DIR__ . '/../../includes/db_connect.php';
 
 // !! REPLACE WITH YOUR ACTUAL SECRETS !!
-define('PAYMONGO_WEBHOOK_SECRET', 'whsk_EH9ab63WRBCxmhccfaxTChwp'); 
+// for testing purposes only
+define('PAYMONGO_WEBHOOK_SECRET', 'whsk_EH9ab63WRBCxmhccfaxTChwp');
+
+// for production purposes
+// define('PAYMONGO_WEBHOOK_SECRET', 'whsk_xpJovku7BGFndm3bEQjzA1Ly'); 
 define('PAYMONGO_SECRET_KEY', 'sk_test_MVV2EXZhRxpfiQmM16c18aM7');
 
 // 2. GET RAW BODY

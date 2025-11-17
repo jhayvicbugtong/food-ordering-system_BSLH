@@ -5,12 +5,12 @@
   </div>
 
   <div class="footer-nav">
-    <a href="/food-ordering-system_BSLH/customer/index.php">Home</a>
-    <a href="/food-ordering-system_BSLH/customer/about-us.php">About us</a>
-    <a href="/food-ordering-system_BSLH/customer/gallery.php">Gallery</a>
-    <a href="/food-ordering-system_BSLH/customer/contact.php">Contact</a>
-    <a href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">Order online</a>
-    <a href="/food-ordering-system_BSLH/auth/login.php">Staff / Admin Login</a>
+    <a href="<?= htmlspecialchars($HOME) ?>">Home</a>
+    <a href="<?= htmlspecialchars($ABOUT) ?>">About us</a>
+    <a href="<?= htmlspecialchars($GALLERY) ?>">Gallery</a>
+    <a href="<?= htmlspecialchars($CONTACT) ?>">Contact</a>
+    <a href="<?= htmlspecialchars($ORDER_BTN_LINK) ?>">Order online</a>
+    <a href="<?= htmlspecialchars($BASE) ?>/auth/login.php">Staff / Admin Login</a>
   </div>
 
   <div class="footer-contact">

@@ -96,7 +96,7 @@ usort($categories, fn($a,$b)=> $a['order'] <=> $b['order']);
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/food-ordering-system_BSLH/assets/css/customer.css"/>
+  <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/customer.css"/>
 </head>
 <body class="menu-page d-flex flex-column min-vh-100">
 
@@ -510,7 +510,7 @@ usort($categories, fn($a,$b)=> $a['order'] <=> $b['order']);
               showQuickMessage('🛒 Your cart is empty!');
               return;
             }
-            window.location.href = "/food-ordering-system_BSLH/customer/checkout.php";
+            window.location.href = window.BASE_URL + "/customer/checkout.php";
           });
         }
       }

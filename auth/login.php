@@ -1,7 +1,6 @@
 <?php
 // --- FIX 1: Added a '/' before ../ ---
 require_once __DIR__ . '/../includes/db_connect.php';
-session_start();
 
 $error = '';
 $emailVal = '';
@@ -53,10 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['role']    = $role;
                 $_SESSION['email']   = (string)$user['email'];
 
+                // --- FIXED: Use $BASE_URL for redirect ---
                 if ($role === 'admin') {
-                    header("Location: ../admin/index.php");
+                    header("Location: " . $BASE_URL . "/admin/index.php");
                 } else { // staff or driver
-                    header("Location: ../staff/index.php");
+                    header("Location: " . $BASE_URL . "/staff/index.php");
                 }
                 exit();
             }
@@ -298,7 +298,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <div class="back-link">
-      <a href="../index.php">← Back to Customer Page</a>
+      <a href="<?= htmlspecialchars($BASE_URL) ?>/index.php">← Back to Customer Page</a>
     </div>
   </main>
 

@@ -1,6 +1,6 @@
 <?php
 // customer/auth/logout.php
-session_start();
+require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL and starts session
 
 /*
   Blow away the customer session.
@@ -22,9 +22,7 @@ session_destroy();
     (works whether the project folder is /food-ordering-system_BSLH or something else)
 */
 // --- MODIFIED: Use new base URL logic ---
-$base = rtrim(dirname(dirname(dirname($_SERVER['PHP_SELF']))), '/'); // up 3 dirs from /customer/auth/
-if ($base === '/') $base = '';
-$default = $base . '/index.php';
+$default = $BASE_URL . '/index.php'; // FIXED
 $to = isset($_GET['next']) && $_GET['next'] !== '' ? $_GET['next'] : $default;
 
 header('Location: ' . $to);

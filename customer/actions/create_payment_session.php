@@ -3,8 +3,8 @@
 header('Content-Type: application/json');
 
 // 1. SETUP
-session_start();
-require_once __DIR__ . '/../../includes/db_connect.php'; // For DB validation
+// --- MODIFIED: This now provides $BASE_URL ---
+require_once __DIR__ . '/../../includes/db_connect.php'; 
 
 // --- !! PUT YOUR TEST SECRET KEY HERE !! ---
 define('PAYMONGO_SECRET_KEY', 'sk_test_MVV2EXZhRxpfiQmM16c18aM7'); 
@@ -66,7 +66,8 @@ try {
 
     // 4. PREPARE PAYMONGO PAYLOAD
     $base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://{$_SERVER['HTTP_HOST']}";
-    $project_folder = '/food-ordering-system_BSLH'; // Adjust if needed
+    // --- FIXED: Use $BASE_URL instead of hardcoded folder ---
+    $project_folder = $BASE_URL;
     
     $line_items = array_map(function($item) use ($db_prices) {
         return [

@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../includes/db_connect.php'; ?>
 <!DOCTYPE html>
 <html class="cms4-page" lang="en">
 <head>
@@ -9,22 +10,17 @@
   <meta name="description" content="The story of Bente Sais Lomi House — where we started, what we cook, and why people keep coming back."/>
   <meta name="robots" content="index,follow"/>
 
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 
-  <!-- Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
 
-  <!-- Shared site styles -->
-  <link rel="stylesheet" href="/food-ordering-system_BSLH/assets/css/customer.css"/>
+  <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/customer.css"/>
 </head>
 
 <body>
 
-  <!-- SHARED HEADER -->
   <?php include __DIR__ . '/includes/header.php'; ?>
 
-  <!-- HERO / INTRO -->
   <section class="hero-about">
     <div class="section-inner">
       <div class="hero-left">
@@ -54,7 +50,6 @@
     </div>
   </section>
 
-  <!-- STORY / ORIGIN -->
   <section class="story-section">
     <div class="section-inner" style="flex-direction: row-reverse;">
       <div class="story-left">
@@ -92,7 +87,6 @@
     </div>
   </section>
 
-  <!-- QUALITY / PROMISE -->
   <section class="quality-section">
     <div class="quality-inner">
 
@@ -125,7 +119,7 @@
     </div>
   </section>
 
-  <!-- CTA / ORDER / CONTACT -->
+
   <section class="cta-section">
     <div class="cta-inner">
       <div class="cta-left">
@@ -134,7 +128,7 @@
             <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan_AFouckhG.jpg?v=0" alt="Silog meal">
           </div>
           <div class="cta-photo-card">
-            <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan3.jpg?v=0" alt="Group order / tray">
+            <img src="httpsG://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan3.jpg?v=0" alt="Group order / tray">
           </div>
         </div>
       </div>
@@ -146,14 +140,13 @@
           silog sets for sharing. Message us, or order directly from the site.
         </p>
 
-        <a class="cta-btn" href="/food-ordering-system_BSLH/customer/auth/login.php?next=/food-ordering-system_BSLH/customer/menu.php">
+        <a class="cta-btn" href="<?= htmlspecialchars($ORDER_BTN_LINK) ?>">
           Order online
         </a>
       </div>
     </div>
   </section>
 
-  <!-- SHARED FOOTER -->
   <?php include __DIR__ . '/includes/footer.php'; ?>
 
 </body>
