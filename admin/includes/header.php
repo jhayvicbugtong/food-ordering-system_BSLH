@@ -17,6 +17,59 @@ require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
   <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/admin_dashboard.css"> </head>
+
+
+
+  <style>
+  .status-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* HIGH-CONTRAST COLORS ON WHITE BG */
+
+  .status-pending {
+    background-color: #fef3c7; /* light yellow */
+    color: #92400e;            /* dark amber text */
+  }
+
+  .status-confirmed {
+    background-color: #dbeafe; /* light blue */
+    color: #1d4ed8;            /* strong blue text */
+  }
+
+  .status-preparing {
+    background-color: #e0f2fe; /* lighter blue */
+    color: #0369a1;            /* teal/blue text */
+  }
+
+  .status-ready {
+    background-color: #dcfce7; /* light green */
+    color: #15803d;            /* dark green text */
+  }
+
+  .status-out-for-delivery {
+    background-color: #e0f2fe; /* light blue */
+    color: #0369a1;            /* teal/blue text */
+  }
+
+  .status-delivered,
+  .status-completed {
+    background-color: #e5e7eb; /* gray */
+    color: #111827;            /* near-black text */
+  }
+
+  .status-cancelled {
+    background-color: #fee2e2; /* light red */
+    color: #b91c1c;            /* dark red text */
+  }
+</style>
+
+
 </head>
 <body>
 
