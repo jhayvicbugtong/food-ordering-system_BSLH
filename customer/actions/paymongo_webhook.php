@@ -9,6 +9,7 @@ error_log("=== NEW WEBHOOK REQUEST ===");
 
 require_once __DIR__ . '/../../includes/db_connect.php';
 
+// ... (Webhook secret keys and signature verification are unchanged) ...
 // !! REPLACE WITH YOUR ACTUAL SECRETS !!
 // for testing purposes only
 define('PAYMONGO_WEBHOOK_SECRET', 'whsk_EH9ab63WRBCxmhccfaxTChwp');
@@ -108,7 +109,6 @@ if ($event_type === 'checkout_session.payment.paid') {
     curl_close($ch);
 
     error_log("PayMongo API Response Code: " . $http_code);
-    error_log("PayMongo API Response: " . $response_body);
 
     if ($http_code !== 200) {
         error_log("ERROR: Failed to retrieve checkout session from PayMongo");
@@ -125,15 +125,14 @@ if ($event_type === 'checkout_session.payment.paid') {
     }
 
     $order_json = $paymongo_data['data']['attributes']['metadata']['order_data'];
-    $user_id = (int)($paymongo_data['data']['attributes']['metadata']['user_id'] ?? 0);
+    $user_id_from_meta = (int)($paymongo_data['data']['attributes']['metadata']['user_id'] ?? 0);
     
-    error_log("User ID from metadata: " . $user_id);
-    error_log("Order JSON length: " . strlen($order_json));
+    error_log("User ID from metadata: " . $user_id_from_meta);
 
     $data = json_decode($order_json);
 
-    if (!$data || empty($data->cartItems) || empty($data->orderDetails) || $user_id === 0) {
-        error_log("ERROR: Invalid order data or user_id missing");
+    if (!$data || empty($data->cartItems) || empty($data->orderDetails)) {
+        error_log("ERROR: Invalid order data in metadata");
         http_response_code(400);
         exit('Invalid data');
     }
@@ -145,10 +144,61 @@ if ($event_type === 'checkout_session.payment.paid') {
     try {
         error_log("Starting database transaction...");
         
+        // --- !! FIX FOR MISSING USER_ID !! ---
+        $final_user_id = null;
+        if ($user_id_from_meta > 0) {
+            $stmt_check = $conn->prepare("SELECT 1 FROM users WHERE user_id = ?");
+            $stmt_check->bind_param('i', $user_id_from_meta);
+            $stmt_check->execute();
+            $user_result = $stmt_check->get_result();
+            if ($user_result->num_rows > 0) {
+                $final_user_id = $user_id_from_meta;
+            } else {
+                error_log("WARNING: User ID {$user_id_from_meta} from metadata not found. Setting order user_id to NULL.");
+            }
+            $stmt_check->close();
+        } else {
+            error_log("WARNING: No User ID in metadata. Setting order user_id to NULL.");
+        }
+        // --- END FIX ---
+
+        // --- START SERVER-SIDE FEE VALIDATION (WEBHOOK) ---
+        $server_delivery_fee = 0.00;
+        if ($details->orderType == 'delivery') {
+            $barangay = $details->deliveryDetails->barangay ?? '';
+            if (empty($barangay)) {
+                throw new Exception("Webhook Error: Barangay is missing for delivery order.");
+            }
+            
+            $stmt_fee = $conn->prepare("SELECT delivery_fee FROM deliverable_barangays WHERE LOWER(barangay_name) = LOWER(?) AND is_active = 1");
+            $stmt_fee->bind_param('s', $barangay);
+            $stmt_fee->execute();
+            $res_fee = $stmt_fee->get_result();
+            
+            if ($fee_row = $res_fee->fetch_assoc()) {
+                $server_delivery_fee = (float)$fee_row['delivery_fee'];
+            } else {
+                throw new Exception("Webhook Error: Delivery to barangay '{$barangay}' is not supported.");
+            }
+            $stmt_fee->close();
+        }
+        // --- END SERVER-SIDE FEE VALIDATION ---
+
+        // --- RE-CALCULATE TOTALS USING SERVER-SIDE DATA ---
+        // We MUST trust the subtotal and tip from the client JSON, 
+        // but we OVERWRITE the delivery fee.
         $subtotal = (float)$details->subtotal;
-        $delivery_fee = (float)$details->deliveryFee;
+        $delivery_fee = $server_delivery_fee; // <-- Use the VERIFIED fee
         $tip_amount = (float)$details->tipAmount;
-        $total_amount = (float)$details->totalAmount;
+        $total_amount = $subtotal + $delivery_fee + $tip_amount;
+        
+        // Compare our calculated total with the total in the metadata
+        if (abs($total_amount - (float)$details->totalAmount) > 0.01) {
+             error_log("WARNING: Webhook total mismatch. Client sent {$details->totalAmount}, server calculated $total_amount. Proceeding with server total.");
+             // We don't throw an error, as payment is already taken. We log it and save the correct total.
+        }
+        // --- END RE-CALCULATION ---
+
 
         $order_number = 'BSLH-' . time() . '-' . substr($checkout_session_id, -4);
         $status = 'pending'; 
@@ -167,8 +217,8 @@ if ($event_type === 'checkout_session.payment.paid') {
         }
         
         $stmt_order->bind_param('sisssdddd', 
-            $order_number, $user_id, $details->orderType, $preferred_time_iso, $status, 
-            $subtotal, $delivery_fee, $tip_amount, $total_amount
+            $order_number, $final_user_id, $details->orderType, $preferred_time_iso, $status, 
+            $subtotal, $delivery_fee, $tip_amount, $total_amount // <-- Use VERIFIED fees
         );
         
         if (!$stmt_order->execute()) {
@@ -179,6 +229,7 @@ if ($event_type === 'checkout_session.payment.paid') {
         error_log("Order created with ID: " . $order_id);
         $stmt_order->close();
 
+        // ... (Rest of inserts: order_items, order_customer_details, order_addresses are unchanged) ...
         // INSERT ITEMS
         $sql_items = "INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity, total_price) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt_items = $conn->prepare($sql_items);
@@ -191,7 +242,7 @@ if ($event_type === 'checkout_session.payment.paid') {
         }
         $stmt_items->close();
         
-        // INSERT CUSTOMER DETAILS (NO ADDRESS)
+        // INSERT CUSTOMER DETAILS
         $sql_cust = "INSERT INTO order_customer_details (order_id, customer_first_name, customer_last_name, customer_phone, customer_email, order_notes)
                      VALUES (?, ?, ?, ?, ?, ?)";
         $stmt_cust = $conn->prepare($sql_cust);
@@ -202,26 +253,26 @@ if ($event_type === 'checkout_session.payment.paid') {
         
         error_log("Customer details saved");
 
-        // INSERT INTO `order_addresses` (NEW STEP)
+        // INSERT INTO `order_addresses`
         if ($details->orderType == 'delivery') {
-            // --- START: MODIFIED SQL AND PARAMS ---
-            $sql_addr = "INSERT INTO order_addresses (order_id, street, barangay, city, floor_number, apt_landmark)
-                         VALUES (?, ?, ?, ?, ?, ?)";
+            $sql_addr = "INSERT INTO order_addresses (order_id, street, barangay, city, province, floor_number, apt_landmark)
+                         VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt_addr = $conn->prepare($sql_addr);
             
-            $street = $details->deliveryDetails->street ?? '';
-            $barangay = $details->deliveryDetails->barangay ?? '';
-            $city = $details->deliveryDetails->city ?? 'Nasugbu';
+            $street = $details->deliveryDetails->street ?? null;
+            $barangay = $details->deliveryDetails->barangay ?? null;
+            $city = $details->deliveryDetails->city ?? null;
+            $province = $details->deliveryDetails->province ?? null;
             $floor_number = $details->deliveryDetails->floor_number ?? null; 
             $apt_landmark = $details->deliveryDetails->apt_landmark ?? null; 
             
-            $stmt_addr->bind_param('isssss', $order_id, $street, $barangay, $city, $floor_number, $apt_landmark);
-            // --- END: MODIFIED SQL AND PARAMS ---
+            $stmt_addr->bind_param('issssss', $order_id, $street, $barangay, $city, $province, $floor_number, $apt_landmark);
 
             $stmt_addr->execute();
             $stmt_addr->close();
             error_log("Delivery address saved");
         }
+
 
         // INSERT PAYMENT DETAILS
         $payment_id_ref = $paymongo_data['data']['attributes']['payments'][0]['id'] ?? $checkout_session_id; 
@@ -231,6 +282,7 @@ if ($event_type === 'checkout_session.payment.paid') {
         $sql_pay = "INSERT INTO order_payment_details (order_id, payment_method, payment_status, gcash_reference, amount_paid, paid_at)
                     VALUES (?, ?, 'paid', ?, ?, NOW())";
         $stmt_pay = $conn->prepare($sql_pay);
+        // --- MODIFICATION: Save the SERVER-CALCULATED total ---
         $stmt_pay->bind_param('issd', $order_id, $payment_method, $payment_id_ref, $total_amount);
         $stmt_pay->execute();
         $stmt_pay->close();

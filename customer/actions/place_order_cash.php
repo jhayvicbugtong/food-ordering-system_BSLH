@@ -54,13 +54,37 @@ try {
         $server_subtotal += $db_prices[$item->id] * (int)$item->qty;
     }
 
+    // --- START SERVER-SIDE DELIVERY FEE VALIDATION ---
+    $server_delivery_fee = 0.00;
+    if ($details->orderType == 'delivery') {
+        $barangay = $details->deliveryDetails->barangay ?? '';
+        if (empty($barangay)) {
+            throw new Exception("Barangay is required for delivery.");
+        }
+        
+        $stmt_fee = $conn->prepare("SELECT delivery_fee FROM deliverable_barangays WHERE LOWER(barangay_name) = LOWER(?) AND is_active = 1");
+        $stmt_fee->bind_param('s', $barangay);
+        $stmt_fee->execute();
+        $res_fee = $stmt_fee->get_result();
+        
+        if ($fee_row = $res_fee->fetch_assoc()) {
+            $server_delivery_fee = (float)$fee_row['delivery_fee'];
+        } else {
+            // Barangay is not in our table, reject the order.
+            throw new Exception("Sorry, we do not deliver to this barangay.");
+        }
+        $stmt_fee->close();
+    }
+    // --- END SERVER-SIDE DELIVERY FEE VALIDATION ---
+
     $subtotal = $server_subtotal;
-    $delivery_fee = (float)$details->deliveryFee;
+    $delivery_fee = $server_delivery_fee; // <-- Use the VERIFIED fee
     $tip_amount = (float)$details->tipAmount;
     $total_amount = $subtotal + $delivery_fee + $tip_amount;
     
+    // This check is now more robust. It will fail if client's fee doesn't match server's.
     if (abs($total_amount - (float)$details->totalAmount) > 0.01) {
-        throw new Exception("Total amount mismatch. Please refresh and try again.");
+        throw new Exception("Total amount mismatch. Please refresh and try again. (Server: $total_amount, Client: {$details->totalAmount})");
     }
 
     // 4. INSERT INTO `orders` TABLE
@@ -79,7 +103,7 @@ try {
         $preferred_time_iso,
         $status,
         $subtotal,
-        $delivery_fee,
+        $delivery_fee, // <-- Save the VERIFIED fee
         $tip_amount,
         $total_amount
     );
@@ -88,6 +112,7 @@ try {
     if ($order_id === 0) throw new Exception("Failed to create order.");
     $stmt_order->close();
 
+    // ... (Rest of the inserts: order_items, order_customer_details, order_addresses are unchanged) ...
     // 5. INSERT INTO `order_items`
     $sql_items = "INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity, total_price) VALUES (?, ?, ?, ?, ?, ?)";
     $stmt_items = $conn->prepare($sql_items);
@@ -102,7 +127,7 @@ try {
     }
     $stmt_items->close();
     
-    // 6. INSERT INTO `order_customer_details` (NO ADDRESS)
+    // 6. INSERT INTO `order_customer_details`
     $sql_cust = "INSERT INTO order_customer_details (order_id, customer_first_name, customer_last_name, customer_phone, customer_email, order_notes)
                  VALUES (?, ?, ?, ?, ?, ?)";
     $stmt_cust = $conn->prepare($sql_cust);
@@ -111,22 +136,20 @@ try {
     $stmt_cust->execute();
     $stmt_cust->close();
 
-    // 7. INSERT INTO `order_addresses` (NEW STEP)
+    // 7. INSERT INTO `order_addresses`
     if ($details->orderType == 'delivery') {
-        // --- START: MODIFIED SQL AND PARAMS ---
-        $sql_addr = "INSERT INTO order_addresses (order_id, street, barangay, city, floor_number, apt_landmark)
-                     VALUES (?, ?, ?, ?, ?, ?)";
+        $sql_addr = "INSERT INTO order_addresses (order_id, street, barangay, city, province, floor_number, apt_landmark)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt_addr = $conn->prepare($sql_addr);
         
         $street = $details->deliveryDetails->street ?? null;
         $barangay = $details->deliveryDetails->barangay ?? null;
-        $city = $details->deliveryDetails->city ?? 'Nasugbu';
+        $city = $details->deliveryDetails->city ?? null;
+        $province = $details->deliveryDetails->province ?? null;
         $floor_number = $details->deliveryDetails->floor_number ?? null; 
         $apt_landmark = $details->deliveryDetails->apt_landmark ?? null; 
         
-        $stmt_addr->bind_param('isssss', $order_id, $street, $barangay, $city, $floor_number, $apt_landmark);
-        // --- END: MODIFIED SQL AND PARAMS ---
-        
+        $stmt_addr->bind_param('issssss', $order_id, $street, $barangay, $city, $province, $floor_number, $apt_landmark);
         $stmt_addr->execute();
         $stmt_addr->close();
     }
@@ -150,7 +173,7 @@ try {
 
 } catch (Exception $e) {
     $conn->rollback();
-    http_response_code(500);
+    http_response_code(400); // Use 400 for validation errors
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
 $conn->close();

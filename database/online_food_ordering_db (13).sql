@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 15, 2025 at 05:52 PM
+-- Generation Time: Nov 18, 2025 at 06:10 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -48,6 +48,34 @@ INSERT INTO `categories` (`category_id`, `category_name`, `description`, `image_
 (4, 'Drinks', 'Beverages and refreshments', NULL, 4, 1, '2025-11-14 12:54:35'),
 (5, 'Sides', 'Side dishes and appetizers', NULL, 5, 1, '2025-11-14 12:54:35'),
 (6, 'Panghimagas (Desserts)', 'Sweet treats and desserts', NULL, 6, 1, '2025-11-14 12:54:35');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `deliverable_barangays`
+--
+
+CREATE TABLE `deliverable_barangays` (
+  `barangay_id` int(11) NOT NULL,
+  `barangay_name` varchar(100) NOT NULL,
+  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `deliverable_barangays`
+--
+
+INSERT INTO `deliverable_barangays` (`barangay_id`, `barangay_name`, `delivery_fee`, `is_active`) VALUES
+(1, 'Wawa', 30.00, 1),
+(2, 'Bucana', 20.00, 1),
+(3, 'Lumbangan', 40.00, 1),
+(4, 'Poblacion', 20.00, 1),
+(5, 'Barangay 1', 20.00, 1),
+(6, 'Barangay 2', 20.00, 1),
+(7, 'Barangay 3', 20.00, 1),
+(8, 'Barangay 4', 20.00, 1),
+(10, 'Papaya', 100.00, 1);
 
 -- --------------------------------------------------------
 
@@ -103,6 +131,26 @@ CREATE TABLE `orders` (
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`order_id`, `order_number`, `user_id`, `order_type`, `order_time`, `preferred_time`, `status`, `subtotal`, `delivery_fee`, `tip_amount`, `total_amount`, `handler_id`, `driver_id`, `confirmed_at`, `preparing_at`, `ready_at`, `out_for_delivery_at`, `delivered_at`, `cancelled_at`, `created_at`, `updated_at`) VALUES
+(38, 'BSLH-1763272527-7ewC', 7, 'delivery', '2025-11-16 13:55:27', NULL, 'cancelled', 278.00, 0.00, 0.00, 278.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-18 11:42:04', '2025-11-16 13:55:27', '2025-11-18 11:42:04'),
+(39, 'BSLH-1763300179-ekwg', 7, 'pickup', '2025-11-16 21:36:19', NULL, 'completed', 95.00, 0.00, 0.00, 95.00, 2, NULL, '2025-11-18 11:42:09', '2025-11-18 11:42:16', '2025-11-18 11:42:43', NULL, NULL, NULL, '2025-11-16 21:36:19', '2025-11-18 11:42:46'),
+(40, 'BSLH-1763379616-XSK4', 7, 'pickup', '2025-11-17 19:40:16', NULL, 'completed', 275.00, 0.00, 0.00, 275.00, 2, NULL, '2025-11-18 11:43:06', '2025-11-18 11:44:58', '2025-11-18 11:45:30', NULL, NULL, NULL, '2025-11-17 19:40:16', '2025-11-18 11:51:14'),
+(41, 'BSLH-1763387154-KHRa', 7, 'pickup', '2025-11-17 21:45:54', NULL, 'ready', 65.00, 0.00, 0.00, 65.00, 2, NULL, '2025-11-18 11:42:33', '2025-11-18 11:44:35', '2025-11-18 11:45:18', NULL, NULL, NULL, '2025-11-17 21:45:54', '2025-11-18 11:45:18'),
+(42, 'BSLH-1763387241-GYvh', 7, 'pickup', '2025-11-17 21:47:21', NULL, 'preparing', 35.00, 0.00, 0.00, 35.00, 2, NULL, '2025-11-18 11:43:04', '2025-11-18 11:45:02', NULL, NULL, NULL, NULL, '2025-11-17 21:47:21', '2025-11-18 11:45:02'),
+(43, 'BSLH-1763394091-2jbM', 7, 'pickup', '2025-11-17 23:41:31', NULL, 'preparing', 89.00, 0.00, 0.00, 89.00, 2, NULL, '2025-11-18 11:42:35', '2025-11-18 11:45:05', NULL, NULL, NULL, NULL, '2025-11-17 23:41:31', '2025-11-18 11:45:05'),
+(44, 'BSLH-1763394128-eugs', 7, 'pickup', '2025-11-17 23:42:08', NULL, 'completed', 194.00, 0.00, 0.00, 194.00, 2, NULL, '2025-11-18 11:42:36', '2025-11-18 11:42:54', '2025-11-18 11:42:57', NULL, NULL, NULL, '2025-11-17 23:42:08', '2025-11-18 11:44:46'),
+(49, 'BSLH-1763435671-gu2Q', 7, 'pickup', '2025-11-18 11:14:31', NULL, 'preparing', 25.00, 0.00, 0.00, 25.00, 2, NULL, '2025-11-18 11:43:00', '2025-11-18 11:44:13', NULL, NULL, NULL, NULL, '2025-11-18 11:14:31', '2025-11-18 11:44:13'),
+(52, 'BSLH-1763437612-h2Ud', 7, 'delivery', '2025-11-18 11:46:52', NULL, 'ready', 718.00, 0.00, 0.00, 718.00, 2, NULL, '2025-11-18 11:47:27', '2025-11-18 11:51:00', '2025-11-18 11:51:11', NULL, NULL, NULL, '2025-11-18 11:46:52', '2025-11-18 11:51:11'),
+(55, 'BSLH-1763438464-9NHH', 7, 'pickup', '2025-11-18 12:01:04', '2025-11-18 10:00:00', 'pending', 393.00, 0.00, 0.00, 393.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-18 12:01:04', '2025-11-18 12:01:04'),
+(58, 'BSLH-1763438821-VwiH', 7, 'delivery', '2025-11-18 12:07:01', NULL, 'pending', 95.00, 0.00, 0.00, 95.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-18 12:07:01', '2025-11-18 12:07:01'),
+(66, 'BSLH-1763440020-eozt', 7, 'delivery', '2025-11-18 12:27:00', NULL, 'pending', 95.00, 0.00, 0.00, 95.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-18 12:27:00', '2025-11-18 12:27:00'),
+(67, 'BSLH-1763440531-j27o', 7, 'delivery', '2025-11-18 12:35:31', NULL, 'pending', 149.00, 100.00, 0.00, 249.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-18 12:35:31', '2025-11-18 12:35:31'),
+(68, 'BSLH-1763442273-veYf', 7, 'delivery', '2025-11-18 13:04:33', NULL, 'pending', 89.00, 100.00, 0.00, 189.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-18 13:04:33', '2025-11-18 13:04:33');
+
 -- --------------------------------------------------------
 
 --
@@ -115,9 +163,22 @@ CREATE TABLE `order_addresses` (
   `street` varchar(255) DEFAULT NULL,
   `barangay` varchar(100) DEFAULT NULL,
   `city` varchar(100) DEFAULT NULL,
+  `province` varchar(100) DEFAULT NULL,
   `floor_number` varchar(50) DEFAULT NULL,
   `apt_landmark` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `order_addresses`
+--
+
+INSERT INTO `order_addresses` (`order_address_id`, `order_id`, `street`, `barangay`, `city`, `province`, `floor_number`, `apt_landmark`) VALUES
+(2, 38, 'Hjtgh', 'lumbangan', 'Nasugbu', NULL, '12', '5 star'),
+(3, 52, 'Hjtgh', 'Papaya', 'Nasugbu', NULL, '12', '5 star'),
+(4, 58, 'Hjtgh', 'Papaya', 'Nasugbu', 'Batangas', '12', '5 star'),
+(5, 66, 'Hjtgh', 'lumbangan', 'Nasugbu', 'Batangas', '12', '5 star'),
+(6, 67, 'Hjtgh', 'Papaya', 'Nasugbu', 'Batangas', '12', '5 star'),
+(7, 68, 'Hjtgh', 'Papaya', 'Nasugbu', 'Batangas', '12', '5 star');
 
 -- --------------------------------------------------------
 
@@ -134,6 +195,26 @@ CREATE TABLE `order_customer_details` (
   `customer_email` varchar(100) DEFAULT NULL,
   `order_notes` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `order_customer_details`
+--
+
+INSERT INTO `order_customer_details` (`detail_id`, `order_id`, `customer_first_name`, `customer_last_name`, `customer_phone`, `customer_email`, `order_notes`) VALUES
+(3, 38, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(4, 39, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(5, 40, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(6, 41, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(7, 42, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(8, 43, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(9, 44, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(10, 49, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(11, 52, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(12, 55, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(13, 58, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(14, 66, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(15, 67, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', ''),
+(16, 68, 'Customer', 'Customer', '+639123456789', 'customer@gmail.com', '');
 
 -- --------------------------------------------------------
 
@@ -153,6 +234,32 @@ CREATE TABLE `order_items` (
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `order_items`
+--
+
+INSERT INTO `order_items` (`order_item_id`, `order_id`, `product_id`, `product_name`, `unit_price`, `quantity`, `total_price`, `special_instructions`, `created_at`) VALUES
+(3, 38, 4, 'Lomi Overload', 149.00, 1, 149.00, NULL, '2025-11-16 13:55:27'),
+(4, 38, 2, 'Lomi with Lechon Kawali', 129.00, 1, 129.00, NULL, '2025-11-16 13:55:27'),
+(5, 39, 3, 'Chicken Lomi', 95.00, 1, 95.00, NULL, '2025-11-16 21:36:19'),
+(6, 40, 9, 'Hotsilog', 90.00, 2, 180.00, NULL, '2025-11-17 19:40:16'),
+(7, 40, 3, 'Chicken Lomi', 95.00, 1, 95.00, NULL, '2025-11-17 19:40:16'),
+(8, 41, 19, 'Leche Flan', 65.00, 1, 65.00, NULL, '2025-11-17 21:45:54'),
+(9, 42, 11, 'Iced Gulaman', 35.00, 1, 35.00, NULL, '2025-11-17 21:47:21'),
+(10, 43, 1, 'Original Bente Sais Lomi', 89.00, 1, 89.00, NULL, '2025-11-17 23:41:31'),
+(11, 44, 19, 'Leche Flan', 65.00, 1, 65.00, NULL, '2025-11-17 23:42:08'),
+(12, 44, 2, 'Lomi with Lechon Kawali', 129.00, 1, 129.00, NULL, '2025-11-17 23:42:08'),
+(13, 49, 17, 'Garlic Rice (Cup)', 25.00, 1, 25.00, NULL, '2025-11-18 11:14:31'),
+(14, 52, 4, 'Lomi Overload', 149.00, 1, 149.00, NULL, '2025-11-18 11:46:52'),
+(15, 52, 10, 'Pancit Tray (Good for 6-8)', 480.00, 1, 480.00, NULL, '2025-11-18 11:46:52'),
+(16, 52, 1, 'Original Bente Sais Lomi', 89.00, 1, 89.00, NULL, '2025-11-18 11:46:52'),
+(17, 55, 4, 'Lomi Overload', 149.00, 2, 298.00, NULL, '2025-11-18 12:01:04'),
+(18, 55, 3, 'Chicken Lomi', 95.00, 1, 95.00, NULL, '2025-11-18 12:01:04'),
+(19, 58, 3, 'Chicken Lomi', 95.00, 1, 95.00, NULL, '2025-11-18 12:07:01'),
+(20, 66, 3, 'Chicken Lomi', 95.00, 1, 95.00, NULL, '2025-11-18 12:27:00'),
+(21, 67, 4, 'Lomi Overload', 149.00, 1, 149.00, NULL, '2025-11-18 12:35:31'),
+(22, 68, 1, 'Original Bente Sais Lomi', 89.00, 1, 89.00, NULL, '2025-11-18 13:04:33');
+
 -- --------------------------------------------------------
 
 --
@@ -171,6 +278,26 @@ CREATE TABLE `order_payment_details` (
   `change_amount` decimal(10,2) DEFAULT NULL,
   `paid_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `order_payment_details`
+--
+
+INSERT INTO `order_payment_details` (`payment_id`, `order_id`, `payment_method`, `payment_status`, `gcash_reference`, `gcash_amount`, `gcash_sender_name`, `amount_paid`, `change_amount`, `paid_at`) VALUES
+(3, 38, 'gcash', 'paid', 'pay_V7AjidFm29XnQX8FxrK7hmBE', NULL, NULL, 278.00, NULL, '2025-11-16 13:55:27'),
+(4, 39, 'gcash', 'paid', 'pay_3ZV6aw32Cu54DTJvth6BNuVL', NULL, NULL, 95.00, NULL, '2025-11-16 21:36:19'),
+(5, 40, 'gcash', 'paid', 'pay_4rH1agnoGEkVYCZfWFFWPe22', NULL, NULL, 275.00, NULL, '2025-11-17 19:40:16'),
+(6, 41, 'gcash', 'paid', 'pay_CheMtUhJBCLVA1hXeMN97PUf', NULL, NULL, 65.00, NULL, '2025-11-17 21:45:54'),
+(7, 42, 'gcash', 'paid', 'pay_XyHzeA3o2wC2SmtCq1SzU6BQ', NULL, NULL, 35.00, NULL, '2025-11-17 21:47:21'),
+(8, 43, 'gcash', 'paid', 'pay_xtZxXWGMB1FqXkqAStrcxvFF', NULL, NULL, 89.00, NULL, '2025-11-17 23:41:31'),
+(9, 44, 'gcash', 'paid', 'pay_rs8yPBjqt3KDn6oCbqs1fVnq', NULL, NULL, 194.00, NULL, '2025-11-17 23:42:08'),
+(10, 49, 'gcash', 'paid', 'pay_iGzsJSuyfF9qENFFaBPb3TWd', NULL, NULL, 25.00, NULL, '2025-11-18 11:14:31'),
+(11, 52, 'gcash', 'paid', 'pay_tUHRQoYxNMLyCLD7B44KuFgh', NULL, NULL, 718.00, NULL, '2025-11-18 11:46:52'),
+(12, 55, 'gcash', 'paid', 'pay_9KdJ3FriEndqqyQjQxjQxkwe', NULL, NULL, 393.00, NULL, '2025-11-18 12:01:04'),
+(13, 58, 'gcash', 'paid', 'pay_s6kSdbDRjeAXkiEgN1zqLcQn', NULL, NULL, 95.00, NULL, '2025-11-18 12:07:01'),
+(14, 66, 'gcash', 'paid', 'pay_yCNiNYifeAefUZTgrSo45XKT', NULL, NULL, 95.00, NULL, '2025-11-18 12:27:00'),
+(15, 67, 'gcash', 'paid', 'pay_NoWAJUC2Jgnvfz3vFwLaBqsV', NULL, NULL, 249.00, NULL, '2025-11-18 12:35:31'),
+(16, 68, 'gcash', 'paid', 'pay_rxNsQ65yYD4FWoCTAzkq9U34', NULL, NULL, 189.00, NULL, '2025-11-18 13:04:33');
 
 -- --------------------------------------------------------
 
@@ -285,6 +412,13 @@ ALTER TABLE `categories`
   ADD PRIMARY KEY (`category_id`);
 
 --
+-- Indexes for table `deliverable_barangays`
+--
+ALTER TABLE `deliverable_barangays`
+  ADD PRIMARY KEY (`barangay_id`),
+  ADD UNIQUE KEY `barangay_name` (`barangay_name`);
+
+--
 -- Indexes for table `delivery_zones`
 --
 ALTER TABLE `delivery_zones`
@@ -361,6 +495,12 @@ ALTER TABLE `categories`
   MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
+-- AUTO_INCREMENT for table `deliverable_barangays`
+--
+ALTER TABLE `deliverable_barangays`
+  MODIFY `barangay_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
 -- AUTO_INCREMENT for table `delivery_zones`
 --
 ALTER TABLE `delivery_zones`
@@ -370,31 +510,31 @@ ALTER TABLE `delivery_zones`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT for table `order_addresses`
 --
 ALTER TABLE `order_addresses`
-  MODIFY `order_address_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `order_address_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `order_customer_details`
 --
 ALTER TABLE `order_customer_details`
-  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `order_payment_details`
 --
 ALTER TABLE `order_payment_details`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `products`

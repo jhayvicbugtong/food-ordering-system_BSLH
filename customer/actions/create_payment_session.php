@@ -3,10 +3,7 @@
 header('Content-Type: application/json');
 
 // 1. SETUP
-// --- MODIFIED: This now provides $BASE_URL ---
 require_once __DIR__ . '/../../includes/db_connect.php'; 
-
-// --- !! PUT YOUR TEST SECRET KEY HERE !! ---
 define('PAYMONGO_SECRET_KEY', 'sk_test_MVV2EXZhRxpfiQmM16c18aM7'); 
 
 if (empty($_SESSION['user_id']) || $_SESSION['role'] !== 'customer') {
@@ -14,7 +11,6 @@ if (empty($_SESSION['user_id']) || $_SESSION['role'] !== 'customer') {
     echo json_encode(['success' => false, 'message' => 'Unauthorized. Please log in.']);
     exit;
 }
-// --- FIX: Get the user_id from the session ---
 $user_id = (int)$_SESSION['user_id'];
 
 // 2. READ INCOMING DATA
@@ -55,18 +51,45 @@ try {
         $server_subtotal += $db_prices[$item->id] * (int)$item->qty;
     }
 
+    // --- START SERVER-SIDE DELIVERY FEE VALIDATION ---
+    $server_delivery_fee = 0.00;
+    if ($details->orderType == 'delivery') {
+        $barangay = $details->deliveryDetails->barangay ?? '';
+        if (empty($barangay)) {
+            throw new Exception("Barangay is required for delivery.");
+        }
+        
+        $stmt_fee = $conn->prepare("SELECT delivery_fee FROM deliverable_barangays WHERE LOWER(barangay_name) = LOWER(?) AND is_active = 1");
+        $stmt_fee->bind_param('s', $barangay);
+        $stmt_fee->execute();
+        $res_fee = $stmt_fee->get_result();
+        
+        if ($fee_row = $res_fee->fetch_assoc()) {
+            $server_delivery_fee = (float)$fee_row['delivery_fee'];
+        } else {
+            throw new Exception("Sorry, we do not deliver to this barangay.");
+        }
+        $stmt_fee->close();
+    }
+    // --- END SERVER-SIDE DELIVERY FEE VALIDATION ---
+
     $subtotal = $server_subtotal;
-    $delivery_fee = (float)$details->deliveryFee;
+    $delivery_fee = $server_delivery_fee; // <-- Use the VERIFIED fee
     $tip_amount = (float)$details->tipAmount;
     $total_amount = $subtotal + $delivery_fee + $tip_amount;
 
     if (abs($total_amount - (float)$details->totalAmount) > 0.01) {
-        throw new Exception("Total amount mismatch. Please refresh and try again.");
+        throw new Exception("Total amount mismatch. Please refresh and try again. (Server: $total_amount, Client: {$details->totalAmount})");
     }
+    
+    // --- UPDATE $data with validated fee before sending to PayMongo ---
+    // This ensures the metadata in the webhook is also correct.
+    $data->orderDetails->deliveryFee = $delivery_fee;
+    $data->orderDetails->totalAmount = $total_amount;
+    // ---
 
     // 4. PREPARE PAYMONGO PAYLOAD
     $base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://{$_SERVER['HTTP_HOST']}";
-    // --- FIXED: Use $BASE_URL instead of hardcoded folder ---
     $project_folder = $BASE_URL;
     
     $line_items = array_map(function($item) use ($db_prices) {
@@ -79,16 +102,16 @@ try {
     }, $cartItems);
 
     if ($delivery_fee > 0) {
+        // <-- Use the VERIFIED fee
         $line_items[] = ['currency' => 'PHP', 'amount' => (int)($delivery_fee * 100), 'name' => 'Delivery Fee', 'quantity' => 1];
     }
     if ($tip_amount > 0) {
          $line_items[] = ['currency' => 'PHP', 'amount' => (int)($tip_amount * 100), 'name' => 'Tip', 'quantity' => 1];
     }
     
-    // --- FIX: Add the user_id to the metadata ---
     $metadata = [
-        'order_data' => json_encode($data), // Store the *entire* original order
-        'user_id' => $user_id               // Store the logged-in user's ID
+        'order_data' => json_encode($data), // Send the VALIDATED data
+        'user_id' => $user_id
     ];
 
     $paymongo_payload = [
@@ -107,7 +130,7 @@ try {
                 'success_url' => "{$base_url}{$project_folder}/customer/payment_success.php?session_id={CHECKOUT_SESSION_ID}",
                 'cancel_url' => "{$base_url}{$project_folder}/customer/payment_failed.php",
                 'description' => "Order from Bente Sais Lomi House",
-                'metadata' => $metadata // Attach our order data and user_id
+                'metadata' => $metadata
             ]
         ]
     ];
@@ -139,7 +162,7 @@ try {
     ]);
 
 } catch (Exception $e) {
-    http_response_code(500);
+    http_response_code(400); // Use 400 for validation errors
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
 $conn->close();
