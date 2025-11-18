@@ -28,15 +28,10 @@ $LOGOUT  = $BASE . '/customer/auth/logout.php?next=' . urlencode($HOME);
 $PROFILE = $BASE . '/customer/profile.php';
 $MY_ORDERS = $BASE . '/customer/orders.php';
 
-// --- FIX: Determine the correct link for the "Order" button ---
 $is_logged_in_customer = (!empty($_SESSION['user_id']) && (($_SESSION['role'] ?? '') === 'customer'));
 
-if ($is_logged_in_customer) {
-    $ORDER_BTN_LINK = $MENU; // Already logged in, just go to menu
-} else {
-    $ORDER_BTN_LINK = $LOGIN_URL; // Not logged in, go to login first
-}
-// --- END FIX ---
+// "Order online" button should always go to the menu page
+$ORDER_BTN_LINK = $MENU;
 
 // Helpers
 function isActive($names, $current) {

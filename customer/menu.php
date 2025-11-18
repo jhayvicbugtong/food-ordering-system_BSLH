@@ -1,20 +1,4 @@
 <?php
-// customer/menu.php
-// --- FIX: ADDED SESSION GUARD ---
-if (session_status() === PHP_SESSION_NONE) session_start();
-
-// Redirect to login if not a customer
-if (empty($_SESSION['user_id']) || $_SESSION['role'] !== 'customer') {
-    $scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-    $BASE      = preg_replace('#/customer(/.*)?$#', '', $scriptDir);
-    if ($BASE === '/') $BASE = '';
-    
-    $next = $BASE . '/customer/menu.php'; // The page we want to come back to
-    header('Location: ' . $BASE . '/customer/auth/login.php?next=' . urlencode($next));
-    exit;
-}
-// --- END FIX ---
-
 
 // DB-driven menu (Bootstrap 5)
 require_once __DIR__ . '/../includes/db_connect.php';
