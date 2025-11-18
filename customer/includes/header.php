@@ -640,11 +640,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close mobile menu when clicking on a link
     const navItems = navLinks.querySelectorAll('a');
     navItems.forEach(item => {
-      item.addEventListener('click', function() {
-        closeMobileMenu();
+      item.addEventListener('click', function(e) {
+        // --- FIX: Check if the clicked link is a dropdown toggle ---
+        // If it is, let Bootstrap handle it and DON'T close the whole menu.
+        if (this.classList.contains('dropdown-toggle')) {
+          // Do nothing, let the dropdown open.
+        } else {
+          // If it's a normal link, close the menu.
+          closeMobileMenu();
+        }
       });
     });
-    
     // Close mobile menu when clicking on backdrop
     backdrop.addEventListener('click', function() {
       closeMobileMenu();
