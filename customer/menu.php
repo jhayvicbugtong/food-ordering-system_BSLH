@@ -1,5 +1,6 @@
 <?php
-
+// customer/menu.php
+session_start(); // Add session start for reorder check
 // DB-driven menu (Bootstrap 5)
 require_once __DIR__ . '/../includes/db_connect.php';
 
@@ -21,6 +22,40 @@ $cat_table = 'categories';
 function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function peso($n){ return '₱' . number_format((float)$n, 2); }
 function slugify($s){ return strtolower(preg_replace('/[^a-z0-9]+/i', '-', preg_replace('/\s+/', '-', $s))); }
+
+// --------- REORDER LOGIC ----------
+$reorderItems = [];
+if (isset($_GET['reorder']) && !empty($_SESSION['user_id'])) {
+    $reorderId = (int)$_GET['reorder'];
+    $userId = (int)$_SESSION['user_id'];
+    
+    // Verify ownership to prevent ID guessing
+    $stmtCheck = $conn->prepare("SELECT 1 FROM orders WHERE order_id = ? AND user_id = ?");
+    $stmtCheck->bind_param("ii", $reorderId, $userId);
+    $stmtCheck->execute();
+    if ($stmtCheck->get_result()->num_rows > 0) {
+        // Fetch items: Join with products to get current price and availability
+        $stmtItems = $conn->prepare("
+            SELECT p.product_id, p.name, p.base_price, oi.quantity
+            FROM order_items oi
+            JOIN products p ON oi.product_id = p.product_id
+            WHERE oi.order_id = ? AND p.is_available = 1
+        ");
+        $stmtItems->bind_param("i", $reorderId);
+        $stmtItems->execute();
+        $resItems = $stmtItems->get_result();
+        while ($row = $resItems->fetch_assoc()) {
+            $reorderItems[] = [
+                'id' => (int)$row['product_id'],
+                'name' => $row['name'],
+                'unitPrice' => (float)$row['base_price'],
+                'qty' => (int)$row['quantity']
+            ];
+        }
+        $stmtItems->close();
+    }
+    $stmtCheck->close();
+}
 
 // --------- FETCH ITEMS (available only) ----------
 $sql = "SELECT
@@ -242,6 +277,33 @@ usort($categories, fn($a,$b)=> $a['order'] <=> $b['order']);
 
     // --- BOOTSTRAP-BASED CART LOGIC ---
     document.addEventListener('DOMContentLoaded', function() {
+      
+      // --- REORDER LOGIC INJECTION ---
+      const reorderData = <?= json_encode($reorderItems) ?>;
+      if (reorderData && reorderData.length > 0) {
+          const cart = { items: [], subtotal: 0, deliveryFee: 0, total: 0 };
+          
+          reorderData.forEach(item => {
+              cart.items.push({
+                  id: item.id,
+                  name: item.name,
+                  unitPrice: item.unitPrice,
+                  qty: item.qty
+              });
+          });
+          
+          saveCart(cart);
+          renderCartFromStorage();
+          showQuickMessage('✅ Re-ordered items added to cart!');
+          
+          // Clean URL
+          if (window.history.replaceState) {
+              const url = new URL(window.location);
+              url.searchParams.delete('reorder');
+              window.history.replaceState({}, document.title, url.pathname);
+          }
+      }
+      // --- END REORDER LOGIC ---
 
       function addItemToCart(id, name, unitPrice, addQty) {
         const cart = getCart();
