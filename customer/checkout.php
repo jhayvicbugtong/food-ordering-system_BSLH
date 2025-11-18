@@ -109,28 +109,7 @@ if ($customer_id) {
           <div class="radio-left"><input type="radio" name="when" value="specific"><span>Specific time</span></div>
         </label>
       </div>
-      <div class="addr-modal-overlay" id="timeModalOverlay" style="display:none;">
-        <div class="addr-modal">
-          <div class="addr-modal-header">
-            <div class="addr-modal-mode-select">
-              <div class="addr-mode-label">When</div>
-              <button class="addr-mode-toggle" type="button" disabled><span>Specific time</span><i class="bi bi-clock-history"></i></button>
-            </div>
-            <button class="addr-close-btn" id="timeCloseBtn" type="button" aria-label="Close"><i class="bi bi-x-lg"></i></button>
-          </div>
-          <div class="addr-input-block">
-            <label class="addr-input-label" style="gap:8px;"><i class="bi bi-calendar-date"></i><input type="date" id="timeDate" class="addr-input" /></label>
-            <label class="addr-input-label" style="gap:8px; margin-top:8px;"><i class="bi bi-alarm"></i><input type="time" id="timeTime" class="addr-input" step="300"/></label>
-            <div class="addr-controls-row" style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
-              <button type="button" class="addr-small-btn time-chip" data-mins="30">+30 min</button>
-              <button type="button" class="addr-small-btn time-chip" data-mins="60">+1 hr</button>
-              <small id="timeNote" style="color:#6B7280; margin-left:4px;">Lead time: <b>15 min</b></small>
-            </div>
-            <div id="timeError" style="display:none; margin-top:8px; color:#B91C1C; background:#FEF2F2; border:1px solid #FECACA; padding:8px 10px; border-radius:8px; font-size:13px;"></div>
-          </div>
-          <button class="addr-confirm-btn" id="timeConfirmBtn" type="button">Use this time</button>
-        </div>
-      </div>
+      
     </div>
 
     <div class="checkout-card" id="addressCard">
@@ -249,7 +228,11 @@ if ($customer_id) {
   </div>
 </section>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php 
+// *** MODAL IS NOW INCLUDED ***
+include __DIR__ . '/includes/footer.php'; 
+include __DIR__ . '/includes/delivery_time_modal.php'; 
+?>
 
 <script>
   /* ===========================
@@ -296,10 +279,14 @@ function getCart() {
     timeDateInput: document.getElementById('timeDate'),
     timeTimeInput: document.getElementById('timeTime'),
     timeError: document.getElementById('timeError'),
+    timeNote: document.getElementById('timeNote'),
   };
 
   let currentTipPercent = 0;
   let isSubmitting = false;
+  
+  // --- Bootstrap Modal Instance ---
+  let timeModalInstance = null;
 
   /* ===========================
    PAGE INITIALIZATION
@@ -309,6 +296,11 @@ function getCart() {
       alert("Your cart is empty. Redirecting to menu.");
       window.location.href = "<?php echo htmlspecialchars($MENU); ?>";
       return;
+    }
+
+    // --- Create Bootstrap Modal Instance ---
+    if (elements.timeModalOverlay) {
+        timeModalInstance = new bootstrap.Modal(elements.timeModalOverlay);
     }
     
     renderSummaryFromCart();
@@ -500,16 +492,21 @@ function getCart() {
     }
     function showTimeError(msg){ elements.timeError.style.display='block'; elements.timeError.textContent = msg; }
     function clearTimeError(){ elements.timeError.style.display='none'; elements.timeError.textContent=''; }
+    
+    // --- UPDATED to use Bootstrap Modal ---
     function openTimeModal(){
+      if (!timeModalInstance) return;
       setMinDateToday();
       defaultRoundedTimePlusLead();
       clearTimeError();
-      if (elements.timeModalOverlay) elements.timeModalOverlay.style.display='flex';
+      timeModalInstance.show();
     }
-    function closeTimeModal(){ if (elements.timeModalOverlay) elements.timeModalOverlay.style.display='none'; }
+    function closeTimeModal(){ 
+      if (timeModalInstance) timeModalInstance.hide();
+    }
+    // --- END UPDATED ---
 
-    if (elements.timeModalOverlay) elements.timeModalOverlay.addEventListener('click', (e)=>{ if (e.target === elements.timeModalOverlay) closeTimeModal(); });
-    if (elements.timeCloseBtn) elements.timeCloseBtn.addEventListener('click', closeTimeModal);
+    // Removed old event listeners for overlay and close btn (handled by Bootstrap)
     
     document.querySelectorAll('.time-chip').forEach(chip=>{
       chip.addEventListener('click', ()=>{
@@ -542,7 +539,7 @@ function getCart() {
           readable: selected.toLocaleString([], { dateStyle:'medium', timeStyle:'short' })
         };
         localStorage.setItem('bslh_delivery_time', JSON.stringify(payload));
-        closeTimeModal();
+        closeTimeModal(); // This now calls timeModalInstance.hide()
       });
     }
 
@@ -727,6 +724,7 @@ function getCart() {
           // <-- 'instructions' field removed
         },
         preferredTime: (when === 'asap') ? null : scheduledTime?.iso,
+        // *** THIS IS THE FIX ***
         preferredTimeReadable: (when === 'asap') ? 'As soon as possible' : scheduledTime?.readable,
         tipAmount: tipAmount,
         subtotal: subtotal,
@@ -814,7 +812,7 @@ function getCart() {
 
       setText('confirmSubtotal', currency(details.subtotal));
       setText('confirmDelivery', currency(details.deliveryFee));
-      setText('confirmTip', currency(details.tipAmount));
+      setText('confirmTip', currency(disclaimer_text));
       setText('confirmTotal', currency(details.totalAmount));
       setText('confirmOrderType', details.orderType === 'delivery' ? 'Delivery' : 'Pickup');
       setHTML('confirmOrderTime', (details.preferredTimeReadable || 'As soon as possible').replace(/\n/g,'<br>'));

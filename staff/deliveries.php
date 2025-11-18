@@ -6,7 +6,9 @@ $stats_ready = $conn->query("SELECT COUNT(order_id) as total FROM orders WHERE s
 $stats_out = $conn->query("SELECT COUNT(order_id) as total FROM orders WHERE status = 'out_for_delivery'")->fetch_assoc()['total'] ?? 0;
 $stats_total = $stats_ready + $stats_out;
 
-// --- Fetch Delivery Orders for Table ---
+// --- 
+// --- FIX: This query now correctly joins 'order_addresses' (aliased as 'oa')
+// ---
 $delivery_query = "
     SELECT 
         o.order_id, 
@@ -16,12 +18,13 @@ $delivery_query = "
         ocd.customer_first_name, 
         ocd.customer_last_name,
         ocd.customer_phone,
-        ocd.delivery_street,
-        ocd.delivery_barangay,
-        ocd.delivery_instructions,
+        oa.street AS delivery_street,      -- Read from 'oa' (order_addresses)
+        oa.barangay AS delivery_barangay,  -- Read from 'oa'
+        oa.apt_landmark AS delivery_instructions, -- Read from 'oa'
         u.first_name as driver_name
     FROM orders o
     LEFT JOIN order_customer_details ocd ON o.order_id = ocd.order_id
+    LEFT JOIN order_addresses oa ON o.order_id = oa.order_id       -- ADDED THIS JOIN
     LEFT JOIN users u ON o.driver_id = u.user_id
     WHERE o.order_type = 'delivery' 
       AND o.status IN ('ready', 'out_for_delivery', 'confirmed')
@@ -114,6 +117,7 @@ if ($drivers_result) {
                     'out_for_delivery' => 'badge-info',
                   ];
                   $status_class = $status_map[$status] ?? 'badge-secondary';
+                  // --- FIX: Use the correctly queried columns ---
                   $address = htmlspecialchars($order['delivery_street'] . ', ' . $order['delivery_barangay']);
                 ?>
                 <tr data-order-id="<?= $order_id ?>">

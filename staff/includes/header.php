@@ -30,7 +30,14 @@ require_once __DIR__ . '/../../includes/db_connect.php';
 <header class="site-header">
   <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center">
+      
       <div class="d-flex align-items-center">
+        
+        <button class="navbar-toggler d-flex d-lg-none me-2" type="button" id="sidebarToggle" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon d-flex align-items-center justify-content-center">
+            <i class="bi bi-list" style="font-size: 28px; color: #fff;"></i>
+          </span>
+        </button>
         <div class="brand">
           <img src="<?= htmlspecialchars($BASE_URL) ?>/uploads/logo/logo.png" alt="Avocado Logo">
           <span>
@@ -41,6 +48,7 @@ require_once __DIR__ . '/../../includes/db_connect.php';
           </span>
         </div>
       </div>
+      
       <div class="user-area">
         <span><?= htmlspecialchars(get_user_name() ?? 'Staff User') ?></span>
         <a href="<?= htmlspecialchars($BASE_URL) ?>/auth/logout.php">Logout</a>
