@@ -7,7 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 // Include auth functions
 require_once __DIR__ . '/../../includes/auth.php';
 // --- MODIFIED: Allow 'staff' AND 'driver' roles ---
-require_role(['staff', 'driver']);
+require_role(['staff']);
 
 // Include database connection
 require_once __DIR__ . '/../../includes/db_connect.php';

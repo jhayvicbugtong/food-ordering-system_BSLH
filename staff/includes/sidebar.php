@@ -19,12 +19,7 @@
         <span>Deliveries</span>
       </a>
     </li>
-    <li>
-      <a class="<?php echo basename($_SERVER['PHP_SELF']) === 'pos.php' ? 'active' : ''; ?>" 
-         href="#"> <i class="bi bi-cash-stack"></i>
-        <span>POS / Walk-in</span>
-      </a>
-    </li>
+
   </ul>
   <div class="logout">
     <a href="<?= htmlspecialchars($BASE_URL) ?>/auth/logout.php"> Log out
