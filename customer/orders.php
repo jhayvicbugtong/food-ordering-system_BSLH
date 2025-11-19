@@ -17,7 +17,6 @@ $customer_id = (int)$_SESSION['user_id'];
 
 // Helper function for status badges
 function formatStatus($status) {
-    // ... [rest of your helper functions] ...
     $status_map = [
         'pending' => ['class' => 'warning', 'label' => 'Pending Confirmation', 'icon' => 'clock'],
         'confirmed' => ['class' => 'primary', 'label' => 'Confirmed', 'icon' => 'check-circle'],
@@ -40,7 +39,6 @@ function formatStatus($status) {
 
 // Helper function for payment status
 function formatPayment($p_method, $p_status) {
-    // ... [rest of your helper functions] ...
     $p_method = htmlspecialchars(ucfirst($p_method));
     $icon_class = '';
     
@@ -61,7 +59,6 @@ function formatPayment($p_method, $p_status) {
 
 // Helper function for order tracking progress
 function getOrderProgress($status, $order_type) {
-    // ... [rest of your helper functions] ...
     $steps = [
         'pending' => ['Pending', 'clock'],
         'confirmed' => ['Confirmed', 'check-circle'],
@@ -97,9 +94,9 @@ function getOrderProgress($status, $order_type) {
 
 // Fetch all orders for this user
 $orders = [];
-// ... [rest of your data fetching logic] ...
 $stmt_orders = $conn->prepare(
     "SELECT o.order_id, o.order_number, o.order_type, o.status, o.total_amount, o.created_at, 
+            o.delivery_fee, o.tip_amount, o.subtotal,
             p.payment_method, p.payment_status 
      FROM orders o
      LEFT JOIN order_payment_details p ON o.order_id = p.order_id
@@ -115,9 +112,10 @@ if ($orders_result) {
         // Fetch items for this order
         $items = [];
         $stmt_items = $conn->prepare(
-            "SELECT product_name, quantity, total_price 
-             FROM order_items 
-             WHERE order_id = ?"
+            "SELECT oi.product_id, oi.product_name, oi.quantity, oi.total_price, p.image_url 
+             FROM order_items oi
+             LEFT JOIN products p ON oi.product_id = p.product_id
+             WHERE oi.order_id = ?"
         );
         $stmt_items->bind_param('i', $order['order_id']);
         $stmt_items->execute();
@@ -139,7 +137,6 @@ $stmt_orders->close();
 $conn->close();
 
 // --- END: Fetch Order Data ---
-// --- START OF CORRECTION ---
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -148,44 +145,101 @@ $conn->close();
   <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=0"/>
   <title>My Orders | Bente Sais Lomi House</title>
   
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.css" rel="stylesheet">
   <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/customer.css"/>
 
   <style>
-    /* ... [your existing <style> block for this page] ... */
+    :root {
+        --primary-color: #5cfa63;
+        --primary-dark: #4cd853;
+        --primary-light: #e8f7e9;
+        --accent-color: #ff6b35;
+        --text-dark: #2d3748;
+        --text-light: #718096;
+        --bg-light: #f8f9fa;
+        --border-light: #e2e8f0;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.05);
+        --shadow-lg: 0 10px 15px rgba(0,0,0,0.05);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+    }
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8f9fa;
+        color: var(--text-dark);
+        line-height: 1.6;
+    }
+    
     .page-my-orders {
         background-color: #f8f9fa;
+        min-height: 100vh;
     }
     
     .orders-header {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-bottom: 1px solid #dee2e6;
-        padding: 1.5rem 0;
+        background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+        border-bottom: 1px solid var(--border-light);
+        padding: 2rem 0;
         margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .orders-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 100%;
+        background: linear-gradient(90deg, transparent 0%, rgba(92, 250, 99, 0.05) 100%);
+        z-index: 0;
     }
     
     .order-card {
-        border-radius: 12px;
+        border-radius: var(--radius-md);
         overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        box-shadow: var(--shadow-md);
         transition: all 0.3s ease;
-        border: 1px solid #e9ecef;
+        border: 1px solid var(--border-light);
         margin-bottom: 1.5rem;
+        background: #fff;
+        position: relative;
     }
     
     .order-card:hover {
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+        box-shadow: var(--shadow-lg);
         transform: translateY(-2px);
     }
     
     .order-card-header {
         background-color: white;
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid #e9ecef;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-light);
         cursor: pointer;
+        position: relative;
+    }
+    
+    .order-card-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, var(--primary-color) 0%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .order-card-header:hover::after {
+        opacity: 1;
     }
     
     .order-card-body {
@@ -204,7 +258,7 @@ $conn->close();
     }
     
     .order-items-table tr:last-child {
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid var(--border-light);
     }
     
     .order-details-list li {
@@ -220,41 +274,69 @@ $conn->close();
         padding: 4rem 2rem;
         text-align: center;
         background-color: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        max-width: 500px;
+        margin: 0 auto;
     }
     
     .empty-state-icon {
         font-size: 4rem;
-        color: #adb5bd;
+        color: #cbd5e0;
         margin-bottom: 1.5rem;
+        opacity: 0.7;
     }
     
     .order-type-badge {
-        background-color: #e7f1ff;
-        color: #0d6efd;
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
         padding: 0.25rem 0.75rem;
         border-radius: 50px;
         font-size: 0.75rem;
         font-weight: 500;
     }
     
-    .reorder-btn {
+    .reorder-btn, .cancel-order-btn {
         transition: all 0.3s ease;
+        border-radius: var(--radius-sm);
+        font-weight: 500;
     }
     
-    .reorder-btn:hover:not(.disabled) {
+    .reorder-btn:hover:not(.disabled), .cancel-order-btn:hover:not(.disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-md);
     }
     
-    /* Order Tracking Progress Styles */
+    .reorder-btn {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #000;
+    }
+    
+    .reorder-btn:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+    
+    /* Simplified Order Tracking Progress Styles */
     .order-tracking {
         background: white;
-        border-radius: 10px;
+        border-radius: var(--radius-md);
         padding: 1.5rem;
         margin-bottom: 1.5rem;
-        border: 1px solid #e9ecef;
+        border: 1px solid var(--border-light);
+        position: relative;
+    }
+    
+    .order-tracking::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(to bottom, var(--primary-color), var(--accent-color));
+        border-radius: var(--radius-md) 0 0 var(--radius-md);
     }
     
     .progress-container {
@@ -268,10 +350,22 @@ $conn->close();
     
     .progress-bar {
         height: 100%;
-        background: linear-gradient(90deg, #198754, #20c997);
+        background-color: var(--primary-color);
         border-radius: 10px;
         transition: width 0.5s ease;
         width: 0%;
+        position: relative;
+    }
+    
+    .progress-bar::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--primary-color);
+        border-radius: 10px;
     }
     
     .progress-steps {
@@ -302,17 +396,19 @@ $conn->close();
         background-color: #e9ecef;
         color: #6c757d;
         border: 3px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
     }
     
     .step-active .step-icon {
-        background-color: #198754;
+        background-color: var(--primary-color);
         color: white;
         transform: scale(1.1);
+        box-shadow: 0 0 0 4px rgba(92, 250, 99, 0.2);
     }
     
     .step-completed .step-icon {
-        background-color: #198754;
+        background-color: var(--primary-color);
         color: white;
     }
     
@@ -330,12 +426,12 @@ $conn->close();
     }
     
     .step-active .step-label {
-        color: #198754;
+        color: var(--primary-color);
         font-weight: 600;
     }
     
     .step-completed .step-label {
-        color: #198754;
+        color: var(--primary-color);
     }
     
     .step-cancelled .step-label {
@@ -343,21 +439,160 @@ $conn->close();
         font-weight: 600;
     }
     
-    .estimated-time {
-        background-color: #e7f1ff;
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
-        margin-top: 1rem;
-        border-left: 4px solid #0d6efd;
+    .filter-tabs {
+        background: white;
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-light);
     }
     
-    .time-badge {
-        background-color: #0d6efd;
-        color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 50px;
-        font-size: 0.75rem;
+    .filter-tab {
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-sm);
         font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--text-light);
+    }
+    
+    .filter-tab:hover {
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
+    }
+    
+    .filter-tab.active {
+        background-color: var(--primary-color);
+        color: #000;
+    }
+    
+    .order-count-badge {
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
+        border-radius: 50px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    
+    .order-summary-card {
+        background: white;
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-light);
+        margin-bottom: 1.5rem;
+    }
+    
+    .order-summary-title {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+    }
+    
+    .order-summary-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+    
+    .order-summary-change {
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .order-summary-change.positive {
+        color: var(--primary-color);
+    }
+    
+    .order-summary-change.negative {
+        color: #e53e3e;
+    }
+    
+    .order-card-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .order-card-action-btn {
+        flex: 1;
+        text-align: center;
+        padding: 0.5rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+    }
+    
+    .order-card-action-btn.primary {
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
+    }
+    
+    .order-card-action-btn.primary:hover {
+        background-color: var(--primary-color);
+        color: #000;
+    }
+    
+    .order-card-action-btn.secondary {
+        background-color: #f1f5f9;
+        color: var(--text-light);
+    }
+    
+    .order-card-action-btn.secondary:hover {
+        background-color: #e2e8f0;
+        color: var(--text-dark);
+    }
+    
+    .order-card-action-btn.danger {
+        background-color: #fed7d7;
+        color: #c53030;
+    }
+    
+    .order-card-action-btn.danger:hover {
+        background-color: #feb2b2;
+        color: #9b2c2c;
+    }
+    
+    .order-item-image {
+        width: 50px;
+        height: 50px;
+        border-radius: var(--radius-sm);
+        object-fit: cover;
+        margin-right: 1rem;
+        background-color: #f8f9fa;
+    }
+    
+    .order-item-details {
+        display: flex;
+        align-items: center;
+    }
+    
+    .order-item-name {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    .order-item-price {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+    
+    .order-item-quantity {
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
+        border-radius: 50px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
     }
     
     @media (max-width: 768px) {
@@ -387,6 +622,18 @@ $conn->close();
             gap: 1rem;
             overflow-x: auto;
             padding-bottom: 0.5rem;
+        }
+        
+        .order-card-actions {
+            flex-direction: column;
+        }
+        
+        .order-summary-card {
+            padding: 1rem;
+        }
+        
+        .order-summary-value {
+            font-size: 1.25rem;
         }
     }
   </style>
@@ -427,27 +674,95 @@ include __DIR__ . '/includes/header.php';
           </a>
         </div>
       <?php else: ?>
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h5 fw-semibold text-muted">Recent Orders (<?= count($orders) ?>)</h2>
-            <div class="dropdown">
-                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-funnel me-1"></i>Filter
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">All Orders</a></li>
-                    <li><a class="dropdown-item" href="#">Pending</a></li>
-                    <li><a class="dropdown-item" href="#">Completed</a></li>
-                    <li><a class="dropdown-item" href="#">Cancelled</a></li>
-                </ul>
+        <div class="row mb-4">
+          <div class="col-md-3">
+            <div class="order-summary-card">
+              <div class="order-summary-title">Total Orders</div>
+              <div class="order-summary-value"><?= count($orders) ?></div>
+              <div class="order-summary-change positive">
+                <i class="bi bi-arrow-up"></i> All time
+              </div>
             </div>
+          </div>
+          <div class="col-md-3">
+            <div class="order-summary-card">
+              <div class="order-summary-title">Pending</div>
+              <div class="order-summary-value">
+                <?= count(array_filter($orders, function($order) { 
+                  return in_array($order['status'], ['pending', 'confirmed', 'preparing']); 
+                })) ?>
+              </div>
+              <div class="order-summary-change positive">
+                <i class="bi bi-clock"></i> Active
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="order-summary-card">
+              <div class="order-summary-title">Completed</div>
+              <div class="order-summary-value">
+                <?= count(array_filter($orders, function($order) { 
+                  return in_array($order['status'], ['completed', 'delivered']); 
+                })) ?>
+              </div>
+              <div class="order-summary-change positive">
+                <i class="bi bi-check-circle"></i> Delivered
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="order-summary-card">
+              <div class="order-summary-title">Total Spent</div>
+              <div class="order-summary-value">
+                ₱<?= number_format(array_sum(array_column($orders, 'total_amount')), 2) ?>
+              </div>
+              <div class="order-summary-change positive">
+                <i class="bi bi-currency-dollar"></i> All orders
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="filter-tabs">
+          <div class="d-flex flex-wrap gap-2">
+            <div class="filter-tab active" data-filter="all">
+              All Orders <span class="order-count-badge"><?= count($orders) ?></span>
+            </div>
+            <div class="filter-tab" data-filter="pending">
+              Pending <span class="order-count-badge">
+                <?= count(array_filter($orders, function($order) { 
+                  return in_array($order['status'], ['pending', 'confirmed', 'preparing']); 
+                })) ?>
+              </span>
+            </div>
+            <div class="filter-tab" data-filter="completed">
+              Completed <span class="order-count-badge">
+                <?= count(array_filter($orders, function($order) { 
+                  return in_array($order['status'], ['completed', 'delivered']); 
+                })) ?>
+              </span>
+            </div>
+            <div class="filter-tab" data-filter="cancelled">
+              Cancelled <span class="order-count-badge">
+                <?= count(array_filter($orders, function($order) { 
+                  return $order['status'] === 'cancelled'; 
+                })) ?>
+              </span>
+            </div>
+          </div>
         </div>
         
         <div class="accordion" id="ordersAccordion">
           <?php foreach ($orders as $index => $order): 
                 $progress = $order['progress'];
                 $is_cancelled = $order['status'] === 'cancelled';
+                $is_pending = $order['status'] === 'pending';
+                $is_active = in_array($order['status'], ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery']);
+                $is_completed = in_array($order['status'], ['completed', 'delivered']);
+                $is_delivery = $order['order_type'] === 'delivery';
+                $has_tip = $order['tip_amount'] > 0;
           ?>
-            <div class="order-card">
+            <div class="order-card" data-status="<?= $order['status'] ?>">
               <div class="order-card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#collapse<?= $order['order_id'] ?>" aria-expanded="<?= $index === 0 ? 'true' : 'false' ?>" aria-controls="collapse<?= $order['order_id'] ?>">
                 <div class="d-flex flex-column flex-md-row w-100 align-items-md-center gap-3">
                   <div class="flex-grow-1">
@@ -477,6 +792,7 @@ include __DIR__ . '/includes/header.php';
               
               <div id="collapse<?= $order['order_id'] ?>" class="collapse <?= $index === 0 ? 'show' : '' ?>" aria-labelledby="heading<?= $order['order_id'] ?>" data-bs-parent="#ordersAccordion">
                 <div class="order-card-body">
+                  <?php if ($is_active): ?>
                   <div class="order-tracking">
                     <h6 class="fw-bold mb-3 d-flex align-items-center">
                       <i class="bi bi-graph-up me-2"></i>Order Progress
@@ -490,16 +806,16 @@ include __DIR__ . '/includes/header.php';
                       <?php 
                       $step_index = 0;
                       foreach ($progress['steps'] as $step_key => $step_data): 
-                          $is_active = $step_index === $progress['current_index'];
-                          $is_completed = $step_index < $progress['current_index'];
+                          $is_active_step = $step_index === $progress['current_index'];
+                          $is_completed_step = $step_index < $progress['current_index'];
                           $is_cancelled_step = $is_cancelled && $step_key === 'cancelled';
                           
                           $step_class = '';
                           if ($is_cancelled_step) {
                               $step_class = 'step-cancelled';
-                          } elseif ($is_active) {
+                          } elseif ($is_active_step) {
                               $step_class = 'step-active';
-                          } elseif ($is_completed) {
+                          } elseif ($is_completed_step) {
                               $step_class = 'step-completed';
                           }
                       ?>
@@ -514,11 +830,8 @@ include __DIR__ . '/includes/header.php';
                       endforeach; 
                       ?>
                     </div>
-                    
-                    <?php if (!$is_cancelled): ?>
-                    
-                    <?php endif; ?>
                   </div>
+                  <?php endif; ?>
                   
                   <div class="row gy-4">
                     <div class="col-md-8">
@@ -534,16 +847,24 @@ include __DIR__ . '/includes/header.php';
                         <div class="table-responsive">
                           <table class="table table-sm order-items-table">
                             <tbody>
-                              <?php foreach ($order['items'] as $item): ?>
+                              <?php foreach ($order['items'] as $item): 
+                                $image_url = $item['image_url'] ? htmlspecialchars($BASE_URL . '/' . $item['image_url']) : $BASE_URL . '/assets/images/placeholder-food.jpg';
+                              ?>
                                 <tr>
                                   <td class="ps-0">
-                                    <div class="fw-medium"><?= htmlspecialchars($item['product_name']) ?></div>
+                                    <div class="order-item-details">
+                                      <img src="<?= $image_url ?>" alt="<?= htmlspecialchars($item['product_name']) ?>" class="order-item-image" onerror="this.src='<?= $BASE_URL ?>/assets/images/placeholder-food.jpg'">
+                                      <div>
+                                        <div class="order-item-name"><?= htmlspecialchars($item['product_name']) ?></div>
+                                        <div class="order-item-price">₱<?= number_format($item['total_price'], 2) ?></div>
+                                      </div>
+                                    </div>
                                   </td>
                                   <td class="text-center" style="width: 80px;">
-                                    <span class="badge bg-light text-dark">x <?= htmlspecialchars($item['quantity']) ?></span>
+                                    <span class="order-item-quantity">x <?= htmlspecialchars($item['quantity']) ?></span>
                                   </td>
                                   <td class="text-end pe-0 fw-medium" style="width: 100px;">
-                                    ₱<?= number_format($item['total_price'], 2) ?>
+                                    ₱<?= number_format($item['total_price'] * $item['quantity'], 2) ?>
                                   </td>
                                 </tr>
                               <?php endforeach; ?>
@@ -566,6 +887,22 @@ include __DIR__ . '/includes/header.php';
                           <span class="text-muted">Type:</span>
                           <span class="fw-medium text-dark"><?= htmlspecialchars(ucfirst($order['order_type'])) ?></span>
                         </li>
+                        <?php if ($is_delivery && $order['delivery_fee'] > 0): ?>
+                        <li class="d-flex justify-content-between">
+                          <span class="text-muted">Delivery Fee:</span>
+                          <span class="fw-medium text-dark text-end">₱<?= number_format($order['delivery_fee'], 2) ?></span>
+                        </li>
+                        <?php endif; ?>
+                        <?php if ($has_tip): ?>
+                        <li class="d-flex justify-content-between">
+                          <span class="text-muted">Tip Amount:</span>
+                          <span class="fw-medium text-dark text-end">₱<?= number_format($order['tip_amount'], 2) ?></span>
+                        </li>
+                        <?php endif; ?>
+                        <li class="d-flex justify-content-between">
+                          <span class="text-muted">Subtotal:</span>
+                          <span class="fw-medium text-dark text-end">₱<?= number_format($order['subtotal'], 2) ?></span>
+                        </li>
                         <li class="d-flex justify-content-between">
                           <span class="text-muted">Placed:</span>
                           <span class="fw-medium text-dark text-end"><?= date('M d, Y', strtotime($order['created_at'])) ?></span>
@@ -580,11 +917,16 @@ include __DIR__ . '/includes/header.php';
                         </li>
                       </ul>
                       
-                      <div class="mt-4 pt-3 border-top">
-                        <a href="menu.php?reorder=<?= $order['order_id'] ?>" class="btn btn-outline-success reorder-btn w-100 disabled">
-                            <i class="bi bi-arrow-repeat me-2"></i> Re-order Items
+                      <div class="order-card-actions">
+                        <?php if ($is_pending): ?>
+                            <a href="#" class="order-card-action-btn danger cancel-order-btn" data-id="<?= $order['order_id'] ?>">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        <?php endif; ?>
+                        
+                        <a href="menu.php?reorder=<?= $order['order_id'] ?>" class="order-card-action-btn primary">
+                            <i class="bi bi-arrow-repeat"></i> Reorder
                         </a>
-                        <small class="text-muted d-block text-center mt-2" style="font-size: 0.75rem;">(Re-order feature coming soon)</small>
                       </div>
                     </div>
                   </div>
@@ -598,9 +940,9 @@ include __DIR__ . '/includes/header.php';
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // ... [rest of your <script> block for this page] ...
     // Rotate chevron when accordion is toggled
     const accordionHeaders = document.querySelectorAll('.order-card-header');
     accordionHeaders.forEach(header => {
@@ -655,6 +997,112 @@ document.addEventListener('DOMContentLoaded', function() {
     progressBars.forEach(bar => {
         observer.observe(bar);
     });
+
+    // Cancel Order Logic
+    document.querySelectorAll('.cancel-order-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const orderId = this.dataset.id;
+            const btnEl = this;
+            const originalText = btnEl.innerHTML;
+            
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, cancel it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    btnEl.disabled = true;
+                    btnEl.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cancelling...';
+
+                    fetch('actions/cancel_order.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ order_id: orderId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire(
+                                'Cancelled!',
+                                'Your order has been cancelled.',
+                                'success'
+                            ).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                data.message || 'Failed to cancel order.',
+                                'error'
+                            );
+                            btnEl.disabled = false;
+                            btnEl.innerHTML = originalText;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire(
+                            'Error!',
+                            'An error occurred. Please try again.',
+                            'error'
+                        );
+                        btnEl.disabled = false;
+                        btnEl.innerHTML = originalText;
+                    });
+                }
+            });
+        });
+    });
+    
+    // Filter orders by status
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    const orderCards = document.querySelectorAll('.order-card');
+    
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Remove active class from all tabs
+            filterTabs.forEach(t => t.classList.remove('active'));
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            const filter = this.dataset.filter;
+            
+            // Show/hide orders based on filter
+            orderCards.forEach(card => {
+                if (filter === 'all') {
+                    card.style.display = 'block';
+                } else if (filter === 'pending') {
+                    const status = card.dataset.status;
+                    if (['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(status)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                } else if (filter === 'completed') {
+                    const status = card.dataset.status;
+                    if (['completed', 'delivered'].includes(status)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                } else if (filter === 'cancelled') {
+                    const status = card.dataset.status;
+                    if (status === 'cancelled') {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        });
+    });
 });
 </script>
 
@@ -662,4 +1110,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
-<?php // --- END OF CORRECTION --- ?>

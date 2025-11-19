@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 18, 2025 at 06:10 AM
+-- Generation Time: Nov 18, 2025 at 08:32 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -48,6 +48,32 @@ INSERT INTO `categories` (`category_id`, `category_name`, `description`, `image_
 (4, 'Drinks', 'Beverages and refreshments', NULL, 4, 1, '2025-11-14 12:54:35'),
 (5, 'Sides', 'Side dishes and appetizers', NULL, 5, 1, '2025-11-14 12:54:35'),
 (6, 'Panghimagas (Desserts)', 'Sweet treats and desserts', NULL, 6, 1, '2025-11-14 12:54:35');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `contact_submissions`
+--
+
+CREATE TABLE `contact_submissions` (
+  `id` int(11) NOT NULL,
+  `fullname` varchar(255) NOT NULL,
+  `phone` varchar(50) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `submitted_at` datetime NOT NULL,
+  `is_processed` tinyint(4) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `contact_submissions`
+--
+
+INSERT INTO `contact_submissions` (`id`, `fullname`, `phone`, `email`, `message`, `submitted_at`, `is_processed`) VALUES
+(1, 'dgdg dfgdfs', '09067035958', 'aldriebaquiran15@gmail.com', 'dlamdladakdlam', '2025-11-18 14:47:22', 0),
+(2, 'dgdg dfgdfs', '09067035958', 'aldriebaquiran15@gmail.com', 'cmlcmlmc', '2025-11-18 07:58:48', 0),
+(3, 'dgdg dfgdfs', '09067035958', 'aldriebaquiran15@gmail.com', 'nsdoskdskd', '2025-11-18 07:59:10', 0),
+(4, 'dgdg dfgdfs', '09067035958', 'aldriebaquiran15@gmail.com', 'nsdoskdskd', '2025-11-18 08:08:46', 0);
 
 -- --------------------------------------------------------
 
@@ -144,7 +170,7 @@ INSERT INTO `orders` (`order_id`, `order_number`, `user_id`, `order_type`, `orde
 (43, 'BSLH-1763394091-2jbM', 7, 'pickup', '2025-11-17 23:41:31', NULL, 'preparing', 89.00, 0.00, 0.00, 89.00, 2, NULL, '2025-11-18 11:42:35', '2025-11-18 11:45:05', NULL, NULL, NULL, NULL, '2025-11-17 23:41:31', '2025-11-18 11:45:05'),
 (44, 'BSLH-1763394128-eugs', 7, 'pickup', '2025-11-17 23:42:08', NULL, 'completed', 194.00, 0.00, 0.00, 194.00, 2, NULL, '2025-11-18 11:42:36', '2025-11-18 11:42:54', '2025-11-18 11:42:57', NULL, NULL, NULL, '2025-11-17 23:42:08', '2025-11-18 11:44:46'),
 (49, 'BSLH-1763435671-gu2Q', 7, 'pickup', '2025-11-18 11:14:31', NULL, 'preparing', 25.00, 0.00, 0.00, 25.00, 2, NULL, '2025-11-18 11:43:00', '2025-11-18 11:44:13', NULL, NULL, NULL, NULL, '2025-11-18 11:14:31', '2025-11-18 11:44:13'),
-(52, 'BSLH-1763437612-h2Ud', 7, 'delivery', '2025-11-18 11:46:52', NULL, 'ready', 718.00, 0.00, 0.00, 718.00, 2, NULL, '2025-11-18 11:47:27', '2025-11-18 11:51:00', '2025-11-18 11:51:11', NULL, NULL, NULL, '2025-11-18 11:46:52', '2025-11-18 11:51:11'),
+(52, 'BSLH-1763437612-h2Ud', 7, 'delivery', '2025-11-18 11:46:52', NULL, 'delivered', 718.00, 0.00, 0.00, 718.00, 2, NULL, '2025-11-18 11:47:27', '2025-11-18 11:51:00', '2025-11-18 11:51:11', '2025-11-18 14:06:00', '2025-11-18 14:06:02', NULL, '2025-11-18 11:46:52', '2025-11-18 14:06:02'),
 (55, 'BSLH-1763438464-9NHH', 7, 'pickup', '2025-11-18 12:01:04', '2025-11-18 10:00:00', 'pending', 393.00, 0.00, 0.00, 393.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-18 12:01:04', '2025-11-18 12:01:04'),
 (58, 'BSLH-1763438821-VwiH', 7, 'delivery', '2025-11-18 12:07:01', NULL, 'pending', 95.00, 0.00, 0.00, 95.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-18 12:07:01', '2025-11-18 12:07:01'),
 (66, 'BSLH-1763440020-eozt', 7, 'delivery', '2025-11-18 12:27:00', NULL, 'pending', 95.00, 0.00, 0.00, 95.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-18 12:27:00', '2025-11-18 12:27:00'),
@@ -412,6 +438,12 @@ ALTER TABLE `categories`
   ADD PRIMARY KEY (`category_id`);
 
 --
+-- Indexes for table `contact_submissions`
+--
+ALTER TABLE `contact_submissions`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `deliverable_barangays`
 --
 ALTER TABLE `deliverable_barangays`
@@ -493,6 +525,12 @@ ALTER TABLE `users`
 --
 ALTER TABLE `categories`
   MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `contact_submissions`
+--
+ALTER TABLE `contact_submissions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `deliverable_barangays`

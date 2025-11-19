@@ -28,15 +28,10 @@ $LOGOUT  = $BASE . '/customer/auth/logout.php?next=' . urlencode($HOME);
 $PROFILE = $BASE . '/customer/profile.php';
 $MY_ORDERS = $BASE . '/customer/orders.php';
 
-// --- FIX: Determine the correct link for the "Order" button ---
 $is_logged_in_customer = (!empty($_SESSION['user_id']) && (($_SESSION['role'] ?? '') === 'customer'));
 
-if ($is_logged_in_customer) {
-    $ORDER_BTN_LINK = $MENU; // Already logged in, just go to menu
-} else {
-    $ORDER_BTN_LINK = $LOGIN_URL; // Not logged in, go to login first
-}
-// --- END FIX ---
+// "Order online" button should always go to the menu page
+$ORDER_BTN_LINK = $MENU;
 
 // Helpers
 function isActive($names, $current) {
@@ -645,11 +640,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close mobile menu when clicking on a link
     const navItems = navLinks.querySelectorAll('a');
     navItems.forEach(item => {
-      item.addEventListener('click', function() {
-        closeMobileMenu();
+      item.addEventListener('click', function(e) {
+        // --- FIX: Check if the clicked link is a dropdown toggle ---
+        // If it is, let Bootstrap handle it and DON'T close the whole menu.
+        if (this.classList.contains('dropdown-toggle')) {
+          // Do nothing, let the dropdown open.
+        } else {
+          // If it's a normal link, close the menu.
+          closeMobileMenu();
+        }
       });
     });
-    
     // Close mobile menu when clicking on backdrop
     backdrop.addEventListener('click', function() {
       closeMobileMenu();

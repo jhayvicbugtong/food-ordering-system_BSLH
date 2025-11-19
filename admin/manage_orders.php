@@ -1,7 +1,66 @@
 <?php
 include __DIR__ . '/includes/header.php'; // Includes db_connect.php
 
-// Fetch orders for the table.
+// ----- FILTERS -----
+$order_type_filter = $_GET['order_type'] ?? '';
+$date_from = $_GET['date_from'] ?? '';
+$date_to   = $_GET['date_to'] ?? '';
+
+// Build WHERE clause based on filters
+$whereClauses = ["1=1"];
+
+if ($order_type_filter === 'pickup' || $order_type_filter === 'delivery') {
+    $order_type_esc = $conn->real_escape_string($order_type_filter);
+    $whereClauses[] = "o.order_type = '{$order_type_esc}'";
+}
+
+if ($date_from !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_from)) {
+    $date_from_esc = $conn->real_escape_string($date_from);
+    $whereClauses[] = "DATE(o.created_at) >= '{$date_from_esc}'";
+}
+
+if ($date_to !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_to)) {
+    $date_to_esc = $conn->real_escape_string($date_to);
+    $whereClauses[] = "DATE(o.created_at) <= '{$date_to_esc}'";
+}
+
+$whereSql = implode(' AND ', $whereClauses);
+
+// ----- PAGINATION SETTINGS -----
+$perPage = 10;
+
+// current page from ?page=, default 1
+$page = isset($_GET['page']) && ctype_digit($_GET['page']) && (int)$_GET['page'] > 0
+    ? (int)$_GET['page']
+    : 1;
+
+// get total rows for this filter
+$count_sql = "
+    SELECT COUNT(*) AS total
+    FROM orders o
+    LEFT JOIN order_customer_details ocd ON o.order_id = ocd.order_id
+    WHERE {$whereSql}
+";
+$count_result = $conn->query($count_sql);
+$total_rows = $count_result ? (int)$count_result->fetch_assoc()['total'] : 0;
+
+$total_pages = max(1, (int)ceil($total_rows / $perPage));
+
+// clamp page in valid range
+if ($page > $total_pages) {
+    $page = $total_pages;
+}
+
+// compute offset
+$offset = ($page - 1) * $perPage;
+
+// base link for pagination (preserve filters, change only page)
+$queryParams = $_GET;
+unset($queryParams['page']);
+$baseQuery = http_build_query($queryParams);
+$paginationBaseUrl = 'manage_orders.php' . ($baseQuery ? '?' . $baseQuery . '&' : '?');
+
+// ----- FETCH ORDERS -----
 $orders_query = "
     SELECT 
         o.order_id, 
@@ -15,6 +74,7 @@ $orders_query = "
         ocd.customer_phone
     FROM orders o
     LEFT JOIN order_customer_details ocd ON o.order_id = ocd.order_id
+    WHERE {$whereSql}
     ORDER BY 
         CASE o.status
             WHEN 'pending' THEN 1
@@ -25,11 +85,53 @@ $orders_query = "
             ELSE 6
         END,
         o.created_at DESC
-    LIMIT 50;
+    LIMIT {$perPage} OFFSET {$offset};
 ";
 $orders_result = $conn->query($orders_query);
-
 ?>
+
+<style>
+  /* status colors you defined */
+  .status-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .status-pending          { background:#fef3c7; color:#92400e; }
+  .status-confirmed        { background:#dbeafe; color:#1d4ed8; }
+  .status-preparing        { background:#e0f2fe; color:#0369a1; }
+  .status-ready            { background:#dcfce7; color:#15803d; }
+  .status-out-for-delivery { background:#e0f2fe; color:#0369a1; }
+  .status-delivered,
+  .status-completed        { background:#e5e7eb; color:#111827; }
+  .status-cancelled        { background:#fee2e2; color:#b91c1c; }
+
+  .filter-form .form-label {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: #6b7280;
+  }
+
+  /* Payment section in Order Details modal */
+  #od-payment {
+    line-height: 1.3;
+  }
+  .od-payment-main {
+    display: block;
+    font-weight: 600;
+  }
+  .od-payment-meta {
+    display: block;
+    font-size: 0.8rem;
+    color: #6b7280; /* muted */
+    margin-top: 2px;
+    text-transform: capitalize; /* first letter of each word big */
+  }
+</style>
 
 <div class="container-fluid">
   <?php include __DIR__ . '/includes/sidebar.php'; ?>
@@ -43,7 +145,7 @@ $orders_result = $conn->query($orders_query);
           <p>View and update incoming orders</p>
         </div>
         <div class="right">
-          <button class="btn btn-success" id="btn-refresh" onclick="location.reload();">
+          <button class="btn btn-success" id="btn-refresh">
             <i class="bi bi-arrow-clockwise"></i> Refresh Orders
           </button>
         </div>
@@ -57,6 +159,39 @@ $orders_result = $conn->query($orders_query);
           <p>All pending, confirmed, and in-progress orders</p>
         </div>
       </div>
+
+      <!-- FILTERS -->
+      <form class="row g-2 mb-3 filter-form" method="get">
+        <!-- reset to page 1 whenever filters change -->
+        <input type="hidden" name="page" value="1">
+
+        <div class="col-md-3 col-sm-6">
+          <label class="form-label mb-1">Order Type</label>
+          <select class="form-select form-select-sm" name="order_type">
+            <option value="">All</option>
+            <option value="pickup"   <?= $order_type_filter === 'pickup'   ? 'selected' : '' ?>>Pickup</option>
+            <option value="delivery" <?= $order_type_filter === 'delivery' ? 'selected' : '' ?>>Delivery</option>
+          </select>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <label class="form-label mb-1">Date From</label>
+          <input type="date"
+                 class="form-control form-control-sm"
+                 name="date_from"
+                 value="<?= htmlspecialchars($date_from) ?>">
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <label class="form-label mb-1">Date To</label>
+          <input type="date"
+                 class="form-control form-control-sm"
+                 name="date_to"
+                 value="<?= htmlspecialchars($date_to) ?>">
+        </div>
+        <div class="col-md-3 col-sm-6 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary btn-sm me-2">Apply</button>
+          <a href="manage_orders.php" class="btn btn-outline-secondary btn-sm">Clear</a>
+        </div>
+      </form>
 
       <div class="table-responsive">
         <table class="table table-hover">
@@ -77,47 +212,56 @@ $orders_result = $conn->query($orders_query);
                 <?php
                   $status = $order['status'];
                   $status_map = [
-                    'pending' => 'badge-warning',
-                    'confirmed' => 'badge-primary',
-                    'preparing' => 'badge-info',
-                    'ready' => 'badge-success',
-                    'out_for_delivery' => 'badge-info',
-                    'delivered' => 'badge-secondary',
-                    'completed' => 'badge-secondary',
-                    'cancelled' => 'badge-danger',
+                    'pending'          => 'status-pending',
+                    'confirmed'        => 'status-confirmed',
+                    'preparing'        => 'status-preparing',
+                    'ready'            => 'status-ready',
+                    'out_for_delivery' => 'status-out-for-delivery',
+                    'delivered'        => 'status-delivered',
+                    'completed'        => 'status-completed',
+                    'cancelled'        => 'status-cancelled',
                   ];
-                  $status_class = $status_map[$status] ?? 'badge-light';
-                  $customer_name = htmlspecialchars($order['customer_first_name'] . ' ' . $order['customer_last_name']);
+                  $status_class = $status_map[$status] ?? '';
+                  $customer_name = htmlspecialchars(($order['customer_first_name'] ?? '') . ' ' . ($order['customer_last_name'] ?? ''));
+                  if (trim($customer_name) === '') {
+                    $customer_name = 'Walk-in Customer';
+                  }
                 ?>
-                <tr data-row-id="<?= $order['order_id'] ?>">
+                <tr data-row-id="<?= (int)$order['order_id'] ?>">
                   <td>
                     <strong><?= htmlspecialchars($order['order_number'] ?? $order['order_id']) ?></strong><br>
                     <small class="text-muted"><?= date('g:i A', strtotime($order['created_at'])) ?></small>
                   </td>
                   <td>
                     <?= $customer_name ?><br>
-                    <small class="text-muted"><?= htmlspecialchars($order['customer_phone']) ?></small>
+                    <small class="text-muted"><?= htmlspecialchars($order['customer_phone'] ?? '') ?></small>
                   </td>
                   <td>
                     <?php if ($order['order_type'] == 'delivery'): ?>
-                      <span class="badge badge-success">Delivery</span>
+                      <span class="badge bg-success-subtle text-success">Delivery</span>
                     <?php else: ?>
-                      <span class="badge badge-primary">Pickup</span>
+                      <span class="badge bg-primary-subtle text-primary">Pickup</span>
                     <?php endif; ?>
                   </td>
-                  <td>₱<?= number_format($order['total_amount'], 2) ?></td>
+                  <td>₱<?= number_format((float)$order['total_amount'], 2) ?></td>
                   <td>
-                    <span class="badge <?= $status_class ?>"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?></span>
+                    <span class="status-badge <?= $status_class ?>">
+                      <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?>
+                    </span>
                   </td>
                   <td>
                     <div class="btn-group btn-group-sm">
-                      <button class="btn btn-outline-secondary">View</button>
+                      <!-- VIEW BUTTON WITH FUNCTION -->
+                      <button class="btn btn-outline-secondary btn-view"
+                              data-order-id="<?= (int)$order['order_id'] ?>">
+                        View
+                      </button>
 
                       <?php if ($status == 'pending'): ?>
                         <button
                           class="btn btn-outline-success btn-accept"
-                          data-order-id="<?= $order['order_id'] ?>"
-                          data-total="<?= $order['total_amount'] ?>"
+                          data-order-id="<?= (int)$order['order_id'] ?>"
+                          data-total="<?= (float)$order['total_amount'] ?>"
                           data-customer="<?= $customer_name ?>"
                         >
                           Accept
@@ -138,15 +282,108 @@ $orders_result = $conn->query($orders_query);
               <?php endwhile; ?>
             <?php else: ?>
               <tr>
-                <td colspan="6" class="text-center text-muted">No orders found.</td>
+                <td colspan="6" class="text-center text-muted">No orders found for this filter.</td>
               </tr>
             <?php endif; ?>
 
           </tbody>
         </table>
       </div>
+
+      <!-- PAGINATION -->
+      <?php if ($total_pages > 1): ?>
+        <nav aria-label="Orders pagination">
+          <ul class="pagination justify-content-end">
+
+            <!-- Previous arrow -->
+            <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+              <?php if ($page <= 1): ?>
+                <span class="page-link" aria-label="Previous">&laquo;</span>
+              <?php else: ?>
+                <a class="page-link"
+                   href="<?= htmlspecialchars($paginationBaseUrl . 'page=' . ($page - 1)) ?>"
+                   aria-label="Previous">&laquo;</a>
+              <?php endif; ?>
+            </li>
+
+            <!-- Page numbers -->
+            <?php for ($p = 1; $p <= $total_pages; $p++): ?>
+              <li class="page-item <?= $p == $page ? 'active' : '' ?>">
+                <a class="page-link"
+                   href="<?= htmlspecialchars($paginationBaseUrl . 'page=' . $p) ?>">
+                  <?= $p ?>
+                </a>
+              </li>
+            <?php endfor; ?>
+
+            <!-- Next arrow -->
+            <li class="page-item <?= $page >= $total_pages ? 'disabled' : '' ?>">
+              <?php if ($page >= $total_pages): ?>
+                <span class="page-link" aria-label="Next">&raquo;</span>
+              <?php else: ?>
+                <a class="page-link"
+                   href="<?= htmlspecialchars($paginationBaseUrl . 'page=' . ($page + 1)) ?>"
+                   aria-label="Next">&raquo;</a>
+              <?php endif; ?>
+            </li>
+
+          </ul>
+        </nav>
+      <?php endif; ?>
+
     </section>
 
+    <!-- ORDER DETAILS MODAL (for View button) -->
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Order Details — <span id="od-order-number"></span></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <p class="mb-1"><strong>Status:</strong> <span id="od-status"></span></p>
+                <p class="mb-1"><strong>Type:</strong> <span id="od-type"></span></p>
+                <p class="mb-1"><strong>Placed:</strong> <span id="od-created-at"></span></p>
+              </div>
+              <div class="col-md-6">
+                <p class="mb-1"><strong>Customer:</strong> <span id="od-customer"></span></p>
+                <p class="mb-1"><strong>Phone:</strong> <span id="od-phone"></span></p>
+                <p class="mb-1"><strong>Payment:</strong> <span id="od-payment"></span></p>
+              </div>
+            </div>
+            <hr>
+            <h6>Items</h6>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th class="text-end">Qty</th>
+                    <th class="text-end">Price</th>
+                    <th class="text-end">Total</th>
+                  </tr>
+                </thead>
+                <tbody id="od-items-body"></tbody>
+                <tfoot>
+                  <tr>
+                    <th colspan="3" class="text-end">Grand Total</th>
+                    <th class="text-end" id="od-total">₱0.00</th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXISTING PAYMENT MODAL (unchanged) -->
     <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content" id="paymentForm">
@@ -207,13 +444,145 @@ $orders_result = $conn->query($orders_query);
         </form>
       </div>
     </div>
-    </main>
+
+  </main>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  // ----- REFRESH -----
+  document.getElementById('btn-refresh')?.addEventListener('click', () => {
+    location.reload();
+  });
+
+  // ----- ORDER DETAILS MODAL (VIEW) -----
+  const odModalEl = document.getElementById('orderDetailsModal');
+  const odModal = odModalEl ? new bootstrap.Modal(odModalEl) : null;
+  const odOrderNumber = document.getElementById('od-order-number');
+  const odStatus      = document.getElementById('od-status');
+  const odType        = document.getElementById('od-type');
+  const odCustomer    = document.getElementById('od-customer');
+  const odPhone       = document.getElementById('od-phone');
+  const odCreatedAt   = document.getElementById('od-created-at');
+  const odPayment     = document.getElementById('od-payment');
+  const odItemsBody   = document.getElementById('od-items-body');
+  const odTotal       = document.getElementById('od-total');
+
+  document.querySelectorAll('.btn-view').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const row = e.currentTarget.closest('tr');
+      if (!row || !odModal) return;
+
+      const orderId = e.currentTarget.dataset.orderId;
+
+      // Initial values from row (placeholder)
+      odOrderNumber.textContent = '#' + row.dataset.rowId;
+      odStatus.textContent      = '';
+      odType.textContent        = '';
+      odCustomer.textContent    = '';
+      odPhone.textContent       = '';
+      odCreatedAt.textContent   = '';
+      odPayment.textContent     = 'Loading payment...';
+
+      odItemsBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Loading...</td></tr>';
+      odTotal.textContent   = '₱0.00';
+
+      odModal.show();
+
+      try {
+        const res  = await fetch('actions/get_order_details.php?order_id=' + encodeURIComponent(orderId));
+        const text = await res.text();
+        console.log('order details raw:', text);
+
+        const data = JSON.parse(text);
+
+        if (data.status !== 'ok') {
+          throw new Error(data.message || 'Failed to load order details');
+        }
+
+        const o = data.order;
+
+        // Overwrite with real data from server
+        odOrderNumber.textContent = o.order_number;
+        odStatus.textContent      = o.status;
+        odType.textContent        = o.type;
+        odCustomer.textContent    = o.customer;
+        odPhone.textContent       = o.phone;
+        odCreatedAt.textContent   = o.created_at;
+        odTotal.textContent       = '₱' + o.total_amount.toFixed(2);
+
+        // PAYMENT LAYOUT
+        function toTitle(str) {
+          if (!str) return '';
+          return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+        }
+
+        if (data.payment && data.payment.details) {
+          const p = data.payment.details;
+
+          const status = toTitle(p.status || '');
+          const method = toTitle(p.method || '');
+
+          const mainParts = [];
+          if (status) mainParts.push(status);
+          if (method) mainParts.push(method);
+
+          const metaParts = [];
+          if (p.amount_paid != null) {
+            metaParts.push(`Amount: ₱${Number(p.amount_paid).toFixed(2)}`);
+          }
+          if (p.change_amount != null) {
+            metaParts.push(`Change: ₱${Number(p.change_amount).toFixed(2)}`);
+          }
+          if (p.paid_at) {
+            metaParts.push(`Paid: ${p.paid_at}`);
+          }
+
+          let html = '';
+
+          if (mainParts.length) {
+            html += `<span class="od-payment-main">${mainParts.join(' — ')}</span>`;
+          }
+
+          if (metaParts.length) {
+            html += `<span class="od-payment-meta">${metaParts.join(' • ')}</span>`;
+          }
+
+          odPayment.innerHTML = html || 'No payment recorded';
+        } else {
+          odPayment.textContent = 'No payment recorded';
+        }
+
+        // ITEMS
+        odItemsBody.innerHTML = '';
+        if (!data.items || !data.items.length) {
+          odItemsBody.innerHTML =
+            '<tr><td colspan="4" class="text-center text-muted">No items found.</td></tr>';
+        } else {
+          data.items.forEach(it => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${it.name}</td>
+              <td class="text-end">${it.qty}</td>
+              <td class="text-end">₱${Number(it.price).toFixed(2)}</td>
+              <td class="text-end">₱${Number(it.total).toFixed(2)}</td>
+            `;
+            odItemsBody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        odItemsBody.innerHTML =
+          '<tr><td colspan="4" class="text-danger text-center">Error loading items: '
+          + err.message + '</td></tr>';
+        odPayment.textContent = 'Error loading payment';
+      }
+    });
+  });
+
+  // ----- PAYMENT MODAL (existing logic) -----
   const modalEl = document.getElementById('paymentModal');
-  if (!modalEl) return; // Guard if modal is missing
+  if (!modalEl) return;
   
   const paymentModal = new bootstrap.Modal(modalEl);
   const form = document.getElementById('paymentForm');
@@ -232,15 +601,13 @@ document.addEventListener('DOMContentLoaded', function () {
   unpaidRadio.addEventListener('change', toggleMethod);
   toggleMethod();
 
-  // Open modal with row data
+  // Open payment modal with row data
   document.querySelectorAll('.btn-accept').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const b = e.currentTarget;
       const row = b.closest('tr');
       const id = b.dataset.orderId;
-      
-      // Use dataset values first, fall back to table text
-      const total = (b.dataset.total || '0').replace(/[₱,\s,]/g,'');
+      const total = (b.dataset.total || '0').replace(/[₱,\s]/g,'');
       const customer = b.dataset.customer || 'N/A';
       const orderNum = row.querySelector('td:first-child strong')?.textContent || ('#' + id);
 
@@ -249,14 +616,7 @@ document.addEventListener('DOMContentLoaded', function () {
       totalInput.value = parseFloat(total).toFixed(2);
       customerInput.value = customer;
 
-      form.dataset.rowId = id; // remember row id to update UI later
-      
-      // Find the row again by its data-row-id attribute (which we set in PHP)
-      const dataRow = document.querySelector(`tr[data-row-id="${id}"]`);
-      if (dataRow) {
-         dataRow.dataset.rowId = id; // Ensure it's set
-      }
-
+      form.dataset.rowId = id;
       paidRadio.checked = true;
       toggleMethod();
 
@@ -294,15 +654,15 @@ document.addEventListener('DOMContentLoaded', function () {
       // Update UI for the row to "Preparing"
       const row = document.querySelector(`tr[data-row-id="${form.dataset.rowId}"]`);
       if (row) {
-        const badge = row.querySelector('td:nth-child(5) .badge');
+        const badge = row.querySelector('td:nth-child(5) .status-badge');
         if (badge) { 
-          badge.className = 'badge badge-info'; // 'preparing' status
+          badge.className = 'status-badge status-preparing';
           badge.textContent = 'Preparing'; 
         }
         const actions = row.querySelector('.btn-group');
         if (actions) {
           actions.innerHTML = `
-            <button class="btn btn-outline-secondary">View</button>
+            <button class="btn btn-outline-secondary btn-view" data-order-id="${form.dataset.rowId}">View</button>
             <button class="btn btn-outline-success">Mark as Ready</button>
           `;
         }
@@ -315,11 +675,6 @@ document.addEventListener('DOMContentLoaded', function () {
        submitBtn.disabled = false;
        submitBtn.innerHTML = 'Confirm & Accept';
     }
-  });
-
-  // Optional: reload button
-  document.getElementById('btn-refresh')?.addEventListener('click', () => {
-    location.reload();
   });
 });
 </script>
