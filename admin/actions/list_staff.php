@@ -11,7 +11,7 @@ $select = "user_id, first_name, last_name, email, phone, role, created_at";
 
 if ($user_id > 0) {
   // NEW SCHEMA: Filter by user_id and role
-  $stmt = $conn->prepare("SELECT $select FROM users WHERE role IN ('admin', 'staff', 'driver') AND user_id=? LIMIT 1");
+  $stmt = $conn->prepare("SELECT $select FROM users WHERE role IN ('admin', 'staff', 'customer') AND user_id=? LIMIT 1");
   $stmt->bind_param('i', $user_id);
   $stmt->execute();
   $row = $stmt->get_result()->fetch_assoc();
@@ -22,7 +22,7 @@ if ($user_id > 0) {
 }
 
 // NEW SCHEMA: Filter by role
-$q = $conn->query("SELECT $select FROM users WHERE role IN ('admin', 'staff', 'driver') ORDER BY first_name, last_name");
+$q = $conn->query("SELECT $select FROM users WHERE role IN ('admin', 'staff', 'customer') ORDER BY first_name, last_name");
 $rows = [];
 while ($r = $q->fetch_assoc()) $rows[] = $r;
 echo json_encode(['status'=>'ok','rows'=>$rows]);

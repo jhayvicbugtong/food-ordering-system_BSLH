@@ -20,6 +20,12 @@
       </a>
     </li>
 
+    <li class="<?= basename($_SERVER['PHP_SELF']) === 'order_history.php' ? 'active' : '' ?>">
+  <a href="order_history.php">
+    <i class="bi bi-clock-history"></i> Order History
+  </a>
+</li>
+
   </ul>
   <div class="logout">
     <a href="<?= htmlspecialchars($BASE_URL) ?>/auth/logout.php"> Log out

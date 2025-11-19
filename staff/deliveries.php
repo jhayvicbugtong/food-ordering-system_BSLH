@@ -46,52 +46,245 @@ $delivery_query = "
 $delivery_result = $conn->query($delivery_query);
 ?>
 
+<style>
+  body {
+    background-color: #f3f4f6;
+  }
+
+  .main-content {
+    min-height: 100vh;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  /* Modern card */
+  .content-card {
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    padding: 18px 20px;
+    margin-bottom: 1.5rem;
+  }
+
+  .content-card-header {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .content-card-header h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .content-card-header p {
+    font-size: 0.8rem;
+    margin-bottom: 0;
+    color: #6b7280;
+  }
+
+  .page-title {
+    font-weight: 600;
+    font-size: 1.3rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.9rem;
+    color: #6b7280;
+  }
+
+  .meta-text {
+    font-size: 0.8rem;
+    color: #9ca3af;
+  }
+
+  /* Stat cards (reuse theme but slightly tuned) */
+  .stat-card {
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #eef2ff, #f9fafb);
+    border: 1px solid rgba(129, 140, 248, 0.25);
+    box-shadow: 0 12px 30px rgba(31, 41, 55, 0.06);
+    transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  }
+  .stat-card h5 {
+    margin: 0;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+  }
+  .stat-card .value {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .stat-card .hint {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    margin-top: 2px;
+  }
+
+  /* Table */
+  .delivery-table {
+    margin-bottom: 0;
+  }
+
+  .delivery-table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .delivery-table th,
+  .delivery-table td {
+    font-size: 0.9rem;
+    white-space: normal !important;
+    word-wrap: break-word;
+    word-break: break-word;
+    vertical-align: top;
+  }
+
+  .delivery-table td small {
+    font-size: 0.8rem;
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: #f9fafb;
+  }
+
+  /* Pills */
+  .status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .status-badge.badge-primary,
+  .status-badge.bg-primary {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+  }
+
+  .status-badge.badge-success,
+  .status-badge.bg-success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid rgba(22, 101, 52, 0.15);
+  }
+
+  .status-badge.badge-info,
+  .status-badge.bg-info {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid rgba(3, 105, 161, 0.18);
+  }
+
+  .status-badge.badge-secondary,
+  .status-badge.bg-secondary {
+    background: #e5e7eb;
+    color: #374151;
+    border: 1px solid rgba(55, 65, 81, 0.12);
+  }
+
+  .address-main {
+    font-size: 0.9rem;
+  }
+
+  .address-meta {
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+
+  .actions-cell .btn {
+    white-space: nowrap;
+  }
+
+  @media (max-width: 576px) {
+    .content-card {
+      padding: 14px 14px;
+    }
+  }
+</style>
+
 <div class="container-fluid">
   <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
   <main class="main-content">
 
-    <h2 class="mb-4">Active Deliveries</h2>
-
-    <div class="row g-3 mb-4">
-      <div class="col-sm-6 col-lg-3">
-        <div class="stat-card">
-          <h5>Ready for Delivery</h5>
-          <div class="value"><?= $stats_ready ?></div>
-          <div class="hint">Packed, still in store</div>
+    <!-- HEADER + STATS CARD -->
+    <div class="content-card mb-4">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+        <div>
+          <h2 class="page-title mb-1">Active Deliveries</h2>
+          <p class="page-subtitle mb-1">Live view of all delivery orders still in progress.</p>
+          <p class="meta-text mb-0">
+            Use this to coordinate riders, mark runs as out for delivery, and close out delivered orders.
+          </p>
         </div>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <div class="stat-card">
-          <h5>Out For Delivery</h5>
-          <div class="value"><?= $stats_out ?></div>
-          <div class="hint">Staff on the way</div>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <div class="stat-card">
-          <h5>Total Deliveries</h5>
-          <div class="value"><?= $stats_total ?></div>
-          <div class="hint">Active runs</div>
-        </div>
-      </div>
-    </div>
-
-    <section class="content-card">
-      <div class="content-card-header">
-        <div class="left">
-          <h2>Delivery Management</h2>
-          <p>Staff can mark orders out for delivery or delivered</p>
-        </div>
-        <div class="right">
-          <button class="btn btn-success" onclick="location.reload();">
+        <div class="text-end">
+          <button class="btn btn-success btn-sm" onclick="location.reload();">
             <i class="bi bi-arrow-clockwise"></i> Refresh
           </button>
         </div>
       </div>
 
+      <div class="row g-3">
+        <div class="col-sm-6 col-lg-3">
+          <div class="stat-card">
+            <h5>Ready for Delivery</h5>
+            <div class="value"><?= $stats_ready ?></div>
+            <div class="hint">Packed, still in store</div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <div class="stat-card">
+            <h5>Out For Delivery</h5>
+            <div class="value"><?= $stats_out ?></div>
+            <div class="hint">Staff on the way</div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <div class="stat-card">
+            <h5>Total Active Runs</h5>
+            <div class="value"><?= $stats_total ?></div>
+            <div class="hint">Ready + out on road</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DELIVERY MANAGEMENT TABLE -->
+    <section class="content-card">
+      <div class="content-card-header">
+        <div>
+          <h2>Delivery Management</h2>
+          <p>Move orders from ready ➝ out for delivery ➝ delivered.</p>
+        </div>
+        <div class="text-end meta-text">
+          <span class="d-block">Includes confirmed, ready, and out-for-delivery orders.</span>
+        </div>
+      </div>
+
       <div class="table-responsive">
-        <table class="table table-hover">
+        <table class="table table-hover delivery-table">
           <thead>
             <tr>
               <th>Order #</th>
@@ -115,29 +308,48 @@ $delivery_result = $conn->query($delivery_query);
                   ];
                   $status_class = $status_map[$status] ?? 'badge-secondary';
 
-                  $address = trim(($order['delivery_street'] ?? '') . ', ' . ($order['delivery_barangay'] ?? ''));
-                  if ($address === ',') {
+                  $street   = trim($order['delivery_street'] ?? '');
+                  $barangay = trim($order['delivery_barangay'] ?? '');
+                  $address  = trim($street . ($street && $barangay ? ', ' : '') . $barangay);
+                  if ($address === '') {
                       $address = 'N/A';
+                  }
+
+                  $customer_name = trim(($order['customer_first_name'] ?? '') . ' ' . ($order['customer_last_name'] ?? ''));
+                  if ($customer_name === '') {
+                    $customer_name = 'Delivery Customer';
                   }
                 ?>
                 <tr data-order-id="<?= $order_id ?>">
-                  <td><strong><?= htmlspecialchars($order['order_number'] ?? $order_id) ?></strong></td>
                   <td>
-                    <?= htmlspecialchars($order['customer_first_name'] . ' ' . $order['customer_last_name']) ?><br>
-                    <small class="text-muted"><?= htmlspecialchars($order['customer_phone']) ?></small>
+                    <strong><?= htmlspecialchars($order['order_number'] ?? $order_id) ?></strong><br>
+                    <?php if (!empty($order['created_at'])): ?>
+                      <span class="meta-text">
+                        Placed: <?= htmlspecialchars(date('Y-m-d g:i A', strtotime($order['created_at']))) ?>
+                      </span>
+                    <?php endif; ?>
                   </td>
                   <td>
-                    <?= htmlspecialchars($address) ?><br>
-                    <small class="text-muted"><?= htmlspecialchars($order['delivery_instructions'] ?? '') ?></small>
+                    <?= htmlspecialchars($customer_name) ?><br>
+                    <small class="text-muted">
+                      <?= htmlspecialchars($order['customer_phone'] ?: 'No phone') ?>
+                    </small>
                   </td>
                   <td>
-                    <span class="badge <?= $status_class ?> status-badge">
+                    <span class="address-main"><?= htmlspecialchars($address) ?></span><br>
+                    <?php if (!empty($order['delivery_instructions'])): ?>
+                      <span class="address-meta">
+                        <?= htmlspecialchars($order['delivery_instructions']) ?>
+                      </span>
+                    <?php endif; ?>
+                  </td>
+                  <td>
+                    <span class="status-badge badge <?= $status_class ?>">
                       <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?>
                     </span>
                   </td>
                   <td class="actions-cell">
                     <?php if ($status == 'confirmed' || $status == 'ready'): ?>
-                      <!-- Staff chooses: send out or directly mark delivered -->
                       <div class="btn-group btn-group-sm">
                         <button 
                           class="btn btn-outline-primary btn-action" 
@@ -212,8 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
         body: JSON.stringify({
           order_id: orderId,
           new_status: newStatus,
-          handler_id: handlerId,
-          // driver_id removed – staff handle deliveries now
+          handler_id: handlerId
         })
       });
 

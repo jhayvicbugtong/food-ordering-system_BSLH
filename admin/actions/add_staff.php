@@ -22,7 +22,7 @@ $pass2      = $_POST['password2'] ?? '';
 
 
 if ($first_name === '' || $last_name === '' || $email === '' || $pass === '' || $role === '') jerr('Please complete all required fields.');
-if (!in_array($role, ['admin', 'staff', 'driver'])) jerr('Invalid role specified.');
+if (!in_array($role, ['admin', 'staff', 'customer'])) jerr('Invalid role specified.');
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) jerr('Invalid email.');
 if ($pass !== $pass2) jerr('Passwords do not match.');
 
