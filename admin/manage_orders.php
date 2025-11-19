@@ -91,12 +91,59 @@ $orders_result = $conn->query($orders_query);
 ?>
 
 <style>
-  /* status colors you defined */
+  /* Global background to match other modern pages */
+  body {
+    background-color: #f3f4f6;
+  }
+
+  .main-content {
+    min-height: 100vh;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  /* Modern cards */
+  .content-card {
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    padding: 18px 20px;
+  }
+
+  .content-card-header {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .content-card-header .left h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .content-card-header .left p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+
+  .content-card-header .right .btn {
+    border-radius: 999px;
+    font-size: 0.85rem;
+  }
+
+  /* Status badges */
   .status-badge {
     display: inline-block;
     padding: 3px 12px;
     border-radius: 999px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     white-space: nowrap;
   }
@@ -109,11 +156,61 @@ $orders_result = $conn->query($orders_query);
   .status-completed        { background:#e5e7eb; color:#111827; }
   .status-cancelled        { background:#fee2e2; color:#b91c1c; }
 
+  /* Filter section */
   .filter-form .form-label {
-    font-size: .8rem;
+    font-size: .7rem;
     text-transform: uppercase;
-    letter-spacing: .03em;
+    letter-spacing: .06em;
     color: #6b7280;
+  }
+
+  .filter-form .form-control,
+  .filter-form .form-select {
+    font-size: 0.85rem;
+    border-radius: 999px;
+    border-color: #e5e7eb;
+  }
+
+  .filter-form .form-control:focus,
+  .filter-form .form-select:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
+  }
+
+  .filter-form .btn {
+    border-radius: 999px;
+  }
+
+  /* Table */
+  .modern-table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .modern-table tbody td {
+    font-size: 0.9rem;
+    vertical-align: middle;
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: #f9fafb;
+  }
+
+  /* Pills for order type badges */
+  .badge-rounded {
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  /* Pagination */
+  .pagination .page-link {
+    border-radius: 999px !important;
+    font-size: 0.8rem;
   }
 
   /* Payment section in Order Details modal */
@@ -127,9 +224,9 @@ $orders_result = $conn->query($orders_query);
   .od-payment-meta {
     display: block;
     font-size: 0.8rem;
-    color: #6b7280; /* muted */
+    color: #6b7280;
     margin-top: 2px;
-    text-transform: capitalize; /* first letter of each word big */
+    text-transform: capitalize;
   }
 </style>
 
@@ -138,71 +235,77 @@ $orders_result = $conn->query($orders_query);
 
   <main class="main-content">
     
+    <!-- Page header -->
     <section class="content-card mb-4">
       <div class="content-card-header">
         <div class="left">
           <h2>Order Management</h2>
-          <p>View and update incoming orders</p>
+          <p>Monitor, review, and manage all active orders.</p>
         </div>
         <div class="right">
           <button class="btn btn-success" id="btn-refresh">
-            <i class="bi bi-arrow-clockwise"></i> Refresh Orders
+            <i class="bi bi-arrow-clockwise"></i> Refresh
           </button>
         </div>
       </div>
+      <p class="text-muted small mb-0">
+        Use the filters below to narrow orders by type or date range. This list focuses on live and recent activity.
+      </p>
     </section>
 
+    <!-- Orders + filters -->
     <section class="content-card">
       <div class="content-card-header">
         <div class="left">
           <h2>Incoming Orders</h2>
-          <p>All pending, confirmed, and in-progress orders</p>
+          <p>Pending, confirmed, and in-progress orders.</p>
         </div>
       </div>
 
-        <!-- FILTERS -->
-        <form class="row g-2 mb-3 filter-form" method="get">
-          <!-- reset to page 1 whenever filters change -->
-          <input type="hidden" name="page" value="1">
+      <!-- FILTERS -->
+      <form class="row g-2 mb-3 filter-form" method="get">
+        <!-- reset to page 1 whenever filters change -->
+        <input type="hidden" name="page" value="1">
 
-          <div class="col-md-3 col-sm-6">
-            <label class="form-label mb-1">Order Type</label>
-            <select class="form-select form-select-sm" name="order_type">
-              <option value="">All</option>
-              <option value="pickup"   <?= $order_type_filter === 'pickup'   ? 'selected' : '' ?>>Pickup</option>
-              <option value="delivery" <?= $order_type_filter === 'delivery' ? 'selected' : '' ?>>Delivery</option>
-            </select>
-          </div>
-          <div class="col-md-3 col-sm-6">
-            <label class="form-label mb-1">Date From</label>
-            <input type="date"
-                  class="form-control form-control-sm"
-                  name="date_from"
-                  value="<?= htmlspecialchars($date_from) ?>">
-          </div>
-          <div class="col-md-3 col-sm-6">
-            <label class="form-label mb-1">Date To</label>
-            <input type="date"
-                  class="form-control form-control-sm"
-                  name="date_to"
-                  value="<?= htmlspecialchars($date_to) ?>">
-          </div>
-          <div class="col-md-3 col-sm-6 d-flex align-items-end">
-            <!-- <button type="submit" class="btn btn-primary btn-sm me-2">Apply</button> -->
-            <a href="manage_orders.php" class="btn btn-outline-secondary btn-sm">Clear</a>
-          </div>
-        </form>
+        <div class="col-md-3 col-sm-6">
+          <label class="form-label mb-1">Order Type</label>
+          <select class="form-select form-select-sm" name="order_type">
+            <option value="">All</option>
+            <option value="pickup"   <?= $order_type_filter === 'pickup'   ? 'selected' : '' ?>>Pickup</option>
+            <option value="delivery" <?= $order_type_filter === 'delivery' ? 'selected' : '' ?>>Delivery</option>
+          </select>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <label class="form-label mb-1">Date From</label>
+          <input type="date"
+                 class="form-control form-control-sm"
+                 name="date_from"
+                 value="<?= htmlspecialchars($date_from) ?>">
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <label class="form-label mb-1">Date To</label>
+          <input type="date"
+                 class="form-control form-control-sm"
+                 name="date_to"
+                 value="<?= htmlspecialchars($date_to) ?>">
+        </div>
+        <div class="col-md-3 col-sm-6 d-flex align-items-end justify-content-sm-end">
+          <a href="manage_orders.php" class="btn btn-outline-secondary btn-sm">
+            Clear filters
+          </a>
+        </div>
+      </form>
 
       <div class="table-responsive">
-        <table class="table table-hover">
+        <table class="table table-hover modern-table">
           <thead>
             <tr>
-              <th>Order ID</th>
+              <th>Order</th>
               <th>Customer</th>
               <th>Order Type</th>
               <th>Total (₱)</th>
               <th>Status</th>
-              <th>Actions</th>
+              <th class="text-end">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -230,17 +333,19 @@ $orders_result = $conn->query($orders_query);
                 <tr data-row-id="<?= (int)$order['order_id'] ?>">
                   <td>
                     <strong><?= htmlspecialchars($order['order_number'] ?? $order['order_id']) ?></strong><br>
-                    <small class="text-muted"><?= date('g:i A', strtotime($order['created_at'])) ?></small>
+                    <small class="text-muted"><?= date('Y-m-d g:i A', strtotime($order['created_at'])) ?></small>
                   </td>
                   <td>
                     <?= $customer_name ?><br>
-                    <small class="text-muted"><?= htmlspecialchars($order['customer_phone'] ?? '') ?></small>
+                    <?php if (!empty($order['customer_phone'])): ?>
+                      <small class="text-muted"><?= htmlspecialchars($order['customer_phone']) ?></small>
+                    <?php endif; ?>
                   </td>
                   <td>
                     <?php if ($order['order_type'] == 'delivery'): ?>
-                      <span class="badge bg-success-subtle text-success">Delivery</span>
+                      <span class="badge bg-success-subtle text-success badge-rounded">Delivery</span>
                     <?php else: ?>
-                      <span class="badge bg-primary-subtle text-primary">Pickup</span>
+                      <span class="badge bg-primary-subtle text-primary badge-rounded">Pickup</span>
                     <?php endif; ?>
                   </td>
                   <td>₱<?= number_format((float)$order['total_amount'], 2) ?></td>
@@ -249,7 +354,7 @@ $orders_result = $conn->query($orders_query);
                       <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?>
                     </span>
                   </td>
-                  <td>
+                  <td class="text-end">
                     <div class="btn-group btn-group-sm">
                       <!-- VIEW BUTTON WITH FUNCTION -->
                       <button class="btn btn-outline-secondary btn-view"
@@ -262,7 +367,9 @@ $orders_result = $conn->query($orders_query);
               <?php endwhile; ?>
             <?php else: ?>
               <tr>
-                <td colspan="6" class="text-center text-muted">No orders found for this filter.</td>
+                <td colspan="6" class="text-center text-muted py-4">
+                  No orders found for this filter.
+                </td>
               </tr>
             <?php endif; ?>
 
@@ -273,7 +380,7 @@ $orders_result = $conn->query($orders_query);
       <!-- PAGINATION -->
       <?php if ($total_pages > 1): ?>
         <nav aria-label="Orders pagination">
-          <ul class="pagination justify-content-end">
+          <ul class="pagination justify-content-end mt-3">
 
             <!-- Previous arrow -->
             <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
@@ -659,7 +766,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-
   const filterForm = document.querySelector('.filter-form');
   if (!filterForm) return;
 
@@ -673,10 +779,7 @@ document.addEventListener('DOMContentLoaded', function () {
       filterForm.submit();
     });
   });
-
 });
-
-
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

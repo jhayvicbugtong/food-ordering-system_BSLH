@@ -76,11 +76,111 @@ $pickup_sql = "
 $pickup_orders = $conn->query($pickup_sql);
 ?>
 
-<!-- STYLE FIXES FOR READABILITY -->
 <style>
+  /* Page background + layout to match modern theme */
+  body {
+    background-color: #f3f4f6;
+  }
+
+  .main-content {
+    min-height: 100vh;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .page-title {
+    font-weight: 600;
+    font-size: 1.3rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.9rem;
+  }
+
+  /* Modern cards */
+  .content-card {
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    padding: 18px 20px;
+    margin-bottom: 1.5rem;
+  }
+
+  .content-card-header {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .content-card-header h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .content-card-header p {
+    font-size: 0.8rem;
+    margin-bottom: 0;
+    color: #6b7280;
+  }
+
+  /* Stat cards */
+  .stat-card {
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #eef2ff, #f9fafb);
+    border: 1px solid rgba(129, 140, 248, 0.25);
+    box-shadow: 0 12px 30px rgba(31, 41, 55, 0.06);
+    transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  }
+
+  .stat-card h5 {
+    margin: 0;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+  }
+
+  .stat-card .value {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .stat-card .hint {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    margin-top: 2px;
+  }
+
+  /* Tables */
+  .dashboard-table {
+    margin-bottom: 0;
+  }
+
+  .dashboard-table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
   .dashboard-table th,
   .dashboard-table td {
-    font-size: 14px;
+    font-size: 0.9rem;
     white-space: normal !important;
     word-wrap: break-word;
     word-break: break-word;
@@ -88,17 +188,102 @@ $pickup_orders = $conn->query($pickup_sql);
   }
 
   .dashboard-table td small {
-    font-size: 12px;
+    font-size: 0.8rem;
   }
 
-  .dashboard-table .status-badge,
-  .dashboard-table .payment-badge {
+  .table-hover tbody tr:hover {
+    background-color: #f9fafb;
+  }
+
+  /* Pills / badges */
+  .status-badge,
+  .payment-badge,
+  .source-pill {
     display: inline-block;
-    padding: 3px 12px;
+    padding: 3px 10px;
     border-radius: 999px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     white-space: nowrap;
+  }
+
+  /* Source pills */
+  .source-pill.pickup {
+    background: #ecfdf3;
+    color: #166534;
+  }
+
+  .source-pill.delivery {
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  .source-pill.pos {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  /* Payment pills (override Bootstrap badge look into softer chips) */
+  .payment-badge.badge-success,
+  .payment-badge.bg-success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid rgba(22, 101, 52, 0.15);
+  }
+
+  .payment-badge.badge-warning,
+  .payment-badge.bg-warning {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid rgba(146, 64, 14, 0.12);
+  }
+
+  .payment-badge.badge-secondary,
+  .payment-badge.bg-secondary {
+    background: #e5e7eb;
+    color: #374151;
+    border: 1px solid rgba(55, 65, 81, 0.12);
+  }
+
+  /* Status pills */
+  .status-badge.badge-warning,
+  .status-badge.bg-warning {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid rgba(146, 64, 14, 0.12);
+  }
+
+  .status-badge.badge-success,
+  .status-badge.bg-success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid rgba(22, 101, 52, 0.15);
+  }
+
+  .status-badge.badge-secondary,
+  .status-badge.bg-secondary {
+    background: #e5e7eb;
+    color: #374151;
+    border: 1px solid rgba(55, 65, 81, 0.12);
+  }
+
+  .status-badge.badge-info,
+  .status-badge.bg-info {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid rgba(3, 105, 161, 0.15);
+  }
+
+  /* Tiny helper text */
+  .meta-text {
+    font-size: 0.8rem;
+    color: #9ca3af;
+  }
+
+  @media (max-width: 576px) {
+    .content-card {
+      padding: 14px 14px;
+    }
   }
 </style>
 
@@ -106,10 +291,21 @@ $pickup_orders = $conn->query($pickup_sql);
   <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
   <main class="main-content">
-    <h2 class="mb-4">Staff Dashboard</h2>
-    <p class="mb-4 text-muted" style="font-size:14px;">
-      Logged in as <strong><?= htmlspecialchars(get_user_name() ?? 'Staff') ?></strong>. Below are tasks for your shift.
-    </p>
+
+    <!-- Top header card -->
+    <div class="content-card mb-3">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+          <h2 class="page-title mb-1">Staff Dashboard</h2>
+          <p class="page-subtitle text-muted mb-1">
+            Logged in as <strong><?= htmlspecialchars(get_user_name() ?? 'Staff') ?></strong>.
+          </p>
+          <p class="meta-text mb-0">
+            Focus on what's currently in the queue. Page auto-refreshes every 10 seconds.
+          </p>
+        </div>
+      </div>
+    </div>
 
     <!-- STAT CARDS (3 cards, no POS) -->
     <div class="row g-3 mb-4">
@@ -117,7 +313,7 @@ $pickup_orders = $conn->query($pickup_sql);
         <div class="stat-card">
           <h5>Orders To Prepare</h5>
           <div class="value"><?= $orders_to_prepare ?></div>
-          <div class="hint">Kitchen queue</div>
+          <div class="hint">Pending / Confirmed / Preparing</div>
         </div>
       </div>
       <div class="col-sm-6 col-md-4">
@@ -139,9 +335,13 @@ $pickup_orders = $conn->query($pickup_sql);
     <!-- ACTIVE ORDERS TABLE -->
     <section class="content-card mb-4">
       <div class="content-card-header">
-        <div class="left">
+        <div>
           <h2>Active Orders</h2>
-          <p>Online and walk-in (POS)</p>
+          <p>Online orders, pickups, and walk-in POS that are not yet completed.</p>
+        </div>
+        <div class="text-end meta-text">
+          <span class="d-block">Auto refresh: 10s</span>
+          <span class="d-block">Sorted by status &amp; time placed</span>
         </div>
       </div>
 
@@ -150,7 +350,7 @@ $pickup_orders = $conn->query($pickup_sql);
           <thead>
             <tr>
               <th>Order #</th>
-              <th>Source</th>
+              <th>Source / Customer</th>
               <th>Items</th>
               <th>Payment</th>
               <th>Status</th>
@@ -170,20 +370,23 @@ $pickup_orders = $conn->query($pickup_sql);
                     $full_name = 'Walk-in POS';
                   }
 
-                  // Map order_type to "source" label
+                  // Map order_type to "source" label + pill type
                   if ($order['order_type'] === 'delivery') {
                     $source_label = 'Online Delivery';
+                    $source_class = 'delivery';
                   } elseif ($order['order_type'] === 'pickup') {
                     $source_label = 'Pickup';
+                    $source_class = 'pickup';
                   } else {
                     $source_label = 'Walk-in POS';
+                    $source_class = 'pos';
                   }
 
                   $status = $order['status'];
                   $status_map = [
                     'pending'          => 'badge-warning',
-                    'confirmed'        => 'badge-success',
-                    'preparing'        => 'badge-success',
+                    'confirmed'        => 'badge-info',
+                    'preparing'        => 'badge-info',
                     'ready'            => 'badge-success',
                     'out_for_delivery' => 'badge-success',
                   ];
@@ -209,15 +412,26 @@ $pickup_orders = $conn->query($pickup_sql);
                           ? 'badge-success'
                           : 'badge-warning';
                   }
+
+                  $created_time = $order['created_at']
+                    ? date('g:i A', strtotime($order['created_at']))
+                    : '';
                 ?>
                 <tr>
-                  <td>#<?= $order_no ?></td>
                   <td>
-                    <?= htmlspecialchars($source_label) ?><br>
+                    <strong>#<?= $order_no ?></strong><br>
+                    <?php if ($created_time): ?>
+                      <span class="meta-text">Placed: <?= htmlspecialchars($created_time) ?></span>
+                    <?php endif; ?>
+                  </td>
+                  <td>
+                    <span class="source-pill <?= $source_class ?>">
+                      <?= htmlspecialchars($source_label) ?>
+                    </span><br>
                     <small class="text-muted"><?= htmlspecialchars($full_name) ?></small>
                   </td>
                   <td>
-                    <ul class="mb-0" style="padding-left: 15px; font-size: 0.9em;">
+                    <ul class="mb-0" style="padding-left: 15px; font-size: 0.85rem;">
                       <?php
                         $items_stmt = $conn->prepare("
                           SELECT product_name, quantity 
@@ -237,12 +451,12 @@ $pickup_orders = $conn->query($pickup_sql);
                     </ul>
                   </td>
                   <td>
-                    <span class="badge <?= $payment_badge_class ?> payment-badge">
+                    <span class="payment-badge badge <?= $payment_badge_class ?>">
                       <?= htmlspecialchars($payment_label) ?>
                     </span>
                   </td>
                   <td>
-                    <span class="badge <?= $status_class ?> status-badge">
+                    <span class="status-badge badge <?= $status_class ?>">
                       <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?>
                     </span>
                   </td>
@@ -261,9 +475,12 @@ $pickup_orders = $conn->query($pickup_sql);
     <!-- PICKUP COUNTER QUEUE TABLE -->
     <section class="content-card">
       <div class="content-card-header">
-        <div class="left">
+        <div>
           <h2>Pickup Counter Queue</h2>
-          <p>Customers waiting in store</p>
+          <p>Orders marked as <strong>Ready</strong> for pickup in-store.</p>
+        </div>
+        <div class="text-end meta-text">
+          <span class="d-block">Sorted by time marked ready</span>
         </div>
       </div>
 
@@ -272,7 +489,7 @@ $pickup_orders = $conn->query($pickup_sql);
           <thead>
             <tr>
               <th>Order #</th>
-              <th>Name</th>
+              <th>Customer</th>
               <th>Items</th>
               <th>Time Ready</th>
               <th>Status</th>
@@ -300,10 +517,10 @@ $pickup_orders = $conn->query($pickup_sql);
                   $status_class = ($status === 'ready') ? 'badge-success' : 'badge-secondary';
                 ?>
                 <tr>
-                  <td>#<?= $order_no ?></td>
+                  <td><strong>#<?= $order_no ?></strong></td>
                   <td><?= htmlspecialchars($full_name) ?></td>
                   <td>
-                    <ul class="mb-0" style="padding-left: 15px; font-size: 0.9em;">
+                    <ul class="mb-0" style="padding-left: 15px; font-size: 0.85rem;">
                       <?php
                         $items_stmt = $conn->prepare("
                           SELECT product_name, quantity 
@@ -324,7 +541,7 @@ $pickup_orders = $conn->query($pickup_sql);
                   </td>
                   <td><?= htmlspecialchars($time_ready) ?></td>
                   <td>
-                    <span class="badge <?= $status_class ?> status-badge">
+                    <span class="status-badge badge <?= $status_class ?>">
                       <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?>
                     </span>
                   </td>

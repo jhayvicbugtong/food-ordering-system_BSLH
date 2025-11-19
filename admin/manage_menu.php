@@ -1,6 +1,5 @@
 <?php
 include __DIR__ . '/includes/header.php';
-
 ?>
 
 <div class="container-fluid">
@@ -11,8 +10,8 @@ include __DIR__ . '/includes/header.php';
     <section class="content-card mb-4">
       <div class="content-card-header">
         <div class="left">
-          <h2>Menu Management</h2>
-          <p>Add new items or update pricing / availability</p>
+          <h2 class="page-title mb-1">Menu Management</h2>
+          <p class="text-muted small mb-0">Add new items or update pricing and availability for your live menu.</p>
         </div>
         <div class="right">
           <button class="btn btn-success" id="addNewItemBtn">
@@ -25,24 +24,22 @@ include __DIR__ . '/includes/header.php';
     <section class="content-card">
       <div class="content-card-header">
         <div class="left">
-          <h2>Current Menu</h2>
-          <p>Your live items</p>
+          <h2 class="section-title mb-1">Current Menu</h2>
+          <p class="text-muted small mb-0">Your live items visible to customers.</p>
         </div>
 
-        <div class="rigth">
-           <div class="menu-search-bar mb-3">
-        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input type="text" class="form-control" id="searchInput" placeholder="Search here...">
+        <div class="right">
+          <div class="menu-search-bar">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="text" class="form-control" id="searchInput" placeholder="Search items by name or category...">
+            </div>
+          </div>
         </div>
       </div>
-        </div>
-      </div>
-
-     
 
       <div class="table-responsive">
-        <table class="table table-hover table-vcenter" id="menuTable">
+        <table class="table table-hover table-vcenter modern-table" id="menuTable">
           <thead>
             <tr>
               <th>Image</th>
@@ -50,17 +47,15 @@ include __DIR__ . '/includes/header.php';
               <th>Category</th>
               <th>Price</th>
               <th>Availability</th>
-              <th>Actions</th>
+              <th class="text-end">Actions</th>
             </tr>
           </thead>
-          <tbody id="menuTableBody">
-            </tbody>
+          <tbody id="menuTableBody"></tbody>
         </table>
       </div>
       
       <nav id="paginationNavContainer" aria-label="Menu Pagination">
-        <ul class="pagination justify-content-center">
-          </ul>
+        <ul class="pagination justify-content-center mb-0"></ul>
       </nav>
 
     </section>
@@ -68,7 +63,7 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <div class="modal fade" id="menuModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <form id="menuForm" enctype="multipart/form-data">
         <div class="modal-header">
@@ -130,7 +125,7 @@ include __DIR__ . '/includes/header.php';
 
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
           <button type="submit" class="btn btn-success" id="submitMenuButton">Add Item</button>
         </div>
       </form>
@@ -139,6 +134,170 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
+
+<style>
+  /* Page background + layout */
+  body {
+    background-color: #f3f4f6;
+  }
+
+  .main-content {
+    min-height: 100vh;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  /* Modern cards */
+  .content-card {
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    padding: 18px 20px;
+  }
+
+  .content-card-header {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .content-card-header .left h2.page-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .content-card-header .left h2.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .content-card-header .left p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+
+  .content-card-header .right .btn {
+    border-radius: 999px;
+    font-size: 0.85rem;
+  }
+
+  /* Search bar */
+  .menu-search-bar .input-group-text {
+    border-radius: 999px 0 0 999px;
+    border-color: #e5e7eb;
+    background-color: #f9fafb;
+  }
+
+  .menu-search-bar .form-control {
+    border-radius: 0 999px 999px 0;
+    border-color: #e5e7eb;
+    font-size: 0.9rem;
+  }
+
+  .menu-search-bar .form-control:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
+  }
+
+  /* Table */
+  .modern-table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .modern-table tbody td {
+    font-size: 0.9rem;
+    vertical-align: middle;
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: #f9fafb;
+  }
+
+  /* Image cell */
+  .menu-thumb {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #e5e7eb;
+  }
+
+  /* Availability pills (if your server outputs badges) */
+  .availability-pill {
+    border-radius: 999px;
+    padding: 0.18rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .availability-on {
+    background-color: #dcfce7;
+    color: #15803d;
+  }
+
+  .availability-off {
+    background-color: #fee2e2;
+    color: #b91c1c;
+  }
+
+  /* Actions */
+  .btn-group-sm .btn {
+    border-radius: 999px;
+    font-size: 0.78rem;
+    padding-inline: 0.75rem;
+  }
+
+  /* Pagination */
+  #paginationNavContainer {
+    margin-top: 0.75rem;
+  }
+
+  .pagination .page-link {
+    border-radius: 999px !important;
+    font-size: 0.8rem;
+    border-color: #e5e7eb;
+  }
+
+  .pagination .page-item.active .page-link {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+  }
+
+  .pagination .page-item.disabled .page-link {
+    color: #9ca3af;
+    border-color: #e5e7eb;
+    background-color: #f9fafb;
+  }
+
+  /* Modal styling */
+  #menuModal .modal-content {
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.35);
+  }
+
+  #menuModal .modal-header {
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+  }
+
+  #menuModal .modal-footer {
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+  }
+</style>
 
 <script>
 // --- Define modal variables in a higher scope ---
@@ -169,15 +328,14 @@ $(document).ready(function() {
 
     // --- Event Handlers ---
 
-    // NEW: Search input handler (with debounce)
+    // Search input handler (with debounce)
     $('#searchInput').on('keyup', function() {
-        clearTimeout(searchTimeout); // Clear previous timer
+        clearTimeout(searchTimeout);
         const searchTerm = $(this).val();
         
-        // Set a new timer
         searchTimeout = setTimeout(function() {
             loadMenuItems(1, searchTerm); // Always reset to page 1 on a new search
-        }, 400); // Wait 400ms after user stops typing
+        }, 400);
     });
 
     // Handle form submission
@@ -218,17 +376,16 @@ $(document).ready(function() {
         deleteItem(productId);
     });
     
-    // UPDATED: Pagination click handler
+    // Pagination click handler
     $('#paginationNavContainer').on('click', '.page-link', function(e) {
         e.preventDefault();
         const page = $(this).data('page');
         const $parent = $(this).parent();
 
         if ($parent.hasClass('disabled') || $parent.hasClass('active')) {
-            return; // Do nothing if disabled or current
+            return;
         }
         
-        // Pass current search term when changing pages
         const searchTerm = $('#searchInput').val();
         loadMenuItems(page, searchTerm);
     });
@@ -236,19 +393,18 @@ $(document).ready(function() {
 
 // --- Functions ---
 
-// UPDATED: Now accepts a search term
 function loadMenuItems(page = 1, search = '') {
-    currentPage = page; // Store the current page
-    const currentSearch = search; // Store current search
+    currentPage = page;
+    const currentSearch = search;
     
     $.ajax({
         url: 'actions/get_menu_items.php',
         type: 'GET',
         data: { 
             page: page,
-            search: currentSearch // Send page and search term
+            search: currentSearch
         },
-        dataType: 'json', // Expect a JSON response
+        dataType: 'json',
         success: function(response) {
             if (response.success) {
                 $('#menuTableBody').html(response.html);
@@ -286,7 +442,6 @@ function saveMenuItem() {
                 if (result.success) {
                     Swal.fire('Success!', result.message, 'success');
                     resetForm();
-                    // Reload the current page and search
                     loadMenuItems(currentPage, $('#searchInput').val()); 
                     menuModalInstance.hide();
                 } else {
@@ -376,7 +531,6 @@ function deleteItem(productId) {
                 success: function(res) {
                     if (res.success) {
                         Swal.fire('Deleted!', res.message, 'success');
-                        // Reload the current page and search
                         loadMenuItems(currentPage, $('#searchInput').val());
                     } else {
                         Swal.fire('Error!', res.message, 'error');
@@ -396,14 +550,13 @@ function resetForm() {
     $('#imagePreview').html('');
 }
 
-// UPDATED: Function to build pagination links
 function buildPagination(pagination) {
     const { currentPage, totalPages } = pagination;
     const container = $('#paginationNavContainer .pagination');
-    container.empty(); // Clear old links
+    container.empty();
 
     if (totalPages <= 1) {
-        return; // No pagination needed
+        return;
     }
 
     // Previous Button
@@ -412,8 +565,7 @@ function buildPagination(pagination) {
                         <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
                       </li>`);
 
-    // Page Numbers (Smart logic to show only a few)
-    const pageRange = 2; // Show 2 pages before and 2 after current
+    const pageRange = 2;
     let startPage = Math.max(1, currentPage - pageRange);
     let endPage = Math.min(totalPages, currentPage + pageRange);
 

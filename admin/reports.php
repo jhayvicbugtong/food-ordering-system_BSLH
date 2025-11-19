@@ -41,7 +41,11 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 $start = isset($_GET['start']) && $_GET['start'] !== '' ? $_GET['start'] : date('Y-m-d', strtotime('-6 days'));
 $end   = isset($_GET['end'])   && $_GET['end']   !== '' ? $_GET['end']   : date('Y-m-d');
 $revMode = $_GET['rev_mode'] ?? 'completed'; // 'completed' | 'paid'
-$isExport = isset($_GET['export']) && $_GET['export'] === '1';
+
+// Pagination for All Orders
+$perPage = 10;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
 
 // Build base range
 $from = $start . ' 00:00:00';
@@ -94,6 +98,11 @@ if ($stmt = $conn->prepare("SELECT COUNT(*) FROM $T_O WHERE $O_CREATED BETWEEN ?
   $stmt->execute(); $stmt->bind_result($sum['orders']); $stmt->fetch(); $stmt->close();
 }
 
+$totalOrders = (int)$sum['orders'];
+$totalPages = max(1, (int)ceil($totalOrders / $perPage));
+if ($page > $totalPages) $page = $totalPages;
+$offset = ($page - 1) * $perPage;
+
 // -------- Payment method breakdown (paid only) ----------
 $payRows = [];
 $sql = "SELECT 
@@ -113,7 +122,7 @@ if ($stmt = $conn->prepare($sql)) {
   $stmt->close();
 }
 
-// -------- Orders list (all in range) ----------
+// -------- Orders list (current page only, 10 per page) ----------
 $orders = [];
 $sql = "SELECT 
             o.$O_ID, o.$O_CREATED, o.$O_TYPE, o.$O_STATUS, o.$O_TOTAL,
@@ -123,216 +132,500 @@ $sql = "SELECT
         LEFT JOIN $T_C ocd ON o.$O_ID = ocd.$O_ID
         LEFT JOIN $T_P opd ON o.$O_ID = opd.$O_ID
         WHERE o.$O_CREATED BETWEEN ? AND ?
-        ORDER BY o.$O_CREATED DESC";
+        ORDER BY o.$O_CREATED DESC
+        LIMIT ? OFFSET ?";
 
 if ($stmt = $conn->prepare($sql)) {
-  $stmt->bind_param('ss', $from, $to);
+  $stmt->bind_param('ssii', $from, $to, $perPage, $offset);
   $stmt->execute();
   $res = $stmt->get_result();
   while ($r = $res->fetch_assoc()) { $orders[] = $r; }
   $stmt->close();
 }
-
-// CSV Export
-if ($isExport) {
-  header('Content-Type: text/csv; charset=UTF-8');
-  header('Content-Disposition: attachment; filename="orders_'.$start.'_to_'.$end.'.csv"');
-  $out = fopen('php://output', 'w');
-  // Use new column names for CSV header
-  fputcsv($out, ['Order ID','Customer','Type','Payment Status','Payment Method','Status','Total','Created At']);
-  foreach ($orders as $r) {
-    fputcsv($out, [
-      $r[$O_ID], $r['customer_name'], $r[$O_TYPE], $r[$P_STATUS], $r[$P_METHOD], $r[$O_STATUS], $r[$O_TOTAL], $r[$O_CREATED]
-    ]);
-  }
-  fclose($out);
-  exit;
-}
 ?>
 
 <div class="container-fluid">
-  <main class="main-content">
+  <main class="main-content py-4">
+    
+    <!-- Top header / filters -->
     <div class="content-card mb-4 no-print">
-      <div class="content-card-header">
-        <div class="left">
-          <h2>Reports</h2>
-          <p>Sales, payments, and orders within a selected date range</p>
+      <div class="content-card-header d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="page-title mb-1">Reports &amp; Analytics</h2>
+          <p class="text-muted mb-0 small">
+            Track revenue, orders, and payment performance for your online food orders.
+          </p>
         </div>
-        <div class="right">
-          <a href="?start=<?=h(date('Y-m-01'))?>&end=<?=h(date('Y-m-d'))?>&rev_mode=completed" class="btn btn-outline-secondary">
-            This Month
+        <div class="d-flex gap-2 header-quick-range">
+          <a href="?start=<?=h(date('Y-m-01'))?>&end=<?=h(date('Y-m-d'))?>&rev_mode=completed" 
+             class="btn btn-light btn-sm">
+            <i class="bi bi-calendar3"></i> This Month
           </a>
-          <a href="?start=<?=h(date('Y-m-d', strtotime('-6 days')))?>&end=<?=h(date('Y-m-d'))?>&rev_mode=completed" class="btn btn-outline-secondary">
-            Last 7 Days
+          <a href="?start=<?=h(date('Y-m-d', strtotime('-6 days')))?>&end=<?=h(date('Y-m-d'))?>&rev_mode=completed" 
+             class="btn btn-light btn-sm">
+            <i class="bi bi-clock-history"></i> Last 7 Days
           </a>
         </div>
       </div>
 
-      <form class="row g-3 align-items-end" method="get">
+      <form class="row g-3 align-items-end mt-2" method="get">
         <div class="col-md-3">
-          <label class="form-label">Start date</label>
-          <input type="date" class="form-control" name="start" value="<?=h($start)?>">
+          <label class="form-label small text-muted">Start date</label>
+          <input type="date" class="form-control modern-input" name="start" value="<?=h($start)?>">
         </div>
         <div class="col-md-3">
-          <label class="form-label">End date</label>
-          <input type="date" class="form-control" name="end" value="<?=h($end)?>">
+          <label class="form-label small text-muted">End date</label>
+          <input type="date" class="form-control modern-input" name="end" value="<?=h($end)?>">
         </div>
         <div class="col-md-3">
-          <label class="form-label">Revenue Mode</label>
-          <select class="form-select" name="rev_mode">
-            <option value="completed" <?= $revMode==='completed' ? 'selected':''; ?>>Delivered/Completed Orders</option>
+          <label class="form-label small text-muted">Revenue mode</label>
+          <select class="form-select modern-input" name="rev_mode">
+            <option value="completed" <?= $revMode==='completed' ? 'selected':''; ?>>Delivered / Completed Orders</option>
             <option value="paid"      <?= $revMode==='paid' ? 'selected':''; ?>>Paid Transactions Only</option>
           </select>
         </div>
-        <div class="col-md-3 d-flex gap-2">
-          <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel"></i> Filter</button>
-          <a class="btn btn-outline-secondary" href="reports.php"><i class="bi bi-x-circle"></i> Reset</a>
+        <div class="col-md-3 d-flex gap-2 justify-content-md-end">
+          <button class="btn btn-primary flex-grow-1 flex-md-grow-0 px-3">
+            <i class="bi bi-funnel"></i> Apply
+          </button>
+          <a class="btn btn-outline-secondary px-3" href="reports.php">
+            <i class="bi bi-x-circle"></i> Reset
+          </a>
         </div>
       </form>
     </div>
 
-    <div class="row g-3 mb-4">
-      <div class="col-sm-6 col-lg-3">
-        <div class="stat-card">
-          <h5>Total Revenue</h5>
-          <div class="value"><?= h(peso($sum['revenue'])) ?></div>
-          <div class="hint"><?= $revMode==='paid' ? 'Paid only' : 'Delivered/Completed' ?></div>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <div class="stat-card">
-          <h5>Total Orders</h5>
-          <div class="value"><?= h(number_format($sum['orders'])) ?></div>
-          <div class="hint"><?= h($start) ?> – <?= h($end) ?></div>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <div class="stat-card">
-          <h5>Avg Ticket</h5>
-          <div class="value">
-            <?= $sum['orders'] ? h(peso($sum['revenue'] / $sum['orders'])) : '₱0.00' ?>
+    <!-- PRINT AREA: everything inside this div is what will be printed -->
+    <div id="print-area">
+      
+      <!-- KPI / Stat row -->
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+          <div class="stat-card stat-card-main">
+            <div class="stat-icon">
+              <i class="bi bi-cash-stack"></i>
+            </div>
+            <div>
+              <h5 class="stat-label">Total Revenue</h5>
+              <div class="stat-value"><?= h(peso($sum['revenue'])) ?></div>
+              <div class="stat-hint">
+                <?= $revMode==='paid' ? 'Paid transactions only' : 'Delivered / Completed orders' ?>
+              </div>
+            </div>
           </div>
-          <div class="hint">Revenue / Orders</div>
         </div>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <div class="stat-card">
-          <h5>Date Range</h5>
-          <div class="value"><?= h(date('M d', strtotime($start))) ?>–<?= h(date('M d, Y', strtotime($end))) ?></div>
-          <div class="hint">Customizable</div>
-        </div>
-      </div>
-    </div>
 
-    <div class="content-card mb-4">
-      <div class="content-card-header">
-        <div class="left">
-          <h2>Payment Breakdown</h2>
-          <p>Paid transactions by method</p>
+        <div class="col-sm-6 col-lg-3">
+          <div class="stat-card">
+            <div class="stat-icon subtle">
+              <i class="bi bi-basket2"></i>
+            </div>
+            <div>
+              <h5 class="stat-label">Total Orders</h5>
+              <div class="stat-value"><?= h(number_format($sum['orders'])) ?></div>
+              <div class="stat-hint"><?= h($start) ?> – <?= h($end) ?></div>
+            </div>
+          </div>
         </div>
-        <div class="right">
-          <button class="btn btn-outline-secondary no-print" onclick="window.print()">
-            <i class="bi bi-printer"></i> Print
-          </button>
-          <a class="btn btn-success no-print"
-             href="?start=<?=h($start)?>&end=<?=h($end)?>&rev_mode=<?=h($revMode)?>&export=1">
-            <i class="bi bi-filetype-csv"></i> Export CSV
-          </a>
+
+        <div class="col-sm-6 col-lg-3">
+          <div class="stat-card">
+            <div class="stat-icon subtle">
+              <i class="bi bi-receipt-cutoff"></i>
+            </div>
+            <div>
+              <h5 class="stat-label">Average Ticket</h5>
+              <div class="stat-value">
+                <?= $sum['orders'] ? h(peso($sum['revenue'] / $sum['orders'])) : '₱0.00' ?>
+              </div>
+              <div class="stat-hint">Revenue ÷ Orders</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+          <div class="stat-card">
+            <div class="stat-icon subtle">
+              <i class="bi bi-calendar-range"></i>
+            </div>
+            <div>
+              <h5 class="stat-label">Date Range</h5>
+              <div class="stat-value">
+                <?= h(date('M d', strtotime($start))) ?> – <?= h(date('M d, Y', strtotime($end))) ?>
+              </div>
+              <div class="stat-hint">Customizable range</div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th>Payment Method</th>
-              <th>Count</th>
-              <th>Total (₱)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php if (!$payRows): ?>
-              <tr><td colspan="3" class="text-center text-muted">No paid transactions in this range.</td></tr>
-            <?php else: ?>
-              <?php foreach ($payRows as $r): ?>
+      <!-- Payment breakdown -->
+      <div class="content-card mb-4">
+        <div class="content-card-header d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="section-title mb-1">Payment Breakdown</h2>
+            <p class="text-muted small mb-0">
+              Distribution of <strong>paid</strong> transactions by payment method.
+            </p>
+          </div>
+          <div class="d-flex gap-2 no-print">
+            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="printReport()">
+              <i class="bi bi-printer"></i> Print report
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive mt-3">
+          <table class="table table-hover align-middle modern-table">
+            <thead>
               <tr>
-                <td><?= h(ucfirst($r['method'])) ?></td>
-                <td><?= h(number_format($r['cnt'])) ?></td>
-                <td><?= h(peso($r['amt'])) ?></td>
+                <th>Payment method</th>
+                <th class="text-end">Count</th>
+                <th class="text-end">Total (₱)</th>
               </tr>
-              <?php endforeach; ?>
-            <?php endif; ?>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="content-card">
-      <div class="content-card-header">
-        <div class="left">
-          <h2>All Orders (<?= h($start) ?> – <?= h($end) ?>)</h2>
-          <p>Every order in the selected range</p>
+            </thead>
+            <tbody>
+              <?php if (!$payRows): ?>
+                <tr>
+                  <td colspan="3" class="text-center text-muted py-4">
+                    <i class="bi bi-info-circle me-1"></i>No paid transactions in this range.
+                  </td>
+                </tr>
+              <?php else: ?>
+                <?php foreach ($payRows as $r): ?>
+                  <tr>
+                    <td class="fw-medium">
+                      <span class="badge rounded-pill bg-light text-dark border me-1">
+                        <?= h(ucfirst($r['method'])) ?>
+                      </span>
+                    </td>
+                    <td class="text-end"><?= h(number_format($r['cnt'])) ?></td>
+                    <td class="text-end"><?= h(peso($r['amt'])) ?></td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Customer</th>
-              <th>Type</th>
-              <th>Payment Status</th>
-              <th>Payment Method</th>
-              <th>Status</th>
-              <th>Total (₱)</th>
-              <th>Created At</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php if (!$orders): ?>
-              <tr><td colspan="8" class="text-center text-muted">No orders in this period.</td></tr>
-            <?php else: ?>
-              <?php foreach ($orders as $r): ?>
+      <!-- Orders list -->
+      <div class="content-card">
+        <div class="content-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <h2 class="section-title mb-1">
+              All Orders <span class="text-muted fw-normal">(<?= h($start) ?> – <?= h($end) ?>)</span>
+            </h2>
+            <p class="text-muted small mb-0">All orders in the selected range, 10 per page.</p>
+          </div>
+        </div>
+
+        <div class="table-responsive mt-3">
+          <table class="table table-hover align-middle modern-table">
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Type</th>
+                <th>Payment status</th>
+                <th>Payment method</th>
+                <th>Order status</th>
+                <th class="text-end">Total (₱)</th>
+                <th>Created at</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if (!$orders): ?>
                 <tr>
-                  <td>#<?= h($r[$O_ID]) ?></td>
-                  <td><?= h($r['customer_name']) ?></td>
-                  <td><?= h(ucfirst($r[$O_TYPE])) ?></td>
-                  <td>
-                    <span class="badge <?= $r[$P_STATUS]==='paid'?'badge-success':'badge-warning' ?>">
-                      <?= h(ucfirst($r[$P_STATUS] ?? 'N/A')) ?>
-                    </span>
+                  <td colspan="8" class="text-center text-muted py-4">
+                    <i class="bi bi-inbox me-1"></i>No orders in this period.
                   </td>
-                  <td><?= h(ucfirst($r[$P_METHOD] ?? '—')) ?></td>
-                  <td>
-                    <?php
-                      $map = [
-                        'pending' => 'badge-warning',
-                        'confirmed' => 'badge-primary',
-                        'preparing' => 'badge-info',
-                        'ready' => 'badge-success',
-                        'out_for_delivery' => 'badge-info',
-                        'delivered' => 'badge-secondary',
-                        'completed' => 'badge-secondary',
-                        'cancelled' => 'badge-danger',
-                      ];
-                      $cls = $map[$r[$O_STATUS]] ?? 'badge-light';
-                    ?>
-                    <span class="badge <?= h($cls) ?>"><?= h(ucwords(str_replace('_',' ',$r[$O_STATUS]))) ?></span>
-                  </td>
-                  <td><?= h(peso($r[$O_TOTAL])) ?></td>
-                  <td><?= h(date('Y-m-d H:i', strtotime($r[$O_CREATED]))) ?></td>
                 </tr>
-              <?php endforeach; ?>
-            <?php endif; ?>
-          </tbody>
-        </table>
+              <?php else: ?>
+                <?php foreach ($orders as $r): ?>
+                  <tr>
+                    <td class="fw-semibold">
+                      #<?= h($r[$O_ID]) ?>
+                    </td>
+                    <td>
+                      <?php
+                        $customer = trim($r['customer_name'] ?? '');
+                        $initials = 'C';
+                        if ($customer !== '') {
+                          $parts = explode(' ', $customer);
+                          $initials = strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
+                        }
+                      ?>
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="avatar-circle">
+                          <span><?= h($initials) ?></span>
+                        </div>
+                        <span class="text-truncate" style="max-width: 160px;">
+                          <?= h($customer ?: 'Walk-in / Unknown') ?>
+                        </span>
+                      </div>
+                    </td>
+                    <td><?= h(ucfirst($r[$O_TYPE])) ?></td>
+                    <td>
+                      <?php
+                        $payStatus = $r[$P_STATUS] ?? 'N/A';
+                        $payClass = 'bg-secondary';
+                        if ($payStatus === 'paid') {
+                          $payClass = 'bg-success';
+                        } elseif ($payStatus === 'pending') {
+                          $payClass = 'bg-warning text-dark';
+                        } elseif ($payStatus === 'failed') {
+                          $payClass = 'bg-danger';
+                        }
+                      ?>
+                      <span class="badge <?= h($payClass) ?>">
+                        <?= h(ucfirst($payStatus)) ?>
+                      </span>
+                    </td>
+                    <td class="text-capitalize">
+                      <?= h($r[$P_METHOD] ? $r[$P_METHOD] : '—') ?>
+                    </td>
+                    <td>
+                      <?php
+                        // More visible badge colors for order Status
+                        $map = [
+                          'pending'           => 'bg-warning text-dark',
+                          'confirmed'         => 'bg-primary',
+                          'preparing'         => 'bg-info text-dark',
+                          'ready'             => 'bg-success',
+                          'out_for_delivery'  => 'bg-info text-dark',
+                          'delivered'         => 'bg-secondary',
+                          'completed'         => 'bg-success',
+                          'cancelled'         => 'bg-danger',
+                        ];
+                        $cls = $map[$r[$O_STATUS]] ?? 'bg-light text-dark';
+                      ?>
+                      <span class="badge <?= h($cls) ?>">
+                        <?= h(ucwords(str_replace('_',' ',$r[$O_STATUS]))) ?>
+                      </span>
+                    </td>
+                    <td class="text-end fw-semibold">
+                      <?= h(peso($r[$O_TOTAL])) ?>
+                    </td>
+                    <td>
+                      <?= h(date('Y-m-d H:i', strtotime($r[$O_CREATED]))) ?>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+
+        <?php if ($totalPages > 1): ?>
+        <div class="d-flex justify-content-between align-items-center no-print mt-3 flex-wrap gap-2">
+          <small class="text-muted">
+            Showing page <?= $page ?> of <?= $totalPages ?> • <?= h(number_format($totalOrders)) ?> orders total
+          </small>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                <a class="page-link"
+                   href="?start=<?=h($start)?>&end=<?=h($end)?>&rev_mode=<?=h($revMode)?>&page=<?= max(1, $page - 1) ?>">
+                  &laquo;
+                </a>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link">
+                  Page <?= $page ?> of <?= $totalPages ?>
+                </span>
+              </li>
+              <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                <a class="page-link"
+                   href="?start=<?=h($start)?>&end=<?=h($end)?>&rev_mode=<?=h($revMode)?>&page=<?= min($totalPages, $page + 1) ?>">
+                  &raquo;
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+        <?php endif; ?>
       </div>
-    </div>
+    </div> <!-- /#print-area -->
+
   </main>
 </div>
 
 <style>
+/* --- Modern look for dashboard --- */
+body {
+  background-color: #f3f4f6;
+}
+
+/* Main layout */
+.main-content {
+  min-height: 100vh;
+}
+
+/* Card styling */
+.content-card {
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: #ffffff;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+  padding: 18px 20px;
+}
+
+.content-card-header {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+.page-title {
+  font-weight: 600;
+}
+
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+/* Stat cards */
+.stat-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #eef2ff, #f9fafb);
+  border: 1px solid rgba(129, 140, 248, 0.2);
+  box-shadow: 0 12px 30px rgba(31, 41, 55, 0.08);
+  transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, background 0.12s ease-out;
+}
+
+.stat-card-main {
+  background: radial-gradient(circle at top left, #4f46e5, #312e81);
+  color: #f9fafb;
+  border: none;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+.stat-card-main .stat-label,
+.stat-card-main .stat-value,
+.stat-card-main .stat-hint {
+  color: #e5e7eb;
+}
+
+.stat-card-main .stat-value {
+  color: #f9fafb;
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.08);
+  color: #111827;
+  flex-shrink: 0;
+}
+
+.stat-card-main .stat-icon {
+  background: rgba(15, 23, 42, 0.18);
+  color: #f9fafb;
+}
+
+.stat-icon.subtle {
+  background: rgba(148, 163, 184, 0.15);
+  color: #4b5563;
+}
+
+.stat-label {
+  margin: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.stat-card-main .stat-label {
+  color: #e5e7eb;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.stat-hint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Inputs */
+.modern-input {
+  border-radius: 999px;
+  border-color: #e5e7eb;
+  font-size: 0.9rem;
+}
+
+.modern-input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
+}
+
+/* Table */
+.modern-table thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modern-table tbody td {
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Avatar circle for customer initials */
+.avatar-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #eef2ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+/* Buttons */
+.header-quick-range .btn-light {
+  border-radius: 999px;
+  border-color: #e5e7eb;
+  font-size: 0.8rem;
+}
+
+.header-quick-range .btn-light:hover {
+  background-color: #eef2ff;
+}
+
+/* Pagination */
+.pagination .page-link {
+  border-radius: 999px !important;
+}
+
+/* Print styles */
 @media print {
   body { background: #fff; }
   .sidebar, .no-print, nav, .content-card-header .right { display:none !important; }
@@ -341,5 +634,35 @@ if ($isExport) {
   .table { font-size: 12px; }
 }
 </style>
+
+<script>
+  function printReport() {
+    var printArea = document.getElementById('print-area');
+
+    if (!printArea) {
+      console.error('print-area not found, falling back to window.print()');
+      window.print();
+      return;
+    }
+
+    var printWindow = window.open('', '_blank', 'width=1000,height=700');
+    printWindow.document.write('<html><head><title>Reports - Print</title>');
+
+    // Copy styles (Bootstrap + custom)
+    var styles = document.querySelectorAll('link[rel="stylesheet"], style');
+    styles.forEach(function(node) {
+      printWindow.document.write(node.outerHTML);
+    });
+
+    printWindow.document.write('</head><body>');
+    printWindow.document.write(printArea.innerHTML);
+    printWindow.document.write('</body></html>');
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  }
+</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

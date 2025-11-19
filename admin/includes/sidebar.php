@@ -25,6 +25,12 @@
         <span>User</span>
       </a>
     </li>
+    <li>
+      <a class="<?php echo basename($_SERVER['PHP_SELF']) === 'reports.php' ? 'active' : ''; ?>" 
+         href="<?= htmlspecialchars($BASE_URL) ?>/admin/reports.php"> <i class="bi bi-graph-up-arrow"></i></i>
+        <span>Reports</span>
+      </a>
+    </li>
   </ul>
   <div class="logout">
     <a href="<?= htmlspecialchars($BASE_URL) ?>/auth/logout.php"> Log out

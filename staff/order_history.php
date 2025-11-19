@@ -4,26 +4,24 @@ include __DIR__ . '/includes/header.php';
 ?>
 
 <style>
-  .dashboard-table th,
-  .dashboard-table td {
-    font-size: 14px;
-    white-space: normal !important;
-    word-wrap: break-word;
-    word-break: break-word;
-    vertical-align: top;
+  body {
+    background-color: #f3f4f6;
   }
 
-  .dashboard-table td small {
-    font-size: 12px;
+  .main-content {
+    min-height: 100vh;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
   }
 
-  .status-badge {
-    display: inline-block;
-    padding: 3px 12px;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    white-space: nowrap;
+  /* Modern card */
+  .content-card {
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    padding: 18px 20px;
+    margin-bottom: 1.5rem;
   }
 
   .content-card-header {
@@ -32,11 +30,151 @@ include __DIR__ . '/includes/header.php';
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
   }
 
-  .content-card-header .filter-form .form-control,
-  .content-card-header .filter-form .form-select {
+  .content-card-header h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .content-card-header p {
+    font-size: 0.8rem;
+    margin-bottom: 0;
+    color: #6b7280;
+  }
+
+  .page-title {
+    font-weight: 600;
+    font-size: 1.3rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.9rem;
+    color: #6b7280;
+  }
+
+  .meta-text {
+    font-size: 0.8rem;
+    color: #9ca3af;
+  }
+
+  /* Filters in header */
+  .filter-form .form-control,
+  .filter-form .form-select {
     font-size: 0.85rem;
+    border-radius: 999px;
+  }
+
+  .filter-form .form-control:focus,
+  .filter-form .form-select:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
+  }
+
+  .filter-form .input-group-text {
+    border-radius: 999px 0 0 999px;
+    border-color: #e5e7eb;
+    background: #f9fafb;
+    font-size: 0.85rem;
+    color: #6b7280;
+  }
+
+  /* Table styling */
+  .dashboard-table {
+    margin-bottom: 0;
+  }
+
+  .dashboard-table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .dashboard-table th,
+  .dashboard-table td {
+    font-size: 0.9rem;
+    white-space: normal !important;
+    word-wrap: break-word;
+    word-break: break-word;
+    vertical-align: middle;
+  }
+
+  .dashboard-table td small {
+    font-size: 0.8rem;
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: #f9fafb;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+
+  /* Map the bootstrap-ish badge classes to softer pill colors */
+  .status-badge.badge-success,
+  .status-badge.bg-success {
+    background: #dcfce7;
+    color: #166534;
+    border-color: rgba(22, 101, 52, 0.18);
+  }
+
+  .status-badge.badge-warning,
+  .status-badge.bg-warning {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: rgba(146, 64, 14, 0.18);
+  }
+
+  .status-badge.badge-primary,
+  .status-badge.bg-primary {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-color: rgba(37, 99, 235, 0.2);
+  }
+
+  .status-badge.badge-danger,
+  .status-badge.bg-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-color: rgba(185, 28, 28, 0.22);
+  }
+
+  .status-badge.badge-secondary,
+  .status-badge.bg-secondary {
+    background: #e5e7eb;
+    color: #374151;
+    border-color: rgba(55, 65, 81, 0.16);
+  }
+
+  /* Pagination */
+  .pagination .page-link {
+    font-size: 0.8rem;
+    border-radius: 999px !important;
+  }
+
+  .pagination .page-item.active .page-link {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+  }
+
+  @media (max-width: 576px) {
+    .content-card {
+      padding: 14px 14px;
+    }
   }
 </style>
 
@@ -44,26 +182,40 @@ include __DIR__ . '/includes/header.php';
   <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
   <main class="main-content">
-    <h2 class="mb-4">Order History</h2>
-    
+    <!-- Top header card -->
+    <div class="content-card mb-4">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+          <h2 class="page-title mb-1">Order History</h2>
+          <p class="page-subtitle mb-1">Lookup completed, delivered, and cancelled orders.</p>
+          <p class="meta-text mb-0" id="record-count">Loading…</p>
+        </div>
+      </div>
+    </div>
 
+    <!-- Main history card -->
     <section class="content-card">
       <div class="content-card-header">
         <div class="left">
           <h2>Past Orders</h2>
-          <p id="record-count">Loading…</p>
+          <p>Filter by status, type, or search by order number.</p>
         </div>
 
         <!-- SEARCH + FILTERS (NO SUBMIT NEEDED) -->
         <div class="right">
           <form id="filter-form" class="row g-2 filter-form" onsubmit="return false;">
             <div class="col-auto">
-              <input
-                type="text"
-                name="q"
-                class="form-control form-control-sm"
-                placeholder="Search order # or ID"
-              >
+              <div class="input-group input-group-sm">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input
+                  type="text"
+                  name="q"
+                  class="form-control"
+                  placeholder="Search order # or ID"
+                >
+              </div>
             </div>
 
             <div class="col-auto">
