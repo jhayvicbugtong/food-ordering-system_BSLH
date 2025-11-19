@@ -722,7 +722,7 @@ include __DIR__ . '/includes/header.php';
             </div>
           </div>
         </div>
-        
+
         <div class="filter-tabs">
           <div class="d-flex flex-wrap gap-2">
             <div class="filter-tab active" data-filter="all">

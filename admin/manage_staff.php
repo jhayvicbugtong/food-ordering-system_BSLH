@@ -1,5 +1,15 @@
 <?php
 include __DIR__ . '/includes/header.php';
+$role_type_filter = $_GET['role_type'] ?? '';
+$whereClauses = ["1=1"];
+
+if ($role_type_filter === 'customer' || $role_type_filter === 'staff' || $role_type_filter === 'admin') {
+    $role_type_esc = $conn->real_escape_string($role_type_filter);
+    $whereClauses[] = "u.role = '{$role_type_esc}'";
+}
+
+$whereSql = implode(' AND ', $whereClauses);
+
 ?>
 <div class="container-fluid">
   <?php include __DIR__ . '/includes/sidebar.php'; ?>
@@ -8,18 +18,17 @@ include __DIR__ . '/includes/header.php';
     <section class="content-card mb-4">
       <div class="content-card-header">
         <div class="left">
-          <h2>Staff Management</h2>
-          <p>Add new staff members (kitchen, driver, admin, etc.)</p>
+          <h2>Manage User</h2>
+          <p>Add new user members (kitchen, customer, admin, etc.)</p>
         </div>
         <div class="right">
           <button class="btn btn-success" id="saveStaffTopBtn" type="submit" form="addStaffForm">
-            <i class="bi bi-person-plus"></i> Save Staff
+            <i class="bi bi-person-plus"></i> Save User
           </button>
         </div>
       </div>
 
       <div id="staffAlert" class="alert d-none" role="alert"></div>
-
       <form class="row g-3" id="addStaffForm">
         <div class="col-md-4">
           <label class="form-label">First Name <span class="text-danger">*</span></label>
@@ -33,7 +42,7 @@ include __DIR__ . '/includes/header.php';
           <label class="form-label">Role <span class="text-danger">*</span></label>
           <select class="form-select" name="role" required>
             <option value="staff">Staff (Kitchen, Cashier)</option>
-            <option value="driver">Driver</option>
+            <option value="customer">Customer</option>
             <option value="admin">Admin (Full Access)</option>
           </select>
           <div class="form-text">This controls their login permissions.</div>
@@ -59,16 +68,37 @@ include __DIR__ . '/includes/header.php';
 
         <div class="col-12">
           <button type="submit" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Add Staff Member
+            <i class="bi bi-plus-circle"></i> Add User
           </button>
         </div>
       </form>
     </section>
 
     <section class="content-card">
+      
       <div class="content-card-header">
         <div class="left">
-          <h2>Current Staff</h2>
+          
+        <!-- FILTERS -->
+        <form class="row g-2 mb-3 filter-form" method="get">
+          <input type="hidden" name="page" value="1">
+
+          <div class="col-md-3 col-sm-6 w-100">
+            <label class="form-label mb-1">Role Type</label>
+            <select class="form-select form-select-sm" name="role_type">
+              <option value="">All</option>
+              <option value="customer" <?= $role_type_filter === 'customer' ? 'selected' : '' ?>>Customer</option>
+              <option value="staff"    <?= $role_type_filter === 'staff'    ? 'selected' : '' ?>>Staff</option>
+              <option value="admin"    <?= $role_type_filter === 'admin'    ? 'selected' : '' ?>>Admin</option>
+            </select>
+          </div>
+
+          <div class="col-md-3 col-sm-6 d-flex align-items-end">
+          </div>
+        </form>
+        <!-- end filter -->
+         
+          <h2>Current Users</h2>
           <p>Active team members with system access</p>
         </div>
       </div>
@@ -128,7 +158,7 @@ include __DIR__ . '/includes/header.php';
             <label class="form-label">Role</label>
             <select class="form-select" name="role" id="edit_role">
               <option value="staff">Staff (Kitchen, Cashier)</option>
-              <option value="driver">Driver</option>
+              <option value="customer">Customer</option>
               <option value="admin">Admin (Full Access)</option>
             </select>
           </div>
@@ -174,10 +204,10 @@ document.addEventListener('DOMContentLoaded', () => {
     role = (role||'').toLowerCase();
     const label =
       role === 'admin' ? 'Admin' :
-      role === 'driver' ? 'Driver' : 'Staff';
+      role === 'customer' ? 'Customer' : 'Staff';
     const klass =
       role === 'admin' ? 'badge-danger' :
-      (role === 'driver' ? 'badge-info' : 'badge-success');
+      (role === 'customer' ? 'bg-primary-subtle text-primary' : 'badge-success');
     return {label, klass};
   }
 
@@ -206,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (data.status !== 'ok') throw new Error(data.message || 'Failed to load');
       if (!Array.isArray(data.rows)) data.rows = [];
-      tbody.innerHTML = data.rows.map(rowHTML).join('') || `<tr><td colspan="5">No staff found.</td></tr>`;
+      tbody.innerHTML = data.rows.map(rowHTML).join('') || `<tr><td colspan="5">No user found.</td></tr>`;
     }catch(e){
       tbody.innerHTML = `<tr><td colspan="5" class="text-danger">${e.message}</td></tr>`;
     }
@@ -224,8 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('actions/add_staff.php', { method:'POST', body:fd });
       const ct = res.headers.get('content-type')||'';
       const data = ct.includes('json') ? await res.json() : {status:'error',message:await res.text()};
-      if (data.status !== 'ok') throw new Error(data.message || 'Failed to add staff');
-      showAlert('success','Staff added successfully.');
+      if (data.status !== 'ok') throw new Error(data.message || 'Failed to add user');
+      showAlert('success','User added successfully.');
       form.reset();
       await loadStaff();
     }catch(err){ showAlert('danger', err.message); }
@@ -238,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const id = tr.getAttribute('data-id');
 
     if (e.target.classList.contains('btn-remove')) {
-      if (!confirm('Remove this staff member? This is permanent.')) return;
+      if (!confirm('Remove this user member? This is permanent.')) return;
       try{
         const fd = new FormData(); fd.append('user_id', id);
         const res = await fetch('actions/delete_staff.php', { method:'POST', body:fd });
@@ -294,6 +324,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial load
   loadStaff();
+});
+
+
+  document.addEventListener('DOMContentLoaded', function () {
+  const filterForm = document.querySelector('.filter-form');
+  if (!filterForm) return;
+
+  // Auto-submit when the dropdown changes
+  filterForm.querySelectorAll('select').forEach(el => {
+    el.addEventListener('change', () => {
+      // Always reset to page 1
+      const pageInput = filterForm.querySelector('input[name="page"]');
+      if (pageInput) pageInput.value = 1;
+
+      filterForm.submit();
+    });
+  });
 });
 </script>
 

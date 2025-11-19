@@ -22,7 +22,7 @@
     <li>
       <a class="<?php echo basename($_SERVER['PHP_SELF']) === 'manage_staff.php' ? 'active' : ''; ?>" 
          href="<?= htmlspecialchars($BASE_URL) ?>/admin/manage_staff.php"> <i class="bi bi-people"></i>
-        <span>Staff</span>
+        <span>User</span>
       </a>
     </li>
   </ul>

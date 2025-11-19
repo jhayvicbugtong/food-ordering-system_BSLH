@@ -160,38 +160,38 @@ $orders_result = $conn->query($orders_query);
         </div>
       </div>
 
-      <!-- FILTERS -->
-      <form class="row g-2 mb-3 filter-form" method="get">
-        <!-- reset to page 1 whenever filters change -->
-        <input type="hidden" name="page" value="1">
+        <!-- FILTERS -->
+        <form class="row g-2 mb-3 filter-form" method="get">
+          <!-- reset to page 1 whenever filters change -->
+          <input type="hidden" name="page" value="1">
 
-        <div class="col-md-3 col-sm-6">
-          <label class="form-label mb-1">Order Type</label>
-          <select class="form-select form-select-sm" name="order_type">
-            <option value="">All</option>
-            <option value="pickup"   <?= $order_type_filter === 'pickup'   ? 'selected' : '' ?>>Pickup</option>
-            <option value="delivery" <?= $order_type_filter === 'delivery' ? 'selected' : '' ?>>Delivery</option>
-          </select>
-        </div>
-        <div class="col-md-3 col-sm-6">
-          <label class="form-label mb-1">Date From</label>
-          <input type="date"
-                 class="form-control form-control-sm"
-                 name="date_from"
-                 value="<?= htmlspecialchars($date_from) ?>">
-        </div>
-        <div class="col-md-3 col-sm-6">
-          <label class="form-label mb-1">Date To</label>
-          <input type="date"
-                 class="form-control form-control-sm"
-                 name="date_to"
-                 value="<?= htmlspecialchars($date_to) ?>">
-        </div>
-        <div class="col-md-3 col-sm-6 d-flex align-items-end">
-          <button type="submit" class="btn btn-primary btn-sm me-2">Apply</button>
-          <a href="manage_orders.php" class="btn btn-outline-secondary btn-sm">Clear</a>
-        </div>
-      </form>
+          <div class="col-md-3 col-sm-6">
+            <label class="form-label mb-1">Order Type</label>
+            <select class="form-select form-select-sm" name="order_type">
+              <option value="">All</option>
+              <option value="pickup"   <?= $order_type_filter === 'pickup'   ? 'selected' : '' ?>>Pickup</option>
+              <option value="delivery" <?= $order_type_filter === 'delivery' ? 'selected' : '' ?>>Delivery</option>
+            </select>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <label class="form-label mb-1">Date From</label>
+            <input type="date"
+                  class="form-control form-control-sm"
+                  name="date_from"
+                  value="<?= htmlspecialchars($date_from) ?>">
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <label class="form-label mb-1">Date To</label>
+            <input type="date"
+                  class="form-control form-control-sm"
+                  name="date_to"
+                  value="<?= htmlspecialchars($date_to) ?>">
+          </div>
+          <div class="col-md-3 col-sm-6 d-flex align-items-end">
+            <!-- <button type="submit" class="btn btn-primary btn-sm me-2">Apply</button> -->
+            <a href="manage_orders.php" class="btn btn-outline-secondary btn-sm">Clear</a>
+          </div>
+        </form>
 
       <div class="table-responsive">
         <table class="table table-hover">
@@ -256,26 +256,6 @@ $orders_result = $conn->query($orders_query);
                               data-order-id="<?= (int)$order['order_id'] ?>">
                         View
                       </button>
-
-                      <?php if ($status == 'pending'): ?>
-                        <button
-                          class="btn btn-outline-success btn-accept"
-                          data-order-id="<?= (int)$order['order_id'] ?>"
-                          data-total="<?= (float)$order['total_amount'] ?>"
-                          data-customer="<?= $customer_name ?>"
-                        >
-                          Accept
-                        </button>
-                        <button class="btn btn-outline-danger">Reject</button>
-                      <?php elseif ($status == 'confirmed' || $status == 'preparing'): ?>
-                        <button class="btn btn-outline-success">Mark as Ready</button>
-                      <?php elseif ($status == 'ready' && $order['order_type'] == 'delivery'): ?>
-                        <button class="btn btn-outline-success">Mark Out for Delivery</button>
-                      <?php elseif ($status == 'ready' && $order['order_type'] == 'pickup'): ?>
-                        <button class="btn btn-outline-success">Mark Picked Up</button>
-                      <?php elseif ($status == 'out_for_delivery'): ?>
-                         <button class="btn btn-outline-success">Mark Delivered</button>
-                      <?php endif; ?>
                     </div>
                   </td>
                 </tr>
@@ -677,6 +657,26 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+
+  const filterForm = document.querySelector('.filter-form');
+  if (!filterForm) return;
+
+  // Auto-submit when ANY filter changes
+  filterForm.querySelectorAll('select, input[type="date"]').forEach(el => {
+    el.addEventListener('change', () => {
+      // Always reset page to 1 when filters change
+      const pageInput = filterForm.querySelector('input[name="page"]');
+      if (pageInput) pageInput.value = 1;
+
+      filterForm.submit();
+    });
+  });
+
+});
+
+
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

@@ -19,7 +19,7 @@ $npw        = (string)($_POST['new_password'] ?? '');
 $npw2       = (string)($_POST['new_password2'] ?? '');
 
 if ($first_name === '' || $last_name === '' || $email === '' || $role === '') jerr('First Name, Last Name, Email, and Role are required.');
-if (!in_array($role, ['admin', 'staff', 'driver'])) jerr('Invalid role specified.');
+if (!in_array($role, ['admin', 'staff', 'customer'])) jerr('Invalid role specified.');
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) jerr('Invalid email.');
 if ($npw !== '' && $npw !== $npw2) jerr('New passwords do not match.');
 
@@ -47,7 +47,7 @@ $params[] = $user_id;
 $types   .= 'i';
 
 // NEW SCHEMA: Update users table and filter by user_id
-$sql = "UPDATE users SET ".implode(',', $fields)." WHERE user_id=? AND role IN ('admin', 'staff', 'driver') LIMIT 1";
+$sql = "UPDATE users SET ".implode(',', $fields)." WHERE user_id=? AND role IN ('admin', 'staff', 'customer') LIMIT 1";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param($types, ...$params);
 if (!$stmt->execute()) jerr('Update failed.');
