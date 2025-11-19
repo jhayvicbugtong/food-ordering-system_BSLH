@@ -18,6 +18,7 @@ $orders_query = "
     LEFT JOIN order_payment_details opd ON o.order_id = opd.order_id
     WHERE o.status NOT IN ('completed', 'delivered', 'cancelled')
     ORDER BY 
+        o.created_at ASC,
         CASE o.status
             WHEN 'pending' THEN 1
             WHEN 'confirmed' THEN 2
@@ -25,8 +26,7 @@ $orders_query = "
             WHEN 'ready' THEN 4
             WHEN 'out_for_delivery' THEN 5
             ELSE 6
-        END,
-        o.created_at ASC
+        END
     LIMIT 50;
 ";
 $orders_result = $conn->query($orders_query);
