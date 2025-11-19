@@ -74,7 +74,7 @@ $data_sql = "SELECT p.*, c.category_name
              FROM products p 
              LEFT JOIN categories c ON p.category_id = c.category_id 
              $where_clause
-             ORDER BY p.name ASC 
+
              LIMIT ? OFFSET ?";
 
 // Add limit and offset to params
