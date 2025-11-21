@@ -68,6 +68,51 @@
       }
     });
 
+    // Header Dropdown Functionality
+    const userDropdown = document.getElementById('userDropdown');
+    const profileDropdown = document.getElementById('profileDropdown');
+    
+    if (userDropdown && profileDropdown) {
+      // Toggle dropdown on click
+      userDropdown.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const isOpen = profileDropdown.classList.contains('show');
+        
+        // Close all dropdowns first
+        closeAllDropdowns();
+        
+        // Toggle current dropdown
+        if (!isOpen) {
+          profileDropdown.classList.add('show');
+          userDropdown.classList.add('dropdown-open');
+        }
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(e) {
+        if (userDropdown && profileDropdown && 
+            !userDropdown.contains(e.target) && 
+            !profileDropdown.contains(e.target)) {
+          closeAllDropdowns();
+        }
+      });
+      
+      // Close dropdown on escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeAllDropdowns();
+        }
+      });
+      
+      // Function to close all dropdowns
+      function closeAllDropdowns() {
+        if (profileDropdown) profileDropdown.classList.remove('show');
+        if (userDropdown) userDropdown.classList.remove('dropdown-open');
+      }
+    }
+
     // Initialize dropdowns
     const dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
     const dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
