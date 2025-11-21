@@ -23,15 +23,26 @@ $delivery_query = "
         o.order_number, 
         o.status,
         o.created_at,
+        o.total_amount,
         ocd.customer_first_name, 
         ocd.customer_last_name,
         ocd.customer_phone,
-        oa.street AS delivery_street,
-        oa.barangay AS delivery_barangay,
-        oa.apt_landmark AS delivery_instructions
+        
+        -- Address fields
+        oa.street,
+        oa.barangay,
+        oa.city,
+        oa.province,
+        oa.floor_number,
+        oa.apt_landmark,
+        
+        -- Payment fields
+        opd.payment_method,
+        opd.payment_status
     FROM orders o
     LEFT JOIN order_customer_details ocd ON o.order_id = ocd.order_id
     LEFT JOIN order_addresses oa ON o.order_id = oa.order_id
+    LEFT JOIN order_payment_details opd ON o.order_id = opd.order_id
     WHERE o.order_type = 'delivery' 
       AND o.status IN ('ready', 'out_for_delivery', 'confirmed')
     ORDER BY 
@@ -104,7 +115,7 @@ $delivery_result = $conn->query($delivery_query);
     color: #9ca3af;
   }
 
-  /* Stat cards (reuse theme but slightly tuned) */
+  /* Stat cards */
   .stat-card {
     padding: 14px 16px;
     border-radius: 16px;
@@ -167,7 +178,7 @@ $delivery_result = $conn->query($delivery_query);
   }
 
   /* Pills */
-  .status-badge {
+  .status-badge, .payment-badge {
     display: inline-block;
     padding: 3px 10px;
     border-radius: 999px;
@@ -176,33 +187,23 @@ $delivery_result = $conn->query($delivery_query);
     white-space: nowrap;
   }
 
-  .status-badge.badge-primary,
-  .status-badge.bg-primary {
-    background: #dbeafe;
-    color: #1d4ed8;
-    border: 1px solid rgba(37, 99, 235, 0.2);
+  .status-badge.badge-primary, .status-badge.bg-primary {
+    background: #dbeafe; color: #1d4ed8; border: 1px solid rgba(37, 99, 235, 0.2);
+  }
+  .status-badge.badge-success, .status-badge.bg-success {
+    background: #dcfce7; color: #166534; border: 1px solid rgba(22, 101, 52, 0.15);
+  }
+  .status-badge.badge-info, .status-badge.bg-info {
+    background: #e0f2fe; color: #0369a1; border: 1px solid rgba(3, 105, 161, 0.18);
+  }
+  .status-badge.badge-secondary, .status-badge.bg-secondary {
+    background: #e5e7eb; color: #374151; border: 1px solid rgba(55, 65, 81, 0.12);
   }
 
-  .status-badge.badge-success,
-  .status-badge.bg-success {
-    background: #dcfce7;
-    color: #166534;
-    border: 1px solid rgba(22, 101, 52, 0.15);
-  }
-
-  .status-badge.badge-info,
-  .status-badge.bg-info {
-    background: #e0f2fe;
-    color: #0369a1;
-    border: 1px solid rgba(3, 105, 161, 0.18);
-  }
-
-  .status-badge.badge-secondary,
-  .status-badge.bg-secondary {
-    background: #e5e7eb;
-    color: #374151;
-    border: 1px solid rgba(55, 65, 81, 0.12);
-  }
+  /* Payment Badges */
+  .payment-badge.badge-success { background: #dcfce7; color: #166534; border: 1px solid rgba(22, 101, 52, 0.15); }
+  .payment-badge.badge-warning { background: #fef3c7; color: #92400e; border: 1px solid rgba(146, 64, 14, 0.12); }
+  .payment-badge.badge-secondary { background: #e5e7eb; color: #374151; border: 1px solid rgba(55, 65, 81, 0.12); }
 
   .address-main {
     font-size: 0.9rem;
@@ -211,6 +212,8 @@ $delivery_result = $conn->query($delivery_query);
   .address-meta {
     font-size: 0.8rem;
     color: #6b7280;
+    display: block;
+    margin-top: 2px;
   }
 
   .actions-cell .btn {
@@ -229,7 +232,6 @@ $delivery_result = $conn->query($delivery_query);
 
   <main class="main-content">
 
-    <!-- HEADER + STATS CARD -->
     <div class="content-card mb-4">
       <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
         <div>
@@ -271,7 +273,6 @@ $delivery_result = $conn->query($delivery_query);
       </div>
     </div>
 
-    <!-- DELIVERY MANAGEMENT TABLE -->
     <section class="content-card">
       <div class="content-card-header">
         <div>
@@ -290,6 +291,8 @@ $delivery_result = $conn->query($delivery_query);
               <th>Order #</th>
               <th>Customer</th>
               <th>Dropoff Address</th>
+              <th>Total</th>
+              <th>Payment</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -300,7 +303,9 @@ $delivery_result = $conn->query($delivery_query);
                 <?php
                   $status   = $order['status'];
                   $order_id = (int)$order['order_id'];
+                  $total    = (float)($order['total_amount'] ?? 0);
 
+                  // Status Badge
                   $status_map = [
                     'confirmed'        => 'badge-primary',
                     'ready'            => 'badge-success',
@@ -308,16 +313,43 @@ $delivery_result = $conn->query($delivery_query);
                   ];
                   $status_class = $status_map[$status] ?? 'badge-secondary';
 
-                  $street   = trim($order['delivery_street'] ?? '');
-                  $barangay = trim($order['delivery_barangay'] ?? '');
-                  $address  = trim($street . ($street && $barangay ? ', ' : '') . $barangay);
-                  if ($address === '') {
-                      $address = 'N/A';
-                  }
-
+                  // Customer Name
                   $customer_name = trim(($order['customer_first_name'] ?? '') . ' ' . ($order['customer_last_name'] ?? ''));
                   if ($customer_name === '') {
                     $customer_name = 'Delivery Customer';
+                  }
+
+                  // --- Address Logic (Street + Barangay ONLY) ---
+                  $addr_parts = [];
+                  if (!empty($order['street']))    $addr_parts[] = $order['street'];
+                  if (!empty($order['barangay']))  $addr_parts[] = 'Brgy. ' . $order['barangay'];
+                  // REMOVED: City and Province (Nasugbu, Batangas)
+                  
+                  $full_address = implode(', ', $addr_parts);
+                  if ($full_address === '') $full_address = 'N/A';
+
+                  // Extra instructions (Floor, landmark)
+                  $extras = [];
+                  if (!empty($order['floor_number'])) $extras[] = 'Floor: ' . $order['floor_number'];
+                  if (!empty($order['apt_landmark'])) $extras[] = 'Landmark: ' . $order['apt_landmark'];
+                  $extra_text = implode('; ', $extras);
+
+
+                  // --- Payment Logic ---
+                  $payment_method = $order['payment_method'] ?? null;
+                  $payment_status = $order['payment_status'] ?? null;
+
+                  if (!$payment_method) {
+                      $payment_label = 'Unpaid';
+                      $payment_badge_class = 'badge-secondary';
+                  } else {
+                      $payment_label = strtoupper($payment_method);
+                      if ($payment_status && $payment_status !== 'paid') {
+                          $payment_label .= ' (' . ucfirst($payment_status) . ')';
+                      } else {
+                          $payment_label .= ' (Paid)';
+                      }
+                      $payment_badge_class = ($payment_status === 'paid') ? 'badge-success' : 'badge-warning';
                   }
                 ?>
                 <tr data-order-id="<?= $order_id ?>">
@@ -325,7 +357,7 @@ $delivery_result = $conn->query($delivery_query);
                     <strong><?= htmlspecialchars($order['order_number'] ?? $order_id) ?></strong><br>
                     <?php if (!empty($order['created_at'])): ?>
                       <span class="meta-text">
-                        Placed: <?= htmlspecialchars(date('Y-m-d g:i A', strtotime($order['created_at']))) ?>
+                        Placed: <?= htmlspecialchars(date('g:i A', strtotime($order['created_at']))) ?>
                       </span>
                     <?php endif; ?>
                   </td>
@@ -336,12 +368,22 @@ $delivery_result = $conn->query($delivery_query);
                     </small>
                   </td>
                   <td>
-                    <span class="address-main"><?= htmlspecialchars($address) ?></span><br>
-                    <?php if (!empty($order['delivery_instructions'])): ?>
+                    <span class="address-main"><?= htmlspecialchars($full_address) ?></span>
+                    <?php if ($extra_text): ?>
                       <span class="address-meta">
-                        <?= htmlspecialchars($order['delivery_instructions']) ?>
+                        <i class="bi bi-info-circle"></i> <?= htmlspecialchars($extra_text) ?>
                       </span>
                     <?php endif; ?>
+                  </td>
+                  <td>
+                    <span style="font-weight:600; white-space:nowrap;">
+                        ₱<?= number_format($total, 2) ?>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="payment-badge badge <?= $payment_badge_class ?>">
+                      <?= htmlspecialchars($payment_label) ?>
+                    </span>
                   </td>
                   <td>
                     <span class="status-badge badge <?= $status_class ?>">
@@ -350,20 +392,12 @@ $delivery_result = $conn->query($delivery_query);
                   </td>
                   <td class="actions-cell">
                     <?php if ($status == 'confirmed' || $status == 'ready'): ?>
-                      <div class="btn-group btn-group-sm">
-                        <button 
-                          class="btn btn-outline-primary btn-action" 
-                          data-action="out_for_delivery" 
-                          data-id="<?= $order_id ?>">
-                          Out for Delivery
-                        </button>
-                        <button 
-                          class="btn btn-outline-success btn-action" 
-                          data-action="delivered" 
-                          data-id="<?= $order_id ?>">
-                          Mark Delivered
-                        </button>
-                      </div>
+                      <button 
+                        class="btn btn-sm btn-outline-primary btn-action" 
+                        data-action="out_for_delivery" 
+                        data-id="<?= $order_id ?>">
+                        Out for Delivery
+                      </button>
 
                     <?php elseif ($status == 'out_for_delivery'): ?>
                       <button 
@@ -381,7 +415,7 @@ $delivery_result = $conn->query($delivery_query);
               <?php endwhile; ?>
             <?php else: ?>
                <tr>
-                <td colspan="5" class="text-center text-muted">No active deliveries.</td>
+                <td colspan="7" class="text-center text-muted">No active deliveries.</td>
               </tr>
             <?php endif; ?>
           </tbody>

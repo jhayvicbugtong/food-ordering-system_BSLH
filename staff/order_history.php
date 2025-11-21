@@ -160,6 +160,22 @@ include __DIR__ . '/includes/header.php';
     border-color: rgba(55, 65, 81, 0.16);
   }
 
+  /* Modal Detail Styles */
+  .detail-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #6b7280;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .detail-value {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 12px;
+  }
+
   /* Pagination */
   .pagination .page-link {
     font-size: 0.8rem;
@@ -182,7 +198,6 @@ include __DIR__ . '/includes/header.php';
   <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
   <main class="main-content">
-    <!-- Top header card -->
     <div class="content-card mb-4">
       <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
         <div>
@@ -193,7 +208,6 @@ include __DIR__ . '/includes/header.php';
       </div>
     </div>
 
-    <!-- Main history card -->
     <section class="content-card">
       <div class="content-card-header">
         <div class="left">
@@ -201,7 +215,6 @@ include __DIR__ . '/includes/header.php';
           <p>Filter by status, type, or search by order number.</p>
         </div>
 
-        <!-- SEARCH + FILTERS (NO SUBMIT NEEDED) -->
         <div class="right">
           <form id="filter-form" class="row g-2 filter-form" onsubmit="return false;">
             <div class="col-auto">
@@ -254,32 +267,27 @@ include __DIR__ . '/includes/header.php';
               <th>Total</th>
               <th>Status</th>
               <th>Placed At</th>
-              <th>Last Update</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody id="history-body">
-            <!-- filled by JS -->
-          </tbody>
+            </tbody>
         </table>
       </div>
 
-      <!-- PAGINATION (handled by JS) -->
       <nav aria-label="Order history pages">
         <ul class="pagination pagination-sm justify-content-end" id="pagination">
-          <!-- filled by JS -->
-        </ul>
+          </ul>
       </nav>
     </section>
   </main>
 </div>
 
-<!-- ORDER DETAILS MODAL -->
 <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Order details</h5>
+      <div class="modal-header" style="border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
+        <h5 class="modal-title" style="font-weight: 600;">Order details</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -306,7 +314,7 @@ include __DIR__ . '/includes/header.php';
 
   let currentPage = 1;
   let typingTimer = null;
-  const delay = 250; // ms – feels instant but not spammy
+  const delay = 250; 
 
   function getFilters() {
     return {
@@ -331,7 +339,7 @@ include __DIR__ . '/includes/header.php';
     if (!rows || !rows.length) {
       bodyEl.innerHTML = `
         <tr>
-          <td colspan="8" class="text-center text-muted">
+          <td colspan="7" class="text-center text-muted">
             No orders match your filters.
           </td>
         </tr>`;
@@ -350,13 +358,12 @@ include __DIR__ . '/includes/header.php';
           </span>
         </td>
         <td>${escapeHtml(r.created_at)}</td>
-        <td>${escapeHtml(r.updated_at)}</td>
         <td>
           <button type="button"
                   class="btn btn-sm btn-outline-primary btn-view-details"
                   data-order-id="${encodeURIComponent(r.order_id)}"
                   data-order-number="${escapeHtml(r.order_number)}">
-            View details
+            <i class="bi bi-eye"></i> View
           </button>
         </td>
       </tr>
@@ -425,7 +432,7 @@ include __DIR__ . '/includes/header.php';
 
       if (!res.ok) {
         bodyEl.innerHTML = `
-          <tr><td colspan="8" class="text-center text-danger">
+          <tr><td colspan="7" class="text-center text-danger">
             Failed to load data.
           </td></tr>`;
         pagination.innerHTML = '';
@@ -436,7 +443,7 @@ include __DIR__ . '/includes/header.php';
       const data = await res.json();
       if (!data.success) {
         bodyEl.innerHTML = `
-          <tr><td colspan="8" class="text-center text-danger">
+          <tr><td colspan="7" class="text-center text-danger">
             ${escapeHtml(data.message || 'Error loading orders.')}
           </td></tr>`;
         pagination.innerHTML = '';
@@ -449,7 +456,7 @@ include __DIR__ . '/includes/header.php';
       updateRecordCount(data.total_rows);
     } catch (e) {
       bodyEl.innerHTML = `
-        <tr><td colspan="8" class="text-center text-danger">
+        <tr><td colspan="7" class="text-center text-danger">
           Network error.
         </td></tr>`;
       pagination.innerHTML = '';
@@ -507,7 +514,7 @@ include __DIR__ . '/includes/header.php';
     const modalTitle= modalEl.querySelector('.modal-title');
 
     modalTitle.textContent = 'Order ' + orderNumber;
-    modalBody.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
+    modalBody.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary" role="status"></div></div>';
 
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
@@ -533,41 +540,45 @@ include __DIR__ . '/includes/header.php';
       const o  = data.order;
       const it = data.items || [];
 
+      // Items HTML
       let itemsHtml = '';
       if (it.length) {
         itemsHtml = `
-          <table class="table table-sm align-middle mb-3">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th class="text-end">Qty</th>
-                <th class="text-end">Unit</th>
-                <th class="text-end">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${it.map(row => `
-                <tr>
-                  <td>
-                    ${escapeHtml(row.product_name)}
-                    ${row.special_instructions
-                      ? '<br><small class="text-muted">Note: ' +
-                        escapeHtml(row.special_instructions) +
-                        '</small>'
-                      : ''}
-                  </td>
-                  <td class="text-end">${escapeHtml(row.quantity)}</td>
-                  <td class="text-end">${escapeHtml(row.unit_price_fmt)}</td>
-                  <td class="text-end">${escapeHtml(row.total_price_fmt)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Item</th>
+                        <th class="text-end" width="100">Price</th>
+                        <th class="text-center" width="80">Qty</th>
+                        <th class="text-end" width="100">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  ${it.map(row => `
+                    <tr>
+                      <td>
+                        ${escapeHtml(row.product_name)}
+                        ${row.special_instructions
+                          ? '<br><small class="text-danger">Note: ' +
+                            escapeHtml(row.special_instructions) +
+                            '</small>'
+                          : ''}
+                      </td>
+                      <td class="text-end">${escapeHtml(row.unit_price_fmt)}</td>
+                      <td class="text-center">${escapeHtml(row.quantity)}</td>
+                      <td class="text-end fw-bold">${escapeHtml(row.total_price_fmt)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+            </table>
+          </div>
         `;
       } else {
         itemsHtml = '<p class="text-muted">No items found for this order.</p>';
       }
 
+      // Timeline - RESTORED TO ORIGINAL LIST FORMAT
       const timelineBits = [];
       if (o.created_at)          timelineBits.push('<strong>Placed:</strong> ' + escapeHtml(o.created_at));
       if (o.confirmed_at)        timelineBits.push('<strong>Confirmed:</strong> ' + escapeHtml(o.confirmed_at));
@@ -577,45 +588,74 @@ include __DIR__ . '/includes/header.php';
       if (o.delivered_at)        timelineBits.push('<strong>Delivered:</strong> ' + escapeHtml(o.delivered_at));
       if (o.cancelled_at)        timelineBits.push('<strong>Cancelled:</strong> ' + escapeHtml(o.cancelled_at));
 
+      // Contact
+      let contactInfo = '';
+      if (o.customer_phone) contactInfo += escapeHtml(o.customer_phone);
+      if (o.customer_email) {
+          if (contactInfo) contactInfo += ' / ';
+          contactInfo += escapeHtml(o.customer_email);
+      }
+      if (!contactInfo) contactInfo = 'No contact info';
+
+      // Address Box
+      let addressHtml = '';
+      if (o.delivery_address) {
+          addressHtml = `
+            <div class="mb-3 p-3 bg-light rounded border">
+                <div class="detail-label"><i class="bi bi-geo-alt-fill"></i> Delivery Address</div>
+                <div class="detail-value mb-0">${escapeHtml(o.delivery_address)}</div>
+            </div>
+          `;
+      }
+
       modalBody.innerHTML = `
         <div class="row mb-3">
           <div class="col-md-6">
-            <h6 class="fw-bold">Customer</h6>
-            <p class="mb-1">${escapeHtml(o.customer_name)}</p>
-            ${o.customer_email
-              ? '<p class="mb-1"><small>' + escapeHtml(o.customer_email) + '</small></p>'
-              : ''}
-            ${o.customer_phone
-              ? '<p class="mb-1"><small>' + escapeHtml(o.customer_phone) + '</small></p>'
-              : ''}
-            ${
-              (o.delivery_address && o.status_label === 'Delivered')
-                ? '<p class="mb-0"><small><strong>Address:</strong> ' +
-                    escapeHtml(o.delivery_address) + '</small></p>'
-                : ''
-            }
+            <div class="detail-label">Customer</div>
+            <div class="detail-value">${escapeHtml(o.customer_name)}</div>
+            
+            <div class="detail-label">Contact</div>
+            <div class="detail-value">${contactInfo}</div>
           </div>
           <div class="col-md-6">
-            <h6 class="fw-bold">Order</h6>
-            <p class="mb-1"><strong>Type:</strong> ${escapeHtml(o.type_label)}</p>
-            <p class="mb-1">
-              <strong>Status:</strong>
-              <span class="badge ${escapeHtml(o.status_badge_class)} status-badge">
-                ${escapeHtml(o.status_label)}
-              </span>
-            </p>
-            <p class="mb-1"><strong>Payment:</strong> ${escapeHtml(o.payment_label)}</p>
+            <div class="detail-label">Order Type</div>
+            <div class="detail-value">${escapeHtml(o.type_label)}</div>
+
+            <div class="detail-label">Status</div>
+            <div class="detail-value">
+                <span class="badge ${escapeHtml(o.status_badge_class)}">${escapeHtml(o.status_label)}</span>
+            </div>
           </div>
         </div>
 
-        <h6 class="fw-bold">Items</h6>
+        ${addressHtml}
+
+        <h6 class="border-bottom pb-2 mb-3 mt-4">Items Ordered</h6>
         ${itemsHtml}
 
-        <h6 class="fw-bold">Totals</h6>
-        <p class="mb-1"><strong>Subtotal:</strong> ${escapeHtml(o.subtotal_formatted)}</p>
-        <p class="mb-1"><strong>Delivery fee:</strong> ${escapeHtml(o.delivery_fee_formatted)}</p>
-        <p class="mb-1"><strong>Tip:</strong> ${escapeHtml(o.tip_formatted)}</p>
-        <p class="mb-0"><strong>Total:</strong> ${escapeHtml(o.total_formatted)}</p>
+        <div class="row justify-content-end mt-3">
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Subtotal:</span>
+                    <span class="fw-bold">${escapeHtml(o.subtotal_formatted)}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1 text-muted">
+                    <span>Delivery Fee:</span>
+                    <span>${escapeHtml(o.delivery_fee_formatted)}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1 text-muted">
+                    <span>Tip:</span>
+                    <span>${escapeHtml(o.tip_formatted)}</span>
+                </div>
+                <div class="d-flex justify-content-between" style="font-weight: 700; font-size: 1.1rem; border-top: 2px solid #e5e7eb; padding-top: 10px; margin-top: 10px;">
+                    <span>Total:</span>
+                    <span class="text-primary">${escapeHtml(o.total_formatted)}</span>
+                </div>
+                 <div class="mt-2 text-end">
+                    <span class="badge bg-secondary">${escapeHtml(o.payment_label)}</span>
+                </div>
+            </div>
+        </div>
 
         ${timelineBits.length
           ? '<hr><h6 class="fw-bold">Timeline</h6><p class="mb-0">' +

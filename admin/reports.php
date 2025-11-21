@@ -58,6 +58,7 @@ $T_P = $DB['TABLE_PAY'];
 
 // --- SQL Columns ---
 $O_ID = $DB['COL_ORDER_ID'];
+$O_NUM = $DB['COL_ORDER_NUM']; // Added Order Number column alias
 $O_CREATED = $DB['COL_CREATED'];
 $O_STATUS = $DB['COL_STATUS'];
 $O_TOTAL = $DB['COL_TOTAL'];
@@ -125,7 +126,7 @@ if ($stmt = $conn->prepare($sql)) {
 // -------- Orders list (current page only, 10 per page) ----------
 $orders = [];
 $sql = "SELECT 
-            o.$O_ID, o.$O_CREATED, o.$O_TYPE, o.$O_STATUS, o.$O_TOTAL,
+            o.$O_ID, o.$O_NUM, o.$O_CREATED, o.$O_TYPE, o.$O_STATUS, o.$O_TOTAL,
             CONCAT(ocd.$C_FNAME, ' ', ocd.$C_LNAME) as customer_name,
             opd.$P_STATUS, opd.$P_METHOD
         FROM $T_O o
@@ -147,7 +148,6 @@ if ($stmt = $conn->prepare($sql)) {
 <div class="container-fluid">
   <main class="main-content py-4">
     
-    <!-- Top header / filters -->
     <div class="content-card mb-4 no-print">
       <div class="content-card-header d-flex justify-content-between align-items-center">
         <div>
@@ -195,10 +195,8 @@ if ($stmt = $conn->prepare($sql)) {
       </form>
     </div>
 
-    <!-- PRINT AREA: everything inside this div is what will be printed -->
     <div id="print-area">
       
-      <!-- KPI / Stat row -->
       <div class="row g-3 mb-4">
         <div class="col-sm-6 col-lg-3">
           <div class="stat-card stat-card-main">
@@ -259,7 +257,6 @@ if ($stmt = $conn->prepare($sql)) {
         </div>
       </div>
 
-      <!-- Payment breakdown -->
       <div class="content-card mb-4">
         <div class="content-card-header d-flex justify-content-between align-items-center">
           <div>
@@ -309,7 +306,6 @@ if ($stmt = $conn->prepare($sql)) {
         </div>
       </div>
 
-      <!-- Orders list -->
       <div class="content-card">
         <div class="content-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
@@ -345,7 +341,7 @@ if ($stmt = $conn->prepare($sql)) {
                 <?php foreach ($orders as $r): ?>
                   <tr>
                     <td class="fw-semibold">
-                      #<?= h($r[$O_ID]) ?>
+                      <strong><?= h($r[$O_NUM] ?? $r[$O_ID]) ?></strong>
                     </td>
                     <td>
                       <?php
@@ -368,18 +364,20 @@ if ($stmt = $conn->prepare($sql)) {
                     <td><?= h(ucfirst($r[$O_TYPE])) ?></td>
                     <td>
                       <?php
-                        $payStatus = $r[$P_STATUS] ?? 'N/A';
-                        $payClass = 'bg-secondary';
+                        // Updated Payment Status (Matches Manage Orders style)
+                        $payStatus = $r[$P_STATUS] ?? 'unpaid';
+                        $payBadge = 'bg-secondary-subtle text-secondary'; // default
+                        
                         if ($payStatus === 'paid') {
-                          $payClass = 'bg-success';
-                        } elseif ($payStatus === 'pending') {
-                          $payClass = 'bg-warning text-dark';
+                            $payBadge = 'bg-success-subtle text-success';
                         } elseif ($payStatus === 'failed') {
-                          $payClass = 'bg-danger';
+                            $payBadge = 'bg-danger-subtle text-danger';
+                        } elseif ($payStatus === 'refunded') {
+                            $payBadge = 'bg-info-subtle text-info';
                         }
                       ?>
-                      <span class="badge <?= h($payClass) ?>">
-                        <?= h(ucfirst($payStatus)) ?>
+                      <span class="badge <?= h($payBadge) ?> badge-rounded">
+                        <?= h(ucfirst($payStatus ?: 'Pending')) ?>
                       </span>
                     </td>
                     <td class="text-capitalize">
@@ -387,21 +385,21 @@ if ($stmt = $conn->prepare($sql)) {
                     </td>
                     <td>
                       <?php
-                        // More visible badge colors for order Status
-                        $map = [
-                          'pending'           => 'bg-warning text-dark',
-                          'confirmed'         => 'bg-primary',
-                          'preparing'         => 'bg-info text-dark',
-                          'ready'             => 'bg-success',
-                          'out_for_delivery'  => 'bg-info text-dark',
-                          'delivered'         => 'bg-secondary',
-                          'completed'         => 'bg-success',
-                          'cancelled'         => 'bg-danger',
+                        // Updated Status Badges (Same as Manage Orders)
+                        $status_map = [
+                          'pending'          => 'status-pending',
+                          'confirmed'        => 'status-confirmed',
+                          'preparing'        => 'status-preparing',
+                          'ready'            => 'status-ready',
+                          'out_for_delivery' => 'status-out-for-delivery',
+                          'delivered'        => 'status-delivered',
+                          'completed'        => 'status-completed',
+                          'cancelled'        => 'status-cancelled',
                         ];
-                        $cls = $map[$r[$O_STATUS]] ?? 'bg-light text-dark';
+                        $status_class = $status_map[$r[$O_STATUS]] ?? 'bg-secondary text-white';
                       ?>
-                      <span class="badge <?= h($cls) ?>">
-                        <?= h(ucwords(str_replace('_',' ',$r[$O_STATUS]))) ?>
+                      <span class="status-badge <?= h($status_class) ?>">
+                        <?= h(ucfirst(str_replace('_', ' ', $r[$O_STATUS]))) ?>
                       </span>
                     </td>
                     <td class="text-end fw-semibold">
@@ -446,9 +444,7 @@ if ($stmt = $conn->prepare($sql)) {
         </div>
         <?php endif; ?>
       </div>
-    </div> <!-- /#print-area -->
-
-  </main>
+    </div> </main>
 </div>
 
 <style>
@@ -607,6 +603,31 @@ body {
   font-size: 0.7rem;
   font-weight: 600;
   color: #4f46e5;
+}
+
+/* Status Badges (Same as Manage Orders) */
+.status-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status-pending          { background:#fef3c7; color:#92400e; }
+.status-confirmed        { background:#dbeafe; color:#1d4ed8; }
+.status-preparing        { background:#e0f2fe; color:#0369a1; }
+.status-ready            { background:#dcfce7; color:#15803d; }
+.status-out-for-delivery { background:#e0f2fe; color:#0369a1; }
+.status-delivered,
+.status-completed        { background:#e5e7eb; color:#111827; }
+.status-cancelled        { background:#fee2e2; color:#b91c1c; }
+
+/* Payment Badge (Same as Manage Orders) */
+.badge-rounded {
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
 }
 
 /* Buttons */

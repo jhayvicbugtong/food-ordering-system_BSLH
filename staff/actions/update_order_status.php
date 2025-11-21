@@ -39,9 +39,21 @@ if (!in_array($new_status, $valid_statuses)) {
     exit;
 }
 
-// 4. Build SQL Query
 $conn->begin_transaction();
 try {
+    // --- FETCH CURRENT INFO (For Logic Checks) ---
+    $info_stmt = $conn->prepare("
+        SELECT o.order_type, o.status, opd.payment_method, opd.payment_status 
+        FROM orders o
+        LEFT JOIN order_payment_details opd ON o.order_id = opd.order_id
+        WHERE o.order_id = ?
+    ");
+    $info_stmt->bind_param('i', $order_id);
+    $info_stmt->execute();
+    $current_info = $info_stmt->get_result()->fetch_assoc();
+    $info_stmt->close();
+
+    // 4. Build SQL Query for Status Update
     $fields = ['status = ?'];
     $params = [$new_status];
     $types = 's';
@@ -55,7 +67,7 @@ try {
         case 'out_for_delivery': $time_col = 'out_for_delivery_at'; break;
         case 'delivered': $time_col = 'delivered_at'; break;
         case 'cancelled': $time_col = 'cancelled_at'; break;
-        case 'completed': $time_col = 'updated_at'; break; // 'completed' maps to 'updated_at'
+        case 'completed': $time_col = 'updated_at'; break; 
     }
     
     if ($time_col) {
@@ -88,6 +100,25 @@ try {
     }
     $stmt->close();
 
+    // --- AUTOMATIC PAYMENT UPDATE FOR COD ---
+    // If marking as 'delivered' or 'completed', and it's Cash, mark as Paid.
+    if (in_array($new_status, ['delivered', 'completed'])) {
+        $method = $current_info['payment_method'] ?? '';
+        $p_status = $current_info['payment_status'] ?? '';
+
+        // If Cash and not yet paid, assume rider collected cash
+        if ($method === 'cash' && $p_status !== 'paid') {
+            $pay_upd = $conn->prepare("
+                UPDATE order_payment_details 
+                SET payment_status = 'paid', paid_at = NOW() 
+                WHERE order_id = ?
+            ");
+            $pay_upd->bind_param('i', $order_id);
+            $pay_upd->execute();
+            $pay_upd->close();
+        }
+    }
+
     // Commit transaction
     $conn->commit();
 
@@ -99,7 +130,7 @@ try {
         'ready' => 'badge-success',
         'out_for_delivery' => 'badge-info',
         'delivered' => 'badge-secondary',
-        'completed' => 'badge-secondary',
+        'completed' => 'badge-success', // 'Completed' is usually success green
         'cancelled' => 'badge-danger',
     ];
 

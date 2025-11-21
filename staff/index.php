@@ -292,7 +292,6 @@ $pickup_orders = $conn->query($pickup_sql);
 
   <main class="main-content">
 
-    <!-- Top header card -->
     <div class="content-card mb-3">
       <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
         <div>
@@ -307,7 +306,6 @@ $pickup_orders = $conn->query($pickup_sql);
       </div>
     </div>
 
-    <!-- STAT CARDS (3 cards, no POS) -->
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-md-4">
         <div class="stat-card">
@@ -332,7 +330,6 @@ $pickup_orders = $conn->query($pickup_sql);
       </div>
     </div>
 
-    <!-- ACTIVE ORDERS TABLE -->
     <section class="content-card mb-4">
       <div class="content-card-header">
         <div>
@@ -352,7 +349,7 @@ $pickup_orders = $conn->query($pickup_sql);
               <th>Order #</th>
               <th>Source / Customer</th>
               <th>Items</th>
-              <th>Payment</th>
+              <th>Total</th> <th>Payment</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -416,6 +413,9 @@ $pickup_orders = $conn->query($pickup_sql);
                   $created_time = $order['created_at']
                     ? date('g:i A', strtotime($order['created_at']))
                     : '';
+                    
+                  // Total
+                  $total = (float)($order['total_amount'] ?? 0);
                 ?>
                 <tr>
                   <td>
@@ -451,6 +451,11 @@ $pickup_orders = $conn->query($pickup_sql);
                     </ul>
                   </td>
                   <td>
+                    <span style="font-weight:600; white-space:nowrap;">
+                        ₱<?= number_format($total, 2) ?>
+                    </span>
+                  </td>
+                  <td>
                     <span class="payment-badge badge <?= $payment_badge_class ?>">
                       <?= htmlspecialchars($payment_label) ?>
                     </span>
@@ -464,7 +469,7 @@ $pickup_orders = $conn->query($pickup_sql);
               <?php endwhile; ?>
             <?php else: ?>
               <tr>
-                <td colspan="5" class="text-center text-muted">No active orders.</td>
+                <td colspan="6" class="text-center text-muted">No active orders.</td>
               </tr>
             <?php endif; ?>
           </tbody>
@@ -472,7 +477,6 @@ $pickup_orders = $conn->query($pickup_sql);
       </div>
     </section>
 
-    <!-- PICKUP COUNTER QUEUE TABLE -->
     <section class="content-card">
       <div class="content-card-header">
         <div>
@@ -491,7 +495,7 @@ $pickup_orders = $conn->query($pickup_sql);
               <th>Order #</th>
               <th>Customer</th>
               <th>Items</th>
-              <th>Time Ready</th>
+              <th>Total</th> <th>Time Ready</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -515,6 +519,7 @@ $pickup_orders = $conn->query($pickup_sql);
 
                   $status       = $order['status'];
                   $status_class = ($status === 'ready') ? 'badge-success' : 'badge-secondary';
+                  $total        = (float)($order['total_amount'] ?? 0);
                 ?>
                 <tr>
                   <td><strong>#<?= $order_no ?></strong></td>
@@ -539,6 +544,11 @@ $pickup_orders = $conn->query($pickup_sql);
                       <?php endwhile; $items_stmt->close(); ?>
                     </ul>
                   </td>
+                  <td>
+                    <span style="font-weight:600; white-space:nowrap;">
+                        ₱<?= number_format($total, 2) ?>
+                    </span>
+                  </td>
                   <td><?= htmlspecialchars($time_ready) ?></td>
                   <td>
                     <span class="status-badge badge <?= $status_class ?>">
@@ -549,7 +559,7 @@ $pickup_orders = $conn->query($pickup_sql);
               <?php endwhile; ?>
             <?php else: ?>
               <tr>
-                <td colspan="5" class="text-center text-muted">No pickup customers in the queue.</td>
+                <td colspan="6" class="text-center text-muted">No pickup customers in the queue.</td>
               </tr>
             <?php endif; ?>
           </tbody>
@@ -560,7 +570,6 @@ $pickup_orders = $conn->query($pickup_sql);
   </main>
 </div>
 
-<!-- crude "real-time" refresh: reload page every 10 seconds -->
 <script>
   setInterval(function() {
     location.reload();

@@ -1,25 +1,28 @@
 <?php
 // customer/auth/login.php
 
-// THIS IS THE CORRECT PATH FOR THIS FILE
-require_once __DIR__ . '/../../includes/db_connect.php'; // This now provides $BASE_URL
+require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
 
-// --- NEW: Use the $BASE_URL from db_connect.php ---
+// Default destination for customers
 $next = isset($_GET['next']) && $_GET['next'] !== ''
   ? $_GET['next']
   : $BASE_URL . '/customer/menu.php';
-// --- END NEW ---
 
-
-// If user is already logged in, send them to their destination
-if (!empty($_SESSION['user_id']) && $_SESSION['role'] === 'customer') {
-  header("Location: ".$next);
-  exit;
+// If user is already logged in, check role and redirect accordingly
+if (!empty($_SESSION['user_id'])) {
+    $r = $_SESSION['role'] ?? 'customer';
+    if ($r === 'admin') {
+        header("Location: " . $BASE_URL . "/admin/index.php");
+    } elseif ($r === 'staff') {
+        header("Location: " . $BASE_URL . "/staff/index.php");
+    } else {
+        header("Location: " . $next);
+    }
+    exit;
 }
 
 // Helper function for sanitizing output
 function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
-
 
 $error = '';
 $emailVal = '';
@@ -32,8 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email === '' || $password === '') {
         $error = 'Please enter your email and password.';
     } else {
-        // NEW SCHEMA: Use user_id, first_name, and check for hashed password
-        // This query is already correct for your new schema!
+        // Fetch user details including role
         $stmt = $conn->prepare("SELECT user_id, first_name, email, password, role FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1");
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -48,11 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stored === '' || $stored === 'NULL') {
                 $error = 'This account has no password set. Ask an admin to set one.';
             } else {
-                // NEW SCHEMA: Assumes password_verify for hashes.
+                // Verify hash or fallback to plaintext
                 if (strpos($stored, '$') === 0) {
                     $ok = password_verify($password, $stored);
                 } else {
-                    // Fallback for any legacy plaintext passwords
                     $ok = hash_equals($stored, $password);
                 }
             }
@@ -61,21 +62,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($ok) {
             $role = strtolower(trim((string)($user['role'] ?? '')));
 
-            // --- FIX: This login is for CUSTOMERS only ---
-            if ($role !== 'customer') {
-                // This portal is only for customers
-                $error = 'Unauthorized role for this portal. Please use the Staff/Admin login.';
-            } else {
-                // NEW SCHEMA: Set session keys using user_id and first_name
-                $_SESSION['user_id'] = (int)$user['user_id'];
-                $_SESSION['name']    = (string)$user['first_name'];
-                $_SESSION['role']    = $role;
-                $_SESSION['email']   = (string)$user['email']; // Also useful to store email
+            // Set session variables
+            $_SESSION['user_id'] = (int)$user['user_id'];
+            $_SESSION['name']    = (string)$user['first_name'];
+            $_SESSION['role']    = $role;
+            $_SESSION['email']   = (string)$user['email'];
 
-                // --- FIX: Redirect to the 'next' URL, not a hardcoded one ---
-                header("Location: " . $next); // Was: header("Location: ../menu.php");
-                exit();
+            // --- Redirect based on Role ---
+            if ($role === 'admin') {
+                header("Location: " . $BASE_URL . "/admin/index.php");
+            } elseif ($role === 'staff') {
+                header("Location: " . $BASE_URL . "/staff/index.php");
+            } else {
+                // Default for customers
+                header("Location: " . $next);
             }
+            exit();
+
         } elseif (!$error) {
             $error = "Invalid email or password!";
         }
@@ -92,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
-    /* ... [your existing CSS styles] ... */
+    /* Reuse existing CSS */
     :root {
       --bg-dark: #212529;
       --bg-card: #ffffff;
@@ -191,8 +194,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       color: var(--text-dim);
     }
 
-    .aside-bottom strong { color: #fff; font-weight: 500; }
-
     .auth-main {
       flex: 1;
       padding: 32px;
@@ -261,23 +262,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="brand-logo">BS</div>
         <div class="brand-text">
           <h1>Bente Sais Lomi House</h1>
-          <p>Customer Portal</p> 
+          <p>Welcome Back</p> 
         </div>
       </div>
 
       <div style="margin-top:24px; font-size:13px; line-height:1.5; color:#dee2e6;">
-        Sign in to place orders, track deliveries, and view your history.
+        Sign in to access your account, manage orders, or view the dashboard.
       </div>
-    </div>
-
-    <div class="aside-bottom">
-      <div><strong>Note:</strong> Staff and Admins must use the Staff Portal.</div>
     </div>
   </aside>
 
   <main class="auth-main">
     <div class="auth-header">
-      <h2>Customer Sign in</h2>
+      <h2>Sign in</h2>
       <p>Use your registered email and password.</p>
     </div>
 

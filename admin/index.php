@@ -328,6 +328,24 @@ if ($status_counts_result) {
     width: 100%;
     height: 320px;
   }
+  
+  /* Status badges (Same as Manage Orders) */
+  .status-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .status-pending          { background:#fef3c7; color:#92400e; }
+  .status-confirmed        { background:#dbeafe; color:#1d4ed8; }
+  .status-preparing        { background:#e0f2fe; color:#0369a1; }
+  .status-ready            { background:#dcfce7; color:#15803d; }
+  .status-out-for-delivery { background:#e0f2fe; color:#0369a1; }
+  .status-delivered,
+  .status-completed        { background:#e5e7eb; color:#111827; }
+  .status-cancelled        { background:#fee2e2; color:#b91c1c; }
 
   @media (max-width: 576px) {
     .chart-container {
@@ -341,7 +359,6 @@ if ($status_counts_result) {
 
   <main class="main-content">
 
-    <!-- Header + date filter + stats in one top card -->
     <div class="content-card">
       <div class="content-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
@@ -351,7 +368,6 @@ if ($status_counts_result) {
           </p>
         </div>
 
-        <!-- Date filter (auto submit on change, no Apply button) -->
         <form method="get" class="d-flex align-items-center gap-2" id="dateFilterForm">
           <label for="date" class="col-form-label small text-muted mb-0">Date</label>
           <input 
@@ -368,7 +384,6 @@ if ($status_counts_result) {
         Showing data for <strong><?= htmlspecialchars($selected_date) ?></strong> (00:00–23:59)
       </p>
 
-      <!-- STAT CARDS -->
       <div class="row g-3">
         <div class="col-sm-6 col-lg-3">
           <div class="stat-card">
@@ -401,9 +416,7 @@ if ($status_counts_result) {
       </div>
     </div>
 
-    <!-- VISUAL ANALYTICS (RESPONSIVE CHARTS) -->
     <div class="row g-4 mb-4">
-      <!-- Orders & Revenue by Hour -->
       <div class="col-12 col-lg-6">
         <div class="content-card h-100">
           <div class="content-card-header">
@@ -416,7 +429,6 @@ if ($status_counts_result) {
         </div>
       </div>
 
-      <!-- Orders by Hour -->
       <div class="col-12 col-lg-6">
         <div class="content-card h-100">
           <div class="content-card-header">
@@ -431,7 +443,6 @@ if ($status_counts_result) {
     </div>
 
     <div class="row g-4 mb-4">
-      <!-- Payment Mix Pie -->
       <div class="col-12 col-lg-6 col-xl-4">
         <div class="content-card h-100">
           <div class="content-card-header">
@@ -444,7 +455,6 @@ if ($status_counts_result) {
         </div>
       </div>
 
-      <!-- Top Items Bar (Qty) -->
       <div class="col-12 col-lg-6 col-xl-8">
         <div class="content-card h-100">
           <div class="content-card-header">
@@ -459,7 +469,6 @@ if ($status_counts_result) {
     </div>
 
     <div class="row g-4 mb-4">
-      <!-- Orders by Status Bar -->
       <div class="col-12 col-lg-6">
         <div class="content-card h-100">
           <div class="content-card-header">
@@ -473,7 +482,6 @@ if ($status_counts_result) {
       </div>
     </div>
 
-    <!-- ORDER PIPELINE -->
     <span id="top"></span>
     <div class="content-card mb-4">
       <div class="content-card-header">
@@ -496,19 +504,19 @@ if ($status_counts_result) {
             <?php if ($pipeline_result && $pipeline_result->num_rows > 0): ?>
               <?php while($order = $pipeline_result->fetch_assoc()): ?>
                 <?php
-                  // High-contrast badge colors
+                  // Match logic from manage_orders.php
+                  $status = $order['status'] ?? '';
                   $status_map = [
-                    'pending'          => 'bg-warning text-dark',
-                    'confirmed'        => 'bg-primary',
-                    'preparing'        => 'bg-info text-dark',
-                    'ready'            => 'bg-success',
-                    'out_for_delivery' => 'bg-success',
-                    'completed'        => 'bg-success',
-                    'delivered'        => 'bg-success',
-                    'cancelled'        => 'bg-danger'
+                    'pending'          => 'status-pending',
+                    'confirmed'        => 'status-confirmed',
+                    'preparing'        => 'status-preparing',
+                    'ready'            => 'status-ready',
+                    'out_for_delivery' => 'status-out-for-delivery',
+                    'delivered'        => 'status-delivered',
+                    'completed'        => 'status-completed',
+                    'cancelled'        => 'status-cancelled',
                   ];
-                  $status_key   = $order['status'] ?? '';
-                  $status_class = $status_map[$status_key] ?? 'bg-secondary';
+                  $status_class = $status_map[$status] ?? 'bg-secondary text-white';
                 ?>
                 <tr>
                   <td><strong><?= htmlspecialchars($order['order_number'] ?? $order['order_id']) ?></strong></td>
@@ -518,8 +526,8 @@ if ($status_counts_result) {
                   <td><?= htmlspecialchars(ucfirst($order['order_type'])) ?></td>
                   <td><?= htmlspecialchars(ucfirst($order['payment_method'] ?? '')) ?></td>
                   <td>
-                    <span class="badge <?= $status_class ?>">
-                      <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status_key))) ?>
+                    <span class="status-badge <?= $status_class ?>">
+                      <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?>
                     </span>
                   </td>
                 </tr>
@@ -535,7 +543,6 @@ if ($status_counts_result) {
         </table>
       </div>
 
-      <!-- Pagination -->
       <?php if ($total_pages > 1): ?>
         <nav aria-label="Pipeline pagination">
           <ul class="pagination justify-content-end mb-0">
@@ -563,7 +570,6 @@ if ($status_counts_result) {
       <?php endif; ?>
     </div>
 
-    <!-- BUSINESS SNAPSHOT -->
     <div class="content-card">
       <div class="content-card-header">
         <h2 class="section-title mb-1">Business Snapshot (Day)</h2>
@@ -637,7 +643,6 @@ if ($status_counts_result) {
   </main>
 </div>
 
-<!-- Auto-submit date filter on change -->
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const dateInput = document.getElementById('date');
@@ -649,7 +654,6 @@ if ($status_counts_result) {
   });
 </script>
 
-<!-- Chart.js + chart config -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   // Data from PHP
