@@ -36,7 +36,7 @@ $page = isset($_GET['page']) && ctype_digit($_GET['page']) && (int)$_GET['page']
 
 // get total rows for this filter
 $count_sql = "
-    SELECT COUNT(*) AS total
+    SELECT COUNT(DISTINCT o.order_id) AS total
     FROM orders o
     LEFT JOIN order_customer_details ocd ON o.order_id = ocd.order_id
     WHERE {$whereSql}
@@ -61,6 +61,7 @@ $baseQuery = http_build_query($queryParams);
 $paginationBaseUrl = 'manage_orders.php' . ($baseQuery ? '?' . $baseQuery . '&' : '?');
 
 // ----- FETCH ORDERS -----
+// Joined order_payment_details to get payment_status
 $orders_query = "
     SELECT 
         o.order_id, 
@@ -71,10 +72,13 @@ $orders_query = "
         o.created_at,
         ocd.customer_first_name, 
         ocd.customer_last_name,
-        ocd.customer_phone
+        ocd.customer_phone,
+        opd.payment_status
     FROM orders o
     LEFT JOIN order_customer_details ocd ON o.order_id = ocd.order_id
+    LEFT JOIN order_payment_details opd ON o.order_id = opd.order_id
     WHERE {$whereSql}
+    GROUP BY o.order_id
     ORDER BY 
         CASE o.status
             WHEN 'pending' THEN 1
@@ -235,7 +239,6 @@ $orders_result = $conn->query($orders_query);
 
   <main class="main-content">
     
-    <!-- Page header -->
     <section class="content-card mb-4">
       <div class="content-card-header">
         <div class="left">
@@ -253,7 +256,6 @@ $orders_result = $conn->query($orders_query);
       </p>
     </section>
 
-    <!-- Orders + filters -->
     <section class="content-card">
       <div class="content-card-header">
         <div class="left">
@@ -262,9 +264,7 @@ $orders_result = $conn->query($orders_query);
         </div>
       </div>
 
-      <!-- FILTERS -->
       <form class="row g-2 mb-3 filter-form" method="get">
-        <!-- reset to page 1 whenever filters change -->
         <input type="hidden" name="page" value="1">
 
         <div class="col-md-3 col-sm-6">
@@ -303,7 +303,7 @@ $orders_result = $conn->query($orders_query);
               <th>Order</th>
               <th>Customer</th>
               <th>Order Type</th>
-              <th>Total (₱)</th>
+              <th>Payment</th> <th>Total (₱)</th>
               <th>Status</th>
               <th class="text-end">Actions</th>
             </tr>
@@ -329,6 +329,17 @@ $orders_result = $conn->query($orders_query);
                   if (trim($customer_name) === '') {
                     $customer_name = 'Walk-in Customer';
                   }
+                  
+                  // Payment status logic
+                  $pay_status = $order['payment_status'] ?? 'unpaid';
+                  $pay_badge = 'bg-secondary-subtle text-secondary'; // default
+                  if ($pay_status === 'paid') {
+                      $pay_badge = 'bg-success-subtle text-success';
+                  } elseif ($pay_status === 'failed') {
+                      $pay_badge = 'bg-danger-subtle text-danger';
+                  } elseif ($pay_status === 'refunded') {
+                      $pay_badge = 'bg-info-subtle text-info';
+                  }
                 ?>
                 <tr data-row-id="<?= (int)$order['order_id'] ?>">
                   <td>
@@ -348,6 +359,11 @@ $orders_result = $conn->query($orders_query);
                       <span class="badge bg-primary-subtle text-primary badge-rounded">Pickup</span>
                     <?php endif; ?>
                   </td>
+                  <td>
+                      <span class="badge <?= $pay_badge ?> badge-rounded">
+                          <?= ucfirst($pay_status ?: 'Pending') ?>
+                      </span>
+                  </td>
                   <td>₱<?= number_format((float)$order['total_amount'], 2) ?></td>
                   <td>
                     <span class="status-badge <?= $status_class ?>">
@@ -356,10 +372,9 @@ $orders_result = $conn->query($orders_query);
                   </td>
                   <td class="text-end">
                     <div class="btn-group btn-group-sm">
-                      <!-- VIEW BUTTON WITH FUNCTION -->
                       <button class="btn btn-outline-secondary btn-view"
                               data-order-id="<?= (int)$order['order_id'] ?>">
-                        View
+                        <i class="bi bi-eye"></i> View
                       </button>
                     </div>
                   </td>
@@ -367,7 +382,7 @@ $orders_result = $conn->query($orders_query);
               <?php endwhile; ?>
             <?php else: ?>
               <tr>
-                <td colspan="6" class="text-center text-muted py-4">
+                <td colspan="7" class="text-center text-muted py-4">
                   No orders found for this filter.
                 </td>
               </tr>
@@ -377,12 +392,10 @@ $orders_result = $conn->query($orders_query);
         </table>
       </div>
 
-      <!-- PAGINATION -->
       <?php if ($total_pages > 1): ?>
         <nav aria-label="Orders pagination">
           <ul class="pagination justify-content-end mt-3">
 
-            <!-- Previous arrow -->
             <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
               <?php if ($page <= 1): ?>
                 <span class="page-link" aria-label="Previous">&laquo;</span>
@@ -393,7 +406,6 @@ $orders_result = $conn->query($orders_query);
               <?php endif; ?>
             </li>
 
-            <!-- Page numbers -->
             <?php for ($p = 1; $p <= $total_pages; $p++): ?>
               <li class="page-item <?= $p == $page ? 'active' : '' ?>">
                 <a class="page-link"
@@ -403,7 +415,6 @@ $orders_result = $conn->query($orders_query);
               </li>
             <?php endfor; ?>
 
-            <!-- Next arrow -->
             <li class="page-item <?= $page >= $total_pages ? 'disabled' : '' ?>">
               <?php if ($page >= $total_pages): ?>
                 <span class="page-link" aria-label="Next">&raquo;</span>
@@ -420,7 +431,6 @@ $orders_result = $conn->query($orders_query);
 
     </section>
 
-    <!-- ORDER DETAILS MODAL (for View button) -->
     <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -434,6 +444,7 @@ $orders_result = $conn->query($orders_query);
                 <p class="mb-1"><strong>Status:</strong> <span id="od-status"></span></p>
                 <p class="mb-1"><strong>Type:</strong> <span id="od-type"></span></p>
                 <p class="mb-1"><strong>Placed:</strong> <span id="od-created-at"></span></p>
+                <p class="mb-1"><strong>Address:</strong> <span id="od-address"></span></p>
               </div>
               <div class="col-md-6">
                 <p class="mb-1"><strong>Customer:</strong> <span id="od-customer"></span></p>
@@ -470,7 +481,6 @@ $orders_result = $conn->query($orders_query);
       </div>
     </div>
 
-    <!-- EXISTING PAYMENT MODAL (unchanged) -->
     <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content" id="paymentForm">
@@ -552,6 +562,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const odPhone       = document.getElementById('od-phone');
   const odCreatedAt   = document.getElementById('od-created-at');
   const odPayment     = document.getElementById('od-payment');
+  const odAddress     = document.getElementById('od-address'); // NEW
   const odItemsBody   = document.getElementById('od-items-body');
   const odTotal       = document.getElementById('od-total');
 
@@ -569,6 +580,7 @@ document.addEventListener('DOMContentLoaded', function () {
       odCustomer.textContent    = '';
       odPhone.textContent       = '';
       odCreatedAt.textContent   = '';
+      odAddress.textContent     = 'Loading...'; // NEW
       odPayment.textContent     = 'Loading payment...';
 
       odItemsBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Loading...</td></tr>';
@@ -579,9 +591,14 @@ document.addEventListener('DOMContentLoaded', function () {
       try {
         const res  = await fetch('actions/get_order_details.php?order_id=' + encodeURIComponent(orderId));
         const text = await res.text();
-        console.log('order details raw:', text);
-
-        const data = JSON.parse(text);
+        
+        let data;
+        try {
+             data = JSON.parse(text);
+        } catch (jsonErr) {
+             console.error('JSON Parse error:', jsonErr, 'Raw:', text);
+             throw new Error('Invalid server response');
+        }
 
         if (data.status !== 'ok') {
           throw new Error(data.message || 'Failed to load order details');
@@ -596,6 +613,9 @@ document.addEventListener('DOMContentLoaded', function () {
         odCustomer.textContent    = o.customer;
         odPhone.textContent       = o.phone;
         odCreatedAt.textContent   = o.created_at;
+        // Populate address
+        odAddress.textContent     = o.delivery_address || 'N/A (Pickup or Walk-in)';
+        
         odTotal.textContent       = '₱' + o.total_amount.toFixed(2);
 
         // PAYMENT LAYOUT
@@ -663,6 +683,7 @@ document.addEventListener('DOMContentLoaded', function () {
           '<tr><td colspan="4" class="text-danger text-center">Error loading items: '
           + err.message + '</td></tr>';
         odPayment.textContent = 'Error loading payment';
+        odAddress.textContent = 'Error';
       }
     });
   });
@@ -741,15 +762,18 @@ document.addEventListener('DOMContentLoaded', function () {
       // Update UI for the row to "Preparing"
       const row = document.querySelector(`tr[data-row-id="${form.dataset.rowId}"]`);
       if (row) {
-        const badge = row.querySelector('td:nth-child(5) .status-badge');
-        if (badge) { 
-          badge.className = 'status-badge status-preparing';
-          badge.textContent = 'Preparing'; 
+        const badge = row.querySelector('td:nth-child(5) .status-badge'); // Adjusted index if columns shifted, but likely safest to use class
+        // Actually, we just added a column, so status-badge is further right.
+        // Better selector:
+        const statusBadge = row.querySelector('.status-badge');
+        if (statusBadge) { 
+          statusBadge.className = 'status-badge status-preparing';
+          statusBadge.textContent = 'Preparing'; 
         }
         const actions = row.querySelector('.btn-group');
         if (actions) {
           actions.innerHTML = `
-            <button class="btn btn-outline-secondary btn-view" data-order-id="${form.dataset.rowId}">View</button>
+            <button class="btn btn-outline-secondary btn-view" data-order-id="${form.dataset.rowId}"><i class="bi bi-eye"></i> View</button>
             <button class="btn btn-outline-success">Mark as Ready</button>
           `;
         }

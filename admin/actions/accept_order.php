@@ -2,6 +2,15 @@
 // admin/actions/accept_order.php
 header('Content-Type: application/json');
 
+// Import PHPMailer classes
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+require_once __DIR__ . '/../../includes/PHPMailer/Exception.php';
+require_once __DIR__ . '/../../includes/PHPMailer/PHPMailer.php';
+require_once __DIR__ . '/../../includes/PHPMailer/SMTP.php';
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   http_response_code(405);
   echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
@@ -33,7 +42,7 @@ if ($orderId <= 0) {
 
 // 3. --- CORRECTED SCHEMA FOR online_food_ordering_db.sql ---
 $table        = 'orders';
-$colId        = 'order_id';        // CORRECTED
+$colId        = 'order_id';       
 $colStatus    = 'status';
 $nextStatus   = 'preparing'; 
 $curStatus    = 'pending';   
@@ -41,7 +50,7 @@ $curStatus    = 'pending';
 $payTable     = 'order_payment_details';
 $colPayStat   = 'payment_status';
 $colPayMethod = 'payment_method';
-$colPayRef    = 'gcash_reference'; // CORRECTED
+$colPayRef    = 'gcash_reference';
 $colPayAmount = 'amount_paid';
 $colPayDate   = 'paid_at';
 
@@ -83,12 +92,54 @@ try {
   $paid_at_time = ($paymentStatus === 'paid') ? date("Y-m-d H:i:s") : null;
 
   $stmt_pay = $conn->prepare($sql_pay);
-  // --- FIX: Use $amount for amount_paid
   $stmt_pay->bind_param('sssdsi', $paymentStatus, $method, $reference, $amount, $paid_at_time, $orderId);
   $stmt_pay->execute();
   $stmt_pay->close();
 
   $conn->commit();
+
+  // --- SEND EMAIL NOTIFICATION (ORDER ACCEPTED) ---
+  try {
+    // Fetch customer details
+    $custQuery = "SELECT o.order_number, cd.customer_email, cd.customer_first_name 
+                  FROM orders o
+                  JOIN order_customer_details cd ON o.order_id = cd.order_id
+                  WHERE o.order_id = ?";
+    $stmtCust = $conn->prepare($custQuery);
+    $stmtCust->bind_param('i', $orderId);
+    $stmtCust->execute();
+    $custRes = $stmtCust->get_result()->fetch_assoc();
+    $stmtCust->close();
+
+    if ($custRes && !empty($custRes['customer_email'])) {
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'bentesaislomi.26@gmail.com'; 
+        $mail->Password   = 'gqzk qvow jxee kkns'; 
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+
+        $mail->setFrom('bentesaislomi.26@gmail.com', 'Bente Sais Lomi House');
+        $mail->addAddress($custRes['customer_email'], $custRes['customer_first_name']);
+
+        $mail->isHTML(true);
+        $mail->Subject = "Order Accepted - " . $custRes['order_number'];
+        $mail->Body    = "
+            <h3>Order Accepted!</h3>
+            <p>Hi " . htmlspecialchars($custRes['customer_first_name']) . ",</p>
+            <p>Your order <strong>" . $custRes['order_number'] . "</strong> has been accepted by our staff and is now being prepared.</p>
+            <p>Thank you for choosing Bente Sais Lomi House!</p>
+        ";
+        $mail->send();
+    }
+  } catch (Exception $mailEx) {
+      // Log error but don't break the response
+      error_log("Mail Error: " . $mailEx->getMessage());
+  }
+  // ------------------------------------------------
+
   echo json_encode(['status' => 'ok', 'next_status' => $nextStatus]);
 
 } catch (Throwable $e) {

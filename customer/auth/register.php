@@ -2,24 +2,35 @@
 // customer/auth/register.php
 require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL and starts session
 
+// --- NEW: Fetch Store Name ---
+$store_name = "Bente Sais Lomi House";
+if (isset($conn) && $conn instanceof mysqli) {
+    $res = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'store_name' LIMIT 1");
+    if ($res && $res->num_rows > 0) {
+        $store_name = $res->fetch_assoc()['setting_value'];
+    }
+}
+
+// Import PHPMailer classes into the global namespace
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
 // --- NEW: Use the $BASE_URL from db_connect.php ---
 $next = isset($_GET['next']) && $_GET['next'] !== ''
   ? $_GET['next']
   : $BASE_URL . '/customer/menu.php';
-// --- END NEW ---
 
-// --- MODIFIED: Check new session keys ---
+// Check if already logged in
 if (!empty($_SESSION['user_id']) && $_SESSION['role'] === 'customer') {
   header("Location: ".$next);
   exit;
 }
 
 $err = '';
-// --- MODIFIED: Use new schema fields ---
 $vals = ['first_name'=>'','last_name'=>'','email'=>'','phone'=>''];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // --- MODIFIED: Use new field names ---
   $first_name = trim($_POST['first_name'] ?? '');
   $last_name  = trim($_POST['last_name'] ?? '');
   $email      = trim($_POST['email'] ?? '');
@@ -38,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   } elseif ($pass !== $pass2) {
     $err = 'Passwords do not match.';
   } else {
-    // unique email across users
+    // unique email check
     $stmt = $conn->prepare("SELECT 1 FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1");
     $stmt->bind_param('s', $email);
     $stmt->execute();
@@ -51,23 +62,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
       $hash = password_hash($pass, PASSWORD_DEFAULT);
       
-      // --- MODIFIED: Insert into new users table structure ---
-      $sql = "INSERT INTO users (first_name, last_name, email, phone, password, role) 
-              VALUES (?, ?, ?, ?, ?, 'customer')";
+      // 1. Generate 6-digit OTP
+      $otp = rand(100000, 999999);
+
+      // 2. Insert user as INACTIVE (is_active = 0) and save OTP
+      $sql = "INSERT INTO users (first_name, last_name, email, phone, password, role, is_active, verification_code) 
+              VALUES (?, ?, ?, ?, ?, 'customer', 0, ?)";
       $stmt = $conn->prepare($sql);
-      $stmt->bind_param('sssss', $first_name, $last_name, $email, $phone, $hash);
+      $stmt->bind_param('ssssss', $first_name, $last_name, $email, $phone, $hash, $otp);
       
       if ($stmt->execute()) {
         $id = $stmt->insert_id;
         $stmt->close();
-        
-        // --- MODIFIED: Auto-login with new session keys ---
-        $_SESSION['user_id'] = (int)$id;
-        $_SESSION['name']    = $first_name; // Use first_name for greeting
-        $_SESSION['email']   = $email;
-        $_SESSION['role']    = 'customer';
-        header("Location: ".$next);
-        exit;
+
+        // 3. Send OTP via Email (PHPMailer)
+        require_once __DIR__ . '/../../includes/PHPMailer/Exception.php';
+        require_once __DIR__ . '/../../includes/PHPMailer/PHPMailer.php';
+        require_once __DIR__ . '/../../includes/PHPMailer/SMTP.php';
+
+        $mail = new PHPMailer(true);
+
+        try {
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'bentesaislomi.26@gmail.com'; 
+            $mail->Password   = 'gqzk qvow jxee kkns'; 
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+
+            $mail->setFrom('bentesaislomi.26@gmail.com', $store_name);
+            $mail->addAddress($email, "$first_name $last_name");
+
+            $mail->isHTML(true);
+            $mail->Subject = 'Verify your email address';
+            $mail->Body    = "
+                <h2>Welcome to $store_name!</h2>
+                <p>Thank you for signing up. Please use the verification code below to complete your registration:</p>
+                <h1 style='background: #f0f0f0; padding: 10px; display: inline-block; letter-spacing: 5px;'>$otp</h1>
+                <p>This code is valid for your account verification.</p>
+            ";
+            $mail->AltBody = "Your verification code is: $otp";
+
+            $mail->send();
+
+            // 4. Redirect to Verification Page
+            // Store email in session to pre-fill the next page
+            $_SESSION['verify_email'] = $email;
+            header("Location: verify_email.php?next=" . urlencode($next));
+            exit;
+
+        } catch (Exception $e) {
+            $err = 'Account created, but email failed to send. Contact admin.';
+            error_log("Mailer Error: " . $mail->ErrorInfo);
+        }
+
       } else {
         $err = 'Something went wrong. Please try again.';
       }
@@ -82,22 +131,21 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=0"/>
-  <title>Create account • Bente Sais Lomi House</title>
+  <title>Create account • <?= h($store_name) ?></title>
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   
   <style>
-    /* ... [your existing CSS styles] ... */
     :root {
       --bg-dark: #212529;
       --bg-card: #ffffff;
-      --text-light: #f8f9fa;
-      --text-dim: #adb5bd;
-      --accent: #5cfa63; /* avocado green */
-      --border-card: rgba(0,0,0,0.08);
+      --text-main: #212529;
+      --text-dim: #6c757d;
+      --accent: #5cfa63; 
+      --accent-hover: #4ae052;
       --radius-lg: 16px;
+      --shadow-soft: 0 10px 40px rgba(0,0,0,0.08);
     }
 
     * { box-sizing: border-box; }
@@ -105,36 +153,37 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Segoe UI", Arial, sans-serif;
-      background-color: #f5f7fa;
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+      background-color: #f8f9fa;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #212529;
-      padding: 20px 0;
+      color: var(--text-main);
     }
 
     .auth-shell {
       background: var(--bg-card);
       border-radius: var(--radius-lg);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+      box-shadow: var(--shadow-soft);
       display: flex;
       width: 900px;
       max-width: 95%;
       overflow: hidden;
-      border: 1px solid var(--border-card);
+      border: 1px solid rgba(0,0,0,0.04);
     }
 
+    /* Sidebar */
     .auth-aside {
       background-color: var(--bg-dark);
-      color: var(--text-light);
-      padding: 32px 28px;
+      color: #f8f9fa;
+      padding: 48px 40px;
       width: 40%;
-      min-width: 260px;
+      min-width: 300px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
+      background-image: radial-gradient(circle at 90% 90%, rgba(92, 250, 99, 0.05) 0%, transparent 40%);
     }
 
     .auth-aside::before {
@@ -142,110 +191,173 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       position: absolute;
       top: 0;
       left: 0;
-      height: 4px;
+      height: 5px;
       width: 100%;
       background: var(--accent);
     }
 
     .brand-block {
       display: flex;
-      align-items: flex-start;
-      gap: 12px;
+      flex-direction: column;
+      gap: 16px;
     }
 
     .brand-logo {
-      height: 36px;
-      width: 36px;
-      border-radius: 8px;
+      height: 48px;
+      width: 48px;
+      border-radius: 12px;
       background: radial-gradient(circle at 30% 30%, #5cfa63 0%, #1c1f1f 70%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 600;
+      font-weight: 700;
       color: #000;
-      font-size: 14px;
+      font-size: 18px;
       line-height: 1;
-      box-shadow: 0 8px 20px rgba(92,250,99,0.5);
+      box-shadow: 0 0 20px rgba(92,250,99,0.4);
     }
 
     .brand-text h1 {
       margin: 0;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 24px;
+      font-weight: 700;
       color: #fff;
       line-height: 1.2;
     }
 
     .brand-text p {
-      margin: 2px 0 0;
-      font-size: 13px;
-      line-height: 1.4;
-      color: var(--text-dim);
+      margin: 4px 0 0;
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      font-weight: 500;
+    }
+
+    .intro-text {
+        margin-top: 32px;
+        font-size: 14px;
+        line-height: 1.6;
+        color: rgba(255,255,255,0.8);
     }
 
     .aside-bottom {
-      font-size: 12px;
-      line-height: 1.4;
-      color: var(--text-dim);
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.5);
     }
 
-    .aside-bottom strong { color: #fff; font-weight: 500; }
+    .aside-bottom strong { color: #fff; font-weight: 600; }
 
+    /* Main Content */
     .auth-main {
       flex: 1;
-      padding: 32px;
+      padding: 48px 50px;
       background: var(--bg-card);
       display: flex;
       flex-direction: column;
       justify-content: center;
     }
 
-    .auth-header { margin-bottom: 24px; }
+    .auth-header { margin-bottom: 28px; }
 
     .auth-header h2 {
       margin: 0;
-      font-size: 20px;
-      font-weight: 600;
-      color: #212529;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-main);
       line-height: 1.2;
     }
 
     .auth-header p {
-      margin: 6px 0 0;
-      font-size: 14px;
-      color: #6c757d;
-      line-height: 1.4;
+      margin: 8px 0 0;
+      font-size: 15px;
+      color: var(--text-dim);
     }
 
-    .alert-danger { font-size: 14px; padding: 10px 12px; border-radius: 8px; }
+    .alert-danger { 
+      font-size: 14px; 
+      padding: 12px 16px; 
+      border-radius: 10px; 
+      border: none;
+      background-color: #fee2e2;
+      color: #991b1b;
+      margin-bottom: 24px;
+    }
 
-    .form-label { font-size: 13px; font-weight: 500; color: #343a40; margin-bottom: 4px; }
+    .form-label { 
+      font-size: 13px; 
+      font-weight: 600; 
+      color: #343a40; 
+      margin-bottom: 6px; 
+    }
 
-    .form-control { font-size: 14px; border-radius: 8px; padding: 10px 12px; }
+    .form-control { 
+      font-size: 14px; 
+      border-radius: 10px; 
+      padding: 10px 14px; 
+      border: 1px solid #dee2e6;
+      transition: all 0.2s ease;
+      background-color: #fcfcfc;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(92, 250, 99, 0.15);
+      background-color: #fff;
+    }
 
     .btn-login {
       background-color: var(--accent);
       border: 0;
       width: 100%;
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 15px;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 16px;
       font-weight: 600;
-      color: #000;
+      color: #052e06;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(92,250,99,0.4);
+      margin-top: 16px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
-    .btn-login:hover { filter: brightness(.92); }
+    .btn-login:hover { 
+      background-color: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(92, 250, 99, 0.25);
+    }
+    .btn-login:active { transform: translateY(0); }
 
-    .back-link { text-align: center; margin-top: 20px; font-size: 13px; }
-    .back-link a { color: #6c757d; text-decoration: none; }
-    .back-link a:hover { color: #000; }
+    .back-link { text-align: center; margin-top: 24px; font-size: 14px; color: var(--text-dim); }
+    .back-link a { color: var(--text-main); text-decoration: none; font-weight: 700; transition: color 0.2s; }
+    .back-link a:hover { color: #000; text-decoration: underline; }
+    
+    .nav-back { display: inline-block; margin-top: 12px; font-size: 13px; color: #adb5bd; text-decoration: none; transition: color 0.2s;}
+    .nav-back:hover { color: #6c757d; }
 
-    @media (max-width: 700px) {
-      .auth-shell { flex-direction: column; width: 420px; max-width: 94%; }
-      .auth-aside { display: none; } /* Hide aside on mobile for register form */
-      .auth-main { width: 100%; }
-      .site-footer { margin-top: 24px; }
+    @media (max-width: 768px) {
+      .auth-shell { 
+        flex-direction: column; 
+        width: 100%; 
+        min-height: 100vh;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+      }
+      /* Mobile adjustment: Make aside visible but smaller like Login */
+      .auth-aside { 
+        width: 100%; 
+        padding: 30px 24px;
+        flex: 0 0 auto;
+        min-height: auto;
+        border-radius: 0 0 24px 24px;
+      }
+      .auth-aside::before { display: none; }
+      /* Hide the description text on mobile to save space */
+      .intro-text { display: none; }
+      .aside-bottom { display: none; }
+      
+      .auth-main { padding: 40px 24px; }
+      .brand-logo { height: 40px; width: 40px; font-size: 16px; }
+      .brand-text h1 { font-size: 20px; }
     }
   </style>
 </head>
@@ -258,13 +370,13 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
         <div class="brand-block">
           <div class="brand-logo">BS</div>
           <div class="brand-text">
-            <h1>Bente Sais Lomi House</h1>
-            <p>Customer Portal</p>
+            <h1><?= h($store_name) ?></h1>
+            <p>Join the family</p>
           </div>
         </div>
 
-        <div style="margin-top:24px; font-size:13px; line-height:1.5; color:#dee2e6;">
-          Create an account to save your details and track orders easily.
+        <div class="intro-text">
+          Create an account to save your delivery details, track your orders, and enjoy faster checkout.
         </div>
       </div>
 
@@ -286,21 +398,21 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
         <div class="row mb-3">
           <div class="col-md-6">
             <label class="form-label">First name *</label>
-            <input class="form-control" type="text" name="first_name" value="<?= h($vals['first_name']) ?>" required>
+            <input class="form-control" type="text" name="first_name" value="<?= h($vals['first_name']) ?>" required placeholder="Juan">
           </div>
           <div class="col-md-6">
             <label class="form-label">Last name *</label>
-            <input class="form-control" type="text" name="last_name" value="<?= h($vals['last_name']) ?>" required>
+            <input class="form-control" type="text" name="last_name" value="<?= h($vals['last_name']) ?>" required placeholder="Dela Cruz">
           </div>
         </div>
         
         <div class="mb-3">
-          <label class="form-label">Email *</label>
-          <input class="form-control" type="email" name="email" value="<?= h($vals['email']) ?>" required>
+          <label class="form-label">Email address *</label>
+          <input class="form-control" type="email" name="email" value="<?= h($vals['email']) ?>" required placeholder="you@example.com">
         </div>
         <div class="mb-3">
           <label class="form-label">Phone (optional)</label>
-          <input class="form-control" type="text" name="phone" value="<?= h($vals['phone']) ?>" placeholder="09xx xxx xxxx">
+          <input class="form-control" type="text" name="phone" value="<?= h($vals['phone']) ?>" placeholder="0912 345 6789">
         </div>
         <div class="mb-3">
           <label class="form-label">Password *</label>
@@ -308,17 +420,16 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
         </div>
         <div class="mb-3">
           <label class="form-label">Confirm password *</label>
-          <input class="form-control" type="password" name="confirm_password" required>
+          <input class="form-control" type="password" name="confirm_password" placeholder="Repeat password" required>
         </div>
 
-        <button class="btn-login" type="submit">Create account</button>
+        <button class="btn-login" type="submit">Create Account</button>
 
         <div class="back-link">
           Already have an account?
-          <a href="login.php?next=<?= urlencode($next) ?>" style="color:#0b2b0b; font-weight: 600;">Sign in</a>
-          <div style="margin-top: 12px;">
-            <a href="<?= htmlspecialchars($BASE_URL) ?>/index.php">← Back to Customer Page</a>
-          </div>
+          <a href="login.php?next=<?= urlencode($next) ?>">Sign in</a>
+          <br>
+          <a href="<?= htmlspecialchars($BASE_URL) ?>/index.php" class="nav-back">← Back to Home Page</a>
         </div>
       </form>
     </main>

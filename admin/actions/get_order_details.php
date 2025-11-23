@@ -15,14 +15,21 @@ if ($order_id <= 0) {
     exit;
 }
 
-// ----- ORDER + CUSTOMER -----
+// ----- ORDER + CUSTOMER + ADDRESS -----
 $sqlOrder = "
     SELECT o.*,
            ocd.customer_first_name,
            ocd.customer_last_name,
-           ocd.customer_phone
+           ocd.customer_phone,
+           oa.street,
+           oa.barangay,
+           oa.city,
+           oa.province,
+           oa.floor_number,
+           oa.apt_landmark
     FROM orders o
     LEFT JOIN order_customer_details ocd ON o.order_id = ocd.order_id
+    LEFT JOIN order_addresses oa ON o.order_id = oa.order_id
     WHERE o.order_id = {$order_id}
     LIMIT 1
 ";
@@ -42,6 +49,30 @@ $order = $resOrder->fetch_assoc();
 $customer_name = trim(
     ($order['customer_first_name'] ?? '') . ' ' . ($order['customer_last_name'] ?? '')
 );
+
+// ----- FORMAT ADDRESS -----
+$delivery_address = null;
+$addrParts = [];
+
+if (!empty($order['street']))      $addrParts[] = $order['street'];
+if (!empty($order['barangay']))    $addrParts[] = 'Brgy. ' . $order['barangay'];
+if (!empty($order['city']))        $addrParts[] = $order['city'];
+if (!empty($order['province']))    $addrParts[] = $order['province'];
+
+$addr = implode(', ', $addrParts);
+
+$extras = [];
+if (!empty($order['floor_number']))  $extras[] = 'Floor: ' . $order['floor_number'];
+if (!empty($order['apt_landmark']))  $extras[] = 'Landmark: ' . $order['apt_landmark'];
+
+if ($extras) {
+    $addr .= $addr ? ' (' . implode('; ', $extras) . ')' : ' ' . implode('; ', $extras);
+}
+
+$delivery_address = trim($addr);
+if ($delivery_address === '') {
+    $delivery_address = null;
+}
 
 // ----- ITEMS (MATCHING YOUR TABLE: order_items) -----
 $sqlItems = "
@@ -128,13 +159,14 @@ if ($resPay && $resPay->num_rows > 0) {
 echo json_encode([
     'status' => 'ok',
     'order' => [
-        'order_number' => $order['order_number'],
-        'status'       => $order['status'],
-        'type'         => $order['order_type'],
-        'created_at'   => $order['created_at'],
-        'customer'     => $customer_name ?: 'Walk-in Customer',
-        'phone'        => $order['customer_phone'] ?? '',
-        'total_amount' => (float)$order['total_amount'],
+        'order_number'     => $order['order_number'],
+        'status'           => $order['status'],
+        'type'             => $order['order_type'],
+        'created_at'       => $order['created_at'],
+        'customer'         => $customer_name ?: 'Walk-in Customer',
+        'phone'            => $order['customer_phone'] ?? '',
+        'total_amount'     => (float)$order['total_amount'],
+        'delivery_address' => $delivery_address, // Included here
     ],
     'items'   => $items,
     'payment' => [

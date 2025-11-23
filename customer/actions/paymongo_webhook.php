@@ -9,10 +9,12 @@ error_log("=== NEW WEBHOOK REQUEST ===");
 
 require_once __DIR__ . '/../../includes/db_connect.php';
 
-// ... (Webhook secret keys and signature verification are unchanged) ...
+
 // !! REPLACE WITH YOUR ACTUAL SECRETS !!
-// for testing purposes only
-define('PAYMONGO_WEBHOOK_SECRET', 'whsk_EH9ab63WRBCxmhccfaxTChwp');
+// for testing purposes only 
+define('PAYMONGO_WEBHOOK_SECRET', 'whsk_EH9ab63WRBCxmhccfaxTChwp'); // Aldrie's test secret
+// define('PAYMONGO_WEBHOOK_SECRET', 'whsk_oYvkB1xmdV28sCpwWaP6FDLP'); // Jhabik's test secret
+// define('PAYMONGO_WEBHOOK_SECRET', 'whsk_SpkukLULkqPBJxfP3nAqWT3C'); // Aeron's test secret
 
 // for production purposes
 // define('PAYMONGO_WEBHOOK_SECRET', 'whsk_xpJovku7BGFndm3bEQjzA1Ly'); 
