@@ -86,6 +86,8 @@ include __DIR__ . '/includes/header.php';
   /* Table styling */
   .dashboard-table {
     margin-bottom: 0;
+    /* Fix responsiveness: Force min width to trigger scroll on mobile */
+    min-width: 900px;
   }
 
   .dashboard-table thead th {
@@ -95,15 +97,15 @@ include __DIR__ . '/includes/header.php';
     font-weight: 600;
     color: #6b7280;
     border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
   }
 
   .dashboard-table th,
   .dashboard-table td {
     font-size: 0.9rem;
-    white-space: normal !important;
-    word-wrap: break-word;
-    word-break: break-word;
+    white-space: nowrap !important; /* Prevent wrapping */
     vertical-align: middle;
+    padding: 12px 10px;
   }
 
   .dashboard-table td small {
@@ -189,7 +191,7 @@ include __DIR__ . '/includes/header.php';
 
   @media (max-width: 576px) {
     .content-card {
-      padding: 14px 14px;
+      padding: 14px 10px;
     }
   }
 </style>

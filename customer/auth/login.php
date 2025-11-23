@@ -3,6 +3,15 @@
 
 require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
 
+// --- NEW: Fetch Store Name ---
+$store_name = "Bente Sais Lomi House";
+if (isset($conn) && $conn instanceof mysqli) {
+    $res = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'store_name' LIMIT 1");
+    if ($res && $res->num_rows > 0) {
+        $store_name = $res->fetch_assoc()['setting_value'];
+    }
+}
+
 // Default destination for customers
 $next = isset($_GET['next']) && $_GET['next'] !== ''
   ? $_GET['next']
@@ -89,21 +98,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sign in | Bente Sais Lomi House</title>
+  <title>Sign in | <?= h($store_name) ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 
   <style>
-    /* Reuse existing CSS */
     :root {
       --bg-dark: #212529;
       --bg-card: #ffffff;
-      --text-light: #f8f9fa;
-      --text-dim: #adb5bd;
+      --text-main: #212529;
+      --text-dim: #6c757d;
       --accent: #5cfa63; /* avocado green */
-      --border-card: rgba(0,0,0,0.08);
+      --accent-hover: #4ae052;
+      --border-color: #e9ecef;
       --radius-lg: 16px;
+      --shadow-soft: 0 10px 40px rgba(0,0,0,0.08);
     }
 
     * { box-sizing: border-box; }
@@ -111,35 +122,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Segoe UI", Arial, sans-serif;
-      background-color: #f5f7fa;
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+      background-color: #f8f9fa;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #212529;
+      color: var(--text-main);
     }
 
     .auth-shell {
       background: var(--bg-card);
       border-radius: var(--radius-lg);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+      box-shadow: var(--shadow-soft);
       display: flex;
       width: 900px;
       max-width: 95%;
+      min-height: 550px;
       overflow: hidden;
-      border: 1px solid var(--border-card);
+      border: 1px solid rgba(0,0,0,0.04);
     }
 
+    /* Left Sidebar */
     .auth-aside {
       background-color: var(--bg-dark);
-      color: var(--text-light);
-      padding: 32px 28px;
+      color: #f8f9fa;
+      padding: 48px 40px;
       width: 40%;
-      min-width: 260px;
+      min-width: 300px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
+      background-image: radial-gradient(circle at 10% 10%, rgba(92, 250, 99, 0.05) 0%, transparent 40%);
     }
 
     .auth-aside::before {
@@ -147,108 +161,163 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       position: absolute;
       top: 0;
       left: 0;
-      height: 4px;
+      height: 5px;
       width: 100%;
       background: var(--accent);
     }
 
     .brand-block {
       display: flex;
-      align-items: flex-start;
-      gap: 12px;
+      flex-direction: column;
+      gap: 16px;
     }
 
     .brand-logo {
-      height: 36px;
-      width: 36px;
-      border-radius: 8px;
+      height: 48px;
+      width: 48px;
+      border-radius: 12px;
       background: radial-gradient(circle at 30% 30%, #5cfa63 0%, #1c1f1f 70%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 600;
+      font-weight: 700;
       color: #000;
-      font-size: 14px;
+      font-size: 18px;
       line-height: 1;
-      box-shadow: 0 8px 20px rgba(92,250,99,0.5);
+      box-shadow: 0 0 20px rgba(92,250,99,0.4);
     }
 
     .brand-text h1 {
       margin: 0;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 24px;
+      font-weight: 700;
       color: #fff;
       line-height: 1.2;
     }
 
     .brand-text p {
-      margin: 2px 0 0;
-      font-size: 13px;
-      line-height: 1.4;
-      color: var(--text-dim);
+      margin: 4px 0 0;
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      font-weight: 500;
     }
 
-    .aside-bottom {
-      font-size: 12px;
-      line-height: 1.4;
-      color: var(--text-dim);
+    .intro-text {
+      margin-top: 32px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.7);
     }
 
+    /* Main Content */
     .auth-main {
       flex: 1;
-      padding: 32px;
+      padding: 48px 50px;
       background: var(--bg-card);
       display: flex;
       flex-direction: column;
       justify-content: center;
     }
 
-    .auth-header { margin-bottom: 24px; }
+    .auth-header { margin-bottom: 32px; }
 
     .auth-header h2 {
       margin: 0;
-      font-size: 20px;
-      font-weight: 600;
-      color: #212529;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-main);
       line-height: 1.2;
     }
 
     .auth-header p {
-      margin: 6px 0 0;
-      font-size: 14px;
-      color: #6c757d;
-      line-height: 1.4;
+      margin: 8px 0 0;
+      font-size: 15px;
+      color: var(--text-dim);
     }
 
-    .alert-danger { font-size: 14px; padding: 10px 12px; border-radius: 8px; }
+    .alert-danger { 
+      font-size: 14px; 
+      padding: 12px 16px; 
+      border-radius: 10px; 
+      border: none;
+      background-color: #fee2e2;
+      color: #991b1b;
+      margin-bottom: 24px;
+    }
 
-    .form-label { font-size: 13px; font-weight: 500; color: #343a40; margin-bottom: 4px; }
+    .form-label { 
+      font-size: 14px; 
+      font-weight: 600; 
+      color: #343a40; 
+      margin-bottom: 8px; 
+    }
 
-    .form-control { font-size: 14px; border-radius: 8px; padding: 10px 12px; }
+    .form-control { 
+      font-size: 15px; 
+      border-radius: 10px; 
+      padding: 12px 16px; 
+      border: 1px solid #dee2e6;
+      transition: all 0.2s ease;
+      background-color: #fcfcfc;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(92, 250, 99, 0.15);
+      background-color: #fff;
+    }
 
     .btn-login {
       background-color: var(--accent);
       border: 0;
       width: 100%;
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 15px;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 16px;
       font-weight: 600;
-      color: #000;
+      color: #052e06;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(92,250,99,0.4);
+      margin-top: 12px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
-    .btn-login:hover { filter: brightness(.92); }
+    .btn-login:hover { 
+      background-color: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(92, 250, 99, 0.25);
+    }
+    .btn-login:active {
+      transform: translateY(0);
+    }
 
-    .back-link { text-align: center; margin-top: 20px; font-size: 13px; }
-    .back-link a { color: #6c757d; text-decoration: none; }
-    .back-link a:hover { color: #000; }
+    .back-link { text-align: center; margin-top: 30px; font-size: 14px; color: var(--text-dim); }
+    .back-link a { color: var(--text-main); text-decoration: none; font-weight: 600; transition: color 0.2s; }
+    .back-link a:hover { color: #000; text-decoration: underline; }
+    .nav-back { display: inline-block; margin-top: 16px; font-size: 13px; color: #adb5bd; text-decoration: none; transition: color 0.2s;}
+    .nav-back:hover { color: #6c757d; }
 
-    @media (max-width: 700px) {
-      .auth-shell { flex-direction: column; width: 420px; max-width: 94%; }
-      .auth-aside { width: 100%; min-width: 100%; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
-      .auth-main { width: 100%; }
-      .site-footer { margin-top: 24px; }
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .auth-shell { 
+        flex-direction: column; 
+        width: 100%; 
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+      }
+      .auth-aside { 
+        width: 100%; 
+        padding: 30px 24px;
+        flex: 0 0 auto;
+        min-height: auto;
+        border-radius: 0 0 24px 24px;
+      }
+      .auth-aside::before { display: none; }
+      .intro-text { display: none; }
+      .auth-main { padding: 40px 24px; }
+      .brand-logo { height: 40px; width: 40px; font-size: 16px; }
+      .brand-text h1 { font-size: 20px; }
     }
   </style>
 </head>
@@ -257,35 +326,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="auth-shell">
   
   <aside class="auth-aside">
-    <div>
-      <div class="brand-block">
-        <div class="brand-logo">BS</div>
-        <div class="brand-text">
-          <h1>Bente Sais Lomi House</h1>
-          <p>Welcome Back</p> 
-        </div>
+    <div class="brand-block">
+      <div class="brand-logo">BS</div>
+      <div class="brand-text">
+        <h1><?= h($store_name) ?></h1>
+        <p>Customer Portal</p> 
       </div>
-
-      <div style="margin-top:24px; font-size:13px; line-height:1.5; color:#dee2e6;">
-        Sign in to access your account, manage orders, or view the dashboard.
-      </div>
+    </div>
+    <div class="intro-text">
+      Sign in to access your account, track your current orders, view history, or update your profile.
     </div>
   </aside>
 
   <main class="auth-main">
     <div class="auth-header">
-      <h2>Sign in</h2>
-      <p>Use your registered email and password.</p>
+      <h2>Welcome back</h2>
+      <p>Please enter your details to sign in.</p>
     </div>
 
     <?php if ($error): ?>
       <div class="alert alert-danger">
-        <?= htmlspecialchars($error) ?>
+        <i class="bi bi-exclamation-circle-fill me-2"></i> <?= htmlspecialchars($error) ?>
       </div>
     <?php endif; ?>
 
     <form method="POST" autocomplete="off">
-      <div class="mb-3">
+      <div class="mb-4">
         <label class="form-label">Email</label>
         <input
           type="email"
@@ -293,10 +359,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           class="form-control"
           required
           value="<?= htmlspecialchars($emailVal) ?>"
-          placeholder="you@example.com">
+          placeholder="Enter your email">
       </div>
 
-      <div class="mb-3">
+      <div class="mb-4">
         <label class="form-label">Password</label>
         <input
           type="password"
@@ -305,18 +371,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           required
           placeholder="••••••••">
       </div>
+      <a href="forgot_password.php" class="small text-decoration-none text-muted">Forgot password?</a>
 
-      <button type="submit" class="btn-login">Continue</button>
+      <button type="submit" class="btn-login">Sign In</button>
     </form>
 
-    <div class="back-link" style="text-align: center; margin-top: 20px; font-size: 13px;">
+    <div class="back-link">
       Don't have an account? 
-      <a href="register.php?next=<?= h(urlencode($next)) ?>" style="color:#0b2b0b; font-weight: 600;">Register here</a>
-      <div style="margin-top: 12px;">
-        <a href="<?= htmlspecialchars($BASE_URL) ?>/index.php" style="color: #6c757d;">← Back to Home Page</a>
-      </div>
+      <a href="register.php?next=<?= h(urlencode($next)) ?>">Register</a>
+      <br>
+      <a href="<?= htmlspecialchars($BASE_URL) ?>/index.php" class="nav-back">← Back to Home Page</a>
     </div>
-    </main>
+  </main>
 
 </div>
 

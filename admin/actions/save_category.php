@@ -1,4 +1,6 @@
 <?php
+// admin/actions/save_category.php
+
 if (session_status() === PHP_SESSION_NONE) session_start();
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
@@ -33,7 +35,16 @@ try {
     }
 
     if ($stmt->execute()) {
-        $response = ['success' => true, 'message' => $msg];
+        // Determine the ID (if insert, use insert_id; if update, use the POST id)
+        $returnId = $id ? $id : $stmt->insert_id;
+
+        $response = [
+            'success' => true, 
+            'message' => $msg,
+            // Return these so JS can update the dropdown
+            'category_id' => $returnId,
+            'category_name' => $name
+        ];
     } else {
         $response = ['success' => false, 'message' => 'Database Error: ' . $stmt->error];
     }

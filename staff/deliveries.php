@@ -17,6 +17,7 @@ $stats_out = $conn->query("
 $stats_total = $stats_ready + $stats_out;
 
 // --- Fetch delivery orders ---
+// UPDATED: Sort strictly by created_at ASC (oldest first)
 $delivery_query = "
     SELECT 
         o.order_id, 
@@ -45,14 +46,7 @@ $delivery_query = "
     LEFT JOIN order_payment_details opd ON o.order_id = opd.order_id
     WHERE o.order_type = 'delivery' 
       AND o.status IN ('ready', 'out_for_delivery', 'confirmed')
-    ORDER BY 
-        CASE o.status
-            WHEN 'ready' THEN 1
-            WHEN 'confirmed' THEN 2
-            WHEN 'out_for_delivery' THEN 3
-            ELSE 4
-        END,
-        o.created_at ASC;
+    ORDER BY o.created_at ASC;
 ";
 $delivery_result = $conn->query($delivery_query);
 ?>
@@ -149,6 +143,8 @@ $delivery_result = $conn->query($delivery_query);
   /* Table */
   .delivery-table {
     margin-bottom: 0;
+    /* Fix responsiveness: Force min width to trigger scroll on mobile */
+    min-width: 900px;
   }
 
   .delivery-table thead th {
@@ -158,15 +154,15 @@ $delivery_result = $conn->query($delivery_query);
     font-weight: 600;
     color: #6b7280;
     border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
   }
 
   .delivery-table th,
   .delivery-table td {
     font-size: 0.9rem;
-    white-space: normal !important;
-    word-wrap: break-word;
-    word-break: break-word;
+    white-space: nowrap !important; /* Prevent wrapping */
     vertical-align: top;
+    padding: 12px 10px;
   }
 
   .delivery-table td small {
@@ -222,7 +218,7 @@ $delivery_result = $conn->query($delivery_query);
 
   @media (max-width: 576px) {
     .content-card {
-      padding: 14px 14px;
+      padding: 14px 10px;
     }
   }
 </style>
@@ -238,7 +234,7 @@ $delivery_result = $conn->query($delivery_query);
           <h2 class="page-title mb-1">Active Deliveries</h2>
           <p class="page-subtitle mb-1">Live view of all delivery orders still in progress.</p>
           <p class="meta-text mb-0">
-            Use this to coordinate riders, mark runs as out for delivery, and close out delivered orders.
+            Sorted by time placed (Oldest first). Use this to coordinate riders and track progress.
           </p>
         </div>
         <div class="text-end">

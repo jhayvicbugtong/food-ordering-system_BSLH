@@ -30,7 +30,6 @@
             <i class="bi bi-cart4"></i>
           </div>
           <span class="nav-text">Orders</span>
-          <span class="nav-badge order-count">12</span>
         </a>
       </li>
       

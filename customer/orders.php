@@ -134,7 +134,7 @@ if ($orders_result) {
     }
 }
 $stmt_orders->close();
-$conn->close();
+// $conn->close();
 
 // --- END: Fetch Order Data ---
 ?>

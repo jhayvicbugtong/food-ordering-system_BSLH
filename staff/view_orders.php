@@ -2,8 +2,7 @@
 include __DIR__ . '/includes/header.php'; // Includes auth and db_connect
 
 // Fetch orders for the table
-// UPDATED: Added logic to HIDE delivery orders that are already 'ready' or 'out_for_delivery'
-// These will be handled in the deliveries.php page instead.
+// Orders are sorted strictly by creation time (Oldest first).
 $orders_query = "
     SELECT 
         o.order_id, 
@@ -21,15 +20,7 @@ $orders_query = "
     LEFT JOIN order_payment_details opd ON o.order_id = opd.order_id
     WHERE o.status NOT IN ('completed', 'delivered', 'cancelled')
       AND NOT (o.order_type = 'delivery' AND o.status IN ('ready', 'out_for_delivery'))
-    ORDER BY 
-        CASE o.status
-            WHEN 'pending' THEN 1
-            WHEN 'confirmed' THEN 2
-            WHEN 'preparing' THEN 3
-            WHEN 'ready' THEN 4
-            ELSE 5
-        END,
-        o.created_at ASC
+    ORDER BY o.created_at ASC
     LIMIT 50;
 ";
 $orders_result = $conn->query($orders_query);
@@ -96,6 +87,8 @@ $orders_result = $conn->query($orders_query);
   /* Table styling */
   .orders-queue-table {
     margin-bottom: 0;
+    /* Ensure the table maintains width to prevent squishing */
+    min-width: 900px; 
   }
 
   .orders-queue-table thead th {
@@ -105,15 +98,16 @@ $orders_result = $conn->query($orders_query);
     font-weight: 600;
     color: #6b7280;
     border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap; /* Prevent header wrapping */
   }
 
   .orders-queue-table th,
   .orders-queue-table td {
     font-size: 0.9rem;
-    white-space: normal !important;
-    word-wrap: break-word;
-    word-break: break-word;
-    vertical-align: middle; /* Aligns content vertically in the middle */
+    /* Force text to stay on one line to prevent vertical stacking */
+    white-space: nowrap !important; 
+    vertical-align: middle; 
+    padding: 12px;
   }
 
   .orders-queue-table td small {
@@ -239,10 +233,6 @@ $orders_result = $conn->query($orders_query);
     .content-card {
       padding: 14px 14px;
     }
-    /* Hide items column on mobile to save space */
-    .hide-on-mobile {
-        display: none;
-    }
   }
 </style>
 
@@ -257,7 +247,7 @@ $orders_result = $conn->query($orders_query);
           <h2 class="page-title mb-1">Orders Queue</h2>
           <p class="page-subtitle mb-1">All active orders that still need action.</p>
           <p class="meta-text mb-0">
-            Sorted by status and time placed. Use the actions on the right to move orders through the pipeline.
+            Sorted by time placed (Oldest first). Use the actions on the right to move orders through the pipeline.
           </p>
         </div>
         <div class="text-end">
@@ -284,8 +274,10 @@ $orders_result = $conn->query($orders_query);
           <thead>
             <tr>
               <th>Order #</th>
-              <th class="d-none d-md-table-cell">Items</th> <th>Customer</th>
-              <th>Total</th> <th>Type</th>
+              <th>Items</th> 
+              <th>Customer</th>
+              <th>Total</th> 
+              <th>Type</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -352,8 +344,8 @@ $orders_result = $conn->query($orders_query);
                     <?php endif; ?>
                   </td>
                   
-                  <td class="d-none d-md-table-cell">
-                    <ul class="list-unstyled mb-0" style="padding-left: 15px; font-size: 0.85em;">
+                  <td>
+                    <ul class="list-unstyled mb-0" style="padding-left: 0; font-size: 0.85em;">
                       <?php
                         // Fetch items for this order
                         $items_stmt = $conn->prepare("SELECT product_name, quantity FROM order_items WHERE order_id = ? LIMIT 3");

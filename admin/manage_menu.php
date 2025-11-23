@@ -240,11 +240,43 @@ include __DIR__ . '/includes/header.php';
   .menu-table-img { width: 46px; height: 46px; border-radius: 12px; object-fit: cover; background: #e5e7eb; }
   .menu-table-img-placeholder { width: 46px; height: 46px; border-radius: 12px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #adb5bd; }
 
-  /* Tabs */
+  /* Tabs - FIXED */
   .nav-tabs { border-bottom: none; gap: 10px; }
-  .nav-tabs .nav-link { border-radius: 8px; color: #6b7280; font-weight: 500; border: none; background: transparent; transition: all 0.2s; }
+  
+  /* 1. Reset basic link styles */
+  .nav-tabs .nav-link { 
+      border-radius: 8px; 
+      color: #6b7280; 
+      font-weight: 500; 
+      border: none !important; /* Force removal of all borders */
+      background: transparent; 
+      transition: all 0.2s; 
+      position: relative; /* Ensure we control positioning */
+  }
+
+  /* 2. Force removal of any pseudo-elements (::before/::after) that might be creating the green line */
+  .nav-tabs .nav-link::before,
+  .nav-tabs .nav-link::after,
+  .nav-tabs .nav-link.active::before,
+  .nav-tabs .nav-link.active::after {
+      content: none !important;
+      display: none !important;
+      border: none !important;
+      background: transparent !important;
+      width: 0 !important;
+  }
+
+  /* 3. Active state styling (Blue/Indigo background) */
   .nav-tabs .nav-link:hover { background: #e5e7eb; color: #111827; }
-  .nav-tabs .nav-link.active { background: #4f46e5 !important; color: #fff !important; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2); }
+  
+  /* Use ID selector for higher specificity to override external CSS */
+  #menuTabs .nav-link.active { 
+      background: #4f46e5 !important; 
+      color: #fff !important; 
+      box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+      border: none !important; 
+      border-left: none !important; 
+  }
   
   /* Pagination */
   .pagination .page-link { border-radius: 999px !important; font-size: 0.8rem; border-color: #e5e7eb; margin: 0 2px; color: #4f46e5; }
@@ -493,19 +525,78 @@ function renderCategoryTable(categories) {
     $('#categoryTableBody').html(html);
 }
 
+
+// ... inside $(document).ready(function() { ...
+
+// [UPDATE THIS FUNCTION]
 function saveCategory() {
     const data = $('#categoryForm').serialize();
     $.post('actions/save_category.php', data, function(res) {
         const result = (typeof res === 'string') ? JSON.parse(res) : res;
+        
         if (result.success) {
             Swal.fire('Success', result.message, 'success');
             categoryModalInstance.hide();
+            
+            // 1. Refresh the category table
             loadCategories(categoryPage, $('#categorySearchInput').val());
+
+            // 2. Update the "Add New Item" Category Dropdown immediately
+            const $dropdown = $('#category_id');
+            const catId = result.category_id;
+            const catName = result.category_name;
+            
+            // Check if this option already exists (Edit mode)
+            let $option = $dropdown.find(`option[value="${catId}"]`);
+            
+            if ($option.length > 0) {
+                // Update existing option text
+                $option.text(catName);
+            } else {
+                // Append new option for "Add" mode
+                // (We use append because categories are usually at the end, 
+                // or you could re-sort if strictly necessary)
+                $dropdown.append(new Option(catName, catId));
+            }
+
         } else {
             Swal.fire('Error', result.message, 'error');
         }
     });
 }
+
+// [UPDATE THIS FUNCTION]
+function deleteCategory(id) {
+    Swal.fire({
+        title: 'Delete Category?', 
+        text: 'This will fail if products are assigned to this category.',
+        icon: 'warning', 
+        showCancelButton: true, 
+        confirmButtonText: 'Yes, delete', 
+        confirmButtonColor: '#d33'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('actions/delete_category.php', { category_id: id }, function(res) {
+                const r = (typeof res === 'string') ? JSON.parse(res) : res;
+                
+                if(r.success) {
+                    Swal.fire('Deleted!', r.message, 'success');
+                    
+                    // 1. Refresh table
+                    loadCategories(categoryPage, $('#categorySearchInput').val());
+                    
+                    // 2. Remove from "Add New Item" Dropdown
+                    $(`#category_id option[value="${id}"]`).remove();
+                    
+                } else {
+                    Swal.fire('Cannot Delete', r.message, 'error');
+                }
+            });
+        }
+    });
+}
+
+// ... rest of your code
 
 function editCategory(id) {
     $.get('actions/get_category.php', { category_id: id }, function(cat) {
@@ -526,28 +617,6 @@ function editCategory(id) {
     }, 'json');
 }
 
-function deleteCategory(id) {
-    Swal.fire({
-        title: 'Delete Category?', 
-        text: 'This will fail if products are assigned to this category.',
-        icon: 'warning', 
-        showCancelButton: true, 
-        confirmButtonText: 'Yes, delete', 
-        confirmButtonColor: '#d33'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post('actions/delete_category.php', { category_id: id }, function(res) {
-                const r = (typeof res === 'string') ? JSON.parse(res) : res;
-                if(r.success) {
-                    Swal.fire('Deleted!', r.message, 'success');
-                    loadCategories(categoryPage, $('#categorySearchInput').val());
-                } else {
-                    Swal.fire('Cannot Delete', r.message, 'error');
-                }
-            });
-        }
-    });
-}
 
 function resetCategoryForm() {
     $('#categoryForm')[0].reset();

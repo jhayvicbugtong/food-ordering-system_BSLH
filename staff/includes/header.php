@@ -5,10 +5,17 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../includes/auth.php';
-// --- MODIFIED: Allow 'staff' AND 'driver' roles ---
+// Allow 'staff' AND 'driver' roles
 require_role(['staff']);
 
 require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
+
+// Fetch Store Name from Database
+$store_name = "Bente Sais Lomi House"; // Default fallback
+$settings_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'store_name' LIMIT 1");
+if ($settings_result && $settings_result->num_rows > 0) {
+    $store_name = $settings_result->fetch_assoc()['setting_value'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -19,6 +26,7 @@ require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.css" rel="stylesheet">
   <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/admin_dashboard.css">
 
   <style>
@@ -424,17 +432,12 @@ require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
         <img src="<?= htmlspecialchars($BASE_URL) ?>/uploads/logo/logo.png" alt="Avocado Logo" class="brand-logo">
         
         <div class="brand-text">
-          <div class="brand-main">Bente Sais Lomi House</div>
+          <div class="brand-main"><?= htmlspecialchars($store_name) ?></div>
           <div class="brand-sub">Staff Portal</div>
         </div>
       </div>
 
       <div class="user-nav">
-        <div class="nav-actions">
-          <a href="#" class="nav-btn" title="Settings">
-            <i class="bi bi-gear"></i>
-          </a>
-        </div>
         
         <div class="user-dropdown">
           <div class="user-profile" id="userDropdown">

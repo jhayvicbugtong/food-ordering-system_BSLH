@@ -1,9 +1,14 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
 require_role('admin');
-// 
-// ADD THIS LINE
 require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
+
+// --- NEW: Fetch Store Name from Database ---
+$store_name = "Bente Sais Lomi House"; // Default fallback
+$settings_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'store_name' LIMIT 1");
+if ($settings_result && $settings_result->num_rows > 0) {
+    $store_name = $settings_result->fetch_assoc()['setting_value'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,12 +18,11 @@ require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
   <title>Admin Dashboard</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
   <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/admin_dashboard.css">
 
   <style>
+  /* Status Badges */
   .status-badge {
     display: inline-block;
     padding: 3px 12px;
@@ -27,45 +31,15 @@ require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
     font-weight: 600;
     white-space: nowrap;
   }
-
-  /* HIGH-CONTRAST COLORS ON WHITE BG */
-  .status-pending {
-    background-color: #fef3c7; /* light yellow */
-    color: #92400e;            /* dark amber text */
-  }
-
-  .status-confirmed {
-    background-color: #dbeafe; /* light blue */
-    color: #1d4ed8;            /* strong blue text */
-  }
-
-  .status-preparing {
-    background-color: #e0f2fe; /* lighter blue */
-    color: #0369a1;            /* teal/blue text */
-  }
-
-  .status-ready {
-    background-color: #dcfce7; /* light green */
-    color: #15803d;            /* dark green text */
-  }
-
-  .status-out-for-delivery {
-    background-color: #e0f2fe; /* light blue */
-    color: #0369a1;            /* teal/blue text */
-  }
-
-  .status-delivered,
-  .status-completed {
-    background-color: #e5e7eb; /* gray */
-    color: #111827;            /* near-black text */
-  }
-
-  .status-cancelled {
-    background-color: #fee2e2; /* light red */
-    color: #b91c1c;            /* dark red text */
-  }
+  .status-pending { background-color: #fef3c7; color: #92400e; }
+  .status-confirmed { background-color: #dbeafe; color: #1d4ed8; }
+  .status-preparing { background-color: #e0f2fe; color: #0369a1; }
+  .status-ready { background-color: #dcfce7; color: #15803d; }
+  .status-out-for-delivery { background-color: #e0f2fe; color: #0369a1; }
+  .status-delivered, .status-completed { background-color: #e5e7eb; color: #111827; }
+  .status-cancelled { background-color: #fee2e2; color: #b91c1c; }
   
-  /* Enhanced Header Styles */
+  /* Header Styles */
   .site-header {
     background: linear-gradient(135deg, #343a40 0%, #2c3034 100%);
     backdrop-filter: blur(10px);
@@ -225,10 +199,7 @@ require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
   }
   
   /* Dropdown Menu */
-  .user-dropdown {
-    position: relative;
-  }
-  
+  .user-dropdown { position: relative; }
   .dropdown-menu {
     position: absolute;
     top: 100%;
@@ -246,13 +217,11 @@ require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
     transform: translateY(-10px);
     transition: all 0.3s ease;
   }
-  
   .dropdown-menu.show {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
   }
-  
   .dropdown-item {
     display: flex;
     align-items: center;
@@ -269,205 +238,42 @@ require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
     width: 100%;
     text-align: left;
   }
+  .dropdown-item:hover { background: #f8f9fa; color: #212529; }
+  .dropdown-item i { width: 16px; text-align: center; color: #6c757d; }
+  .dropdown-divider { height: 1px; background: #e9ecef; margin: 6px 0; }
   
-  .dropdown-item:hover {
-    background: #f8f9fa;
-    color: #212529;
-  }
-  
-  .dropdown-item i {
-    width: 16px;
-    text-align: center;
-    color: #6c757d;
-  }
-  
-  .dropdown-divider {
-    height: 1px;
-    background: #e9ecef;
-    margin: 6px 0;
-  }
-
   /* Chevron animation */
-  .user-profile .bi-chevron-down {
-    transition: transform 0.3s ease;
-  }
-
-  .user-profile.dropdown-open .bi-chevron-down {
-    transform: rotate(180deg);
-  }
+  .user-profile .bi-chevron-down { transition: transform 0.3s ease; }
+  .user-profile.dropdown-open .bi-chevron-down { transform: rotate(180deg); }
 
   /* Responsive Design */
   @media (max-width: 768px) {
-    .header-content {
-      padding: 0 12px;
-    }
-    
-    .brand-container {
-      gap: 8px;
-      flex: 1;
-      min-width: 0;
-    }
-    
-    .brand-logo {
-      width: 32px;
-      height: 32px;
-    }
-    
-    .brand-main {
-      font-size: 16px;
-    }
-    
-    .brand-sub {
-      font-size: 10px;
-    }
-    
-    .user-info {
-      display: none;
-    }
-    
-    .user-profile {
-      padding: 6px 8px;
-      gap: 8px;
-    }
-    
-    .user-avatar {
-      width: 28px;
-      height: 28px;
-      font-size: 12px;
-    }
-    
-    .nav-actions {
-      gap: 6px;
-    }
-    
-    .nav-btn {
-      width: 36px;
-      height: 36px;
-    }
-    
-    .nav-btn i {
-      font-size: 14px;
-    }
-    
-    .dropdown-menu {
-      min-width: 180px;
-      right: -10px;
-    }
+    .header-content { padding: 0 12px; }
+    .brand-container { gap: 8px; flex: 1; min-width: 0; }
+    .brand-logo { width: 32px; height: 32px; }
+    .brand-main { font-size: 16px; }
+    .brand-sub { font-size: 10px; }
+    .user-info { display: none; }
+    .user-profile { padding: 6px 8px; gap: 8px; }
+    .user-avatar { width: 28px; height: 28px; font-size: 12px; }
+    .nav-actions { gap: 6px; }
+    .nav-btn { width: 36px; height: 36px; }
+    .nav-btn i { font-size: 14px; }
+    .dropdown-menu { min-width: 180px; right: -10px; }
   }
-
   @media (max-width: 576px) {
-    .site-header {
-      padding: 8px 0;
-    }
-    
-    .header-content {
-      padding: 0 10px;
-    }
-    
-    .brand-main {
-      font-size: 14px;
-    }
-    
-    .brand-sub {
-      display: none;
-    }
-    
-    .brand-logo {
-      width: 28px;
-      height: 28px;
-    }
-    
-    .user-profile {
-      padding: 4px 6px;
-    }
-    
-    .user-avatar {
-      width: 24px;
-      height: 24px;
-      font-size: 11px;
-    }
-    
-    .nav-btn {
-      width: 32px;
-      height: 32px;
-    }
-    
-    .nav-btn i {
-      font-size: 13px;
-    }
-    
-    .nav-actions {
-      gap: 4px;
-    }
-    
-    .dropdown-menu {
-      min-width: 160px;
-      right: -15px;
-    }
-    
-    .dropdown-item {
-      padding: 8px 10px;
-      font-size: 13px;
-    }
-  }
-
-  @media (max-width: 400px) {
-    .brand-main {
-      font-size: 13px;
-    }
-    
-    .brand-logo {
-      width: 24px;
-      height: 24px;
-    }
-    
-    .nav-actions .nav-btn:nth-child(2) {
-      display: none;
-    }
-    
-    .user-profile {
-      padding: 3px 4px;
-    }
-    
-    .user-avatar {
-      width: 22px;
-      height: 22px;
-    }
-  }
-
-  /* Tablet Landscape */
-  @media (min-width: 769px) and (max-width: 1024px) {
-    .brand-main {
-      font-size: 16px;
-    }
-    
-    .brand-sub {
-      font-size: 10px;
-    }
-    
-    .user-name {
-      font-size: 13px;
-    }
-    
-    .user-role {
-      font-size: 10px;
-    }
-  }
-
-  /* Animation for dropdown */
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .dropdown-menu.show {
-    animation: slideIn 0.2s ease-out;
+    .site-header { padding: 8px 0; }
+    .header-content { padding: 0 10px; }
+    .brand-main { font-size: 14px; }
+    .brand-sub { display: none; }
+    .brand-logo { width: 28px; height: 28px; }
+    .user-profile { padding: 4px 6px; }
+    .user-avatar { width: 24px; height: 24px; font-size: 11px; }
+    .nav-btn { width: 32px; height: 32px; }
+    .nav-btn i { font-size: 13px; }
+    .nav-actions { gap: 4px; }
+    .dropdown-menu { min-width: 160px; right: -15px; }
+    .dropdown-item { padding: 8px 10px; font-size: 13px; }
   }
   </style>
 </head>
@@ -483,17 +289,17 @@ require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL
           </span>
         </button>
         
-        <img src="<?= htmlspecialchars($BASE_URL) ?>/uploads/logo/logo.png" alt="Avocado Logo" class="brand-logo">
+        <img src="<?= htmlspecialchars($BASE_URL) ?>/uploads/logo/logo.png" alt="Logo" class="brand-logo">
         
         <div class="brand-text">
-          <div class="brand-main">Bente Sais Lomi House</div>
+          <div class="brand-main"><?= htmlspecialchars($store_name) ?></div>
           <div class="brand-sub">Operations Portal</div>
         </div>
       </div>
 
       <div class="user-nav">
         <div class="nav-actions">
-          <a href="#" class="nav-btn" title="Settings">
+          <a href="<?= htmlspecialchars($BASE_URL) ?>/admin/settings.php" class="nav-btn" title="Settings">
             <i class="bi bi-gear"></i>
           </a>
         </div>
