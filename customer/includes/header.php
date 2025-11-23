@@ -9,6 +9,15 @@ require_once __DIR__ . '/../../includes/db_connect.php';
 */
 $BASE = $BASE_URL;
 
+// --- NEW: Fetch Store Name from Database ---
+$store_name = "Bente Sais Lomi House"; // Default fallback
+if (isset($conn) && $conn instanceof mysqli) {
+    $settings_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'store_name' LIMIT 1");
+    if ($settings_result && $settings_result->num_rows > 0) {
+        $store_name = $settings_result->fetch_assoc()['setting_value'];
+    }
+}
+
 // Current page name for "active" highlight
 $currentPage = basename(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 
@@ -50,7 +59,7 @@ function isActive($names, $current) {
         <div class="logo-glow"></div>
       </div>
       <div class="brand-text">
-        <div class="brand-text-title">Bente Sais Lomi House</div>
+        <div class="brand-text-title"><?= htmlspecialchars($store_name) ?></div>
         <div class="brand-text-sub">Since 26</div>
       </div>
     </a>

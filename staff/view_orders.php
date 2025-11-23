@@ -2,6 +2,7 @@
 include __DIR__ . '/includes/header.php'; // Includes auth and db_connect
 
 // Fetch orders for the table
+// Orders are sorted strictly by creation time (Oldest first).
 $orders_query = "
     SELECT 
         o.order_id, 
@@ -9,6 +10,7 @@ $orders_query = "
         o.order_type, 
         o.status,
         o.created_at,
+        o.total_amount,
         ocd.customer_first_name, 
         ocd.customer_last_name,
         opd.payment_method,
@@ -17,22 +19,13 @@ $orders_query = "
     LEFT JOIN order_customer_details ocd ON o.order_id = ocd.order_id
     LEFT JOIN order_payment_details opd ON o.order_id = opd.order_id
     WHERE o.status NOT IN ('completed', 'delivered', 'cancelled')
-    ORDER BY 
-        CASE o.status
-            WHEN 'pending' THEN 1
-            WHEN 'confirmed' THEN 2
-            WHEN 'preparing' THEN 3
-            WHEN 'ready' THEN 4
-            WHEN 'out_for_delivery' THEN 5
-            ELSE 6
-        END,
-        o.created_at ASC
+      AND NOT (o.order_type = 'delivery' AND o.status IN ('ready', 'out_for_delivery'))
+    ORDER BY o.created_at ASC
     LIMIT 50;
 ";
 $orders_result = $conn->query($orders_query);
 ?>
 
-<!-- Modernized layout + orders queue styles -->
 <style>
   body {
     background-color: #f3f4f6;
@@ -94,6 +87,8 @@ $orders_result = $conn->query($orders_query);
   /* Table styling */
   .orders-queue-table {
     margin-bottom: 0;
+    /* Ensure the table maintains width to prevent squishing */
+    min-width: 900px; 
   }
 
   .orders-queue-table thead th {
@@ -103,15 +98,16 @@ $orders_result = $conn->query($orders_query);
     font-weight: 600;
     color: #6b7280;
     border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap; /* Prevent header wrapping */
   }
 
   .orders-queue-table th,
   .orders-queue-table td {
     font-size: 0.9rem;
-    white-space: normal !important;
-    word-wrap: break-word;
-    word-break: break-word;
-    vertical-align: top;
+    /* Force text to stay on one line to prevent vertical stacking */
+    white-space: nowrap !important; 
+    vertical-align: middle; 
+    padding: 12px;
   }
 
   .orders-queue-table td small {
@@ -202,6 +198,37 @@ $orders_result = $conn->query($orders_query);
     white-space: nowrap;
   }
 
+  /* Modal Tweaks */
+  #viewOrderModal .modal-header {
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+  }
+  #viewOrderModal .modal-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  .detail-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #6b7280;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .detail-value {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 12px;
+  }
+  .modal-total-row {
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-top: 2px solid #e5e7eb;
+    padding-top: 10px;
+    margin-top: 10px;
+  }
+
   @media (max-width: 576px) {
     .content-card {
       padding: 14px 14px;
@@ -214,14 +241,13 @@ $orders_result = $conn->query($orders_query);
 
   <main class="main-content">
 
-    <!-- Top header card -->
     <div class="content-card mb-3">
       <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
         <div>
           <h2 class="page-title mb-1">Orders Queue</h2>
           <p class="page-subtitle mb-1">All active orders that still need action.</p>
           <p class="meta-text mb-0">
-            Sorted by status and time placed. Use the actions on the right to move orders through the pipeline.
+            Sorted by time placed (Oldest first). Use the actions on the right to move orders through the pipeline.
           </p>
         </div>
         <div class="text-end">
@@ -232,12 +258,11 @@ $orders_result = $conn->query($orders_query);
       </div>
     </div>
 
-    <!-- Orders table card -->
     <section class="content-card">
       <div class="content-card-header">
         <div>
           <h2>Active Orders</h2>
-          <p>Pending, confirmed, preparing, ready, and out-for-delivery.</p>
+          <p>Pending, confirmed, preparing, and pickup-ready orders.</p>
         </div>
         <div class="text-end meta-text">
           <span class="d-block">Max 50 latest active orders</span>
@@ -249,9 +274,9 @@ $orders_result = $conn->query($orders_query);
           <thead>
             <tr>
               <th>Order #</th>
-              <th>Placed</th>
-              <th>Items</th>
+              <th>Items</th> 
               <th>Customer</th>
+              <th>Total</th> 
               <th>Type</th>
               <th>Status</th>
               <th>Actions</th>
@@ -307,6 +332,9 @@ $orders_result = $conn->query($orders_query);
                     $source_class = 'pickup';
                     $source_label = 'Pickup';
                   }
+
+                  // Total
+                  $total = (float)($order['total_amount'] ?? 0);
                 ?>
                 <tr data-order-id="<?= $order_id ?>">
                   <td>
@@ -315,22 +343,33 @@ $orders_result = $conn->query($orders_query);
                       <span class="meta-text">Placed: <?= htmlspecialchars($created_time) ?></span>
                     <?php endif; ?>
                   </td>
-                  <td><?= $created_time ? htmlspecialchars($created_time) : '—' ?></td>
+                  
                   <td>
-                    <ul class="list-unstyled mb-0" style="padding-left: 15px; font-size: 0.85em;">
+                    <ul class="list-unstyled mb-0" style="padding-left: 0; font-size: 0.85em;">
                       <?php
                         // Fetch items for this order
-                        $items_stmt = $conn->prepare("SELECT product_name, quantity FROM order_items WHERE order_id = ?");
+                        $items_stmt = $conn->prepare("SELECT product_name, quantity FROM order_items WHERE order_id = ? LIMIT 3");
                         $items_stmt->bind_param('i', $order_id);
                         $items_stmt->execute();
                         $items_result = $items_stmt->get_result();
+                        $item_count = 0;
                         while($item = $items_result->fetch_assoc()):
+                          $item_count++;
                       ?>
                         <li><?= htmlspecialchars($item['product_name']) ?> x <strong><?= (int)$item['quantity'] ?></strong></li>
                       <?php endwhile; $items_stmt->close(); ?>
+                      <?php if ($item_count >= 3): ?>
+                        <li class="text-muted" style="font-size:0.8em;">...and more</li>
+                      <?php endif; ?>
                     </ul>
                   </td>
+
                   <td><?= $customer_name ?></td>
+                  <td>
+                    <span style="font-weight:600; white-space:nowrap;">
+                        ₱<?= number_format($total, 2) ?>
+                    </span>
+                  </td>
                   <td>
                     <span class="source-pill <?= $source_class ?>">
                       <?= htmlspecialchars($source_label) ?>
@@ -345,36 +384,31 @@ $orders_result = $conn->query($orders_query);
                     </span>
                   </td>
                   <td class="actions-cell">
-                    <div class="btn-group btn-group-sm">
-                      <?php if ($status == 'pending'): ?>
-                        <button class="btn btn-outline-success btn-action" data-action="confirm" data-id="<?= $order_id ?>">Accept</button>
-                        <button class="btn btn-outline-danger btn-action" data-action="cancel" data-id="<?= $order_id ?>">Reject</button>
+                    <div class="d-flex align-items-center gap-2">
+                        
+                        <button class="btn btn-sm btn-outline-secondary btn-view-details" data-id="<?= $order_id ?>" title="View Details">
+                             <i class="bi bi-eye"></i>
+                        </button>
 
-                      <?php elseif ($status == 'confirmed'): ?>
-                        <button class="btn btn-outline-primary btn-action" data-action="prepare" data-id="<?= $order_id ?>">Start Prep</button>
+                        <div class="btn-group btn-group-sm">
+                        <?php if ($status == 'pending'): ?>
+                            <button class="btn btn-outline-success btn-action" data-action="confirm" data-id="<?= $order_id ?>">Accept</button>
+                            <button class="btn btn-outline-danger btn-action" data-action="cancel" data-id="<?= $order_id ?>">Reject</button>
 
-                      <?php elseif ($status == 'preparing'): ?>
-                        <button class="btn btn-outline-success btn-action" data-action="ready" data-id="<?= $order_id ?>">Mark Ready</button>
+                        <?php elseif ($status == 'confirmed'): ?>
+                            <button class="btn btn-outline-primary btn-action" data-action="prepare" data-id="<?= $order_id ?>">Prep</button>
 
-                      <?php elseif ($status == 'ready' && $order['order_type'] == 'delivery'): ?>
-                        <!-- staff handles delivery; move to out_for_delivery -->
-                        <button class="btn btn-outline-info btn-action" data-action="start_delivery" data-id="<?= $order_id ?>">Out for Delivery</button>
+                        <?php elseif ($status == 'preparing'): ?>
+                            <button class="btn btn-outline-success btn-action" data-action="ready" data-id="<?= $order_id ?>">Ready</button>
 
-                      <?php elseif ($status == 'ready' && $order['order_type'] == 'pickup' && $payment_status === 'paid'): ?>
-                        <!-- already paid (e.g. GCash) -> just mark picked up -->
-                        <button class="btn btn-outline-success btn-action" data-action="complete" data-id="<?= $order_id ?>">Mark Picked Up</button>
+                        <?php elseif ($status == 'ready' && $order['order_type'] == 'pickup' && $payment_status === 'paid'): ?>
+                            <button class="btn btn-outline-success btn-action" data-action="complete" data-id="<?= $order_id ?>">Done</button>
 
-                      <?php elseif ($status == 'ready' && $order['order_type'] == 'pickup' && $payment_status !== 'paid'): ?>
-                        <!-- pay-on-pickup -> open POS payment screen -->
-                        <a href="pos_payment.php?order_id=<?= $order_id ?>" class="btn btn-outline-success">Take Payment</a>
+                        <?php elseif ($status == 'ready' && $order['order_type'] == 'pickup' && $payment_status !== 'paid'): ?>
+                            <a href="pos_payment.php?order_id=<?= $order_id ?>" class="btn btn-outline-success">Pay</a>
 
-                      <?php elseif ($status == 'out_for_delivery'): ?>
-                        <!-- delivery is on the road; mark delivered when done -->
-                        <button class="btn btn-outline-success btn-action" data-action="mark_delivered" data-id="<?= $order_id ?>">Mark Delivered</button>
-
-                      <?php else: ?>
-                        <button class="btn btn-sm btn-outline-secondary" disabled>View</button>
-                      <?php endif; ?>
+                        <?php endif; ?>
+                        </div>
                     </div>
                   </td>
                 </tr>
@@ -392,10 +426,183 @@ $orders_result = $conn->query($orders_query);
   </main>
 </div>
 
+<div class="modal fade" id="viewOrderModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Order Details #<span id="modalOrderNumber"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="modalLoader" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+        
+        <div id="modalContent" style="display:none;">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="detail-label">Customer</div>
+                    <div class="detail-value" id="modalCustomer"></div>
+                    
+                    <div class="detail-label">Contact</div>
+                    <div class="detail-value" id="modalContact"></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="detail-label">Order Type</div>
+                    <div class="detail-value" id="modalType"></div>
+                    
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value" id="modalStatus"></div>
+                </div>
+            </div>
+
+            <div class="mb-3 p-3 bg-light rounded border" id="modalAddressContainer">
+                <div class="detail-label"><i class="bi bi-geo-alt-fill"></i> Delivery Address</div>
+                <div class="detail-value mb-0" id="modalAddress"></div>
+            </div>
+
+            <h6 class="border-bottom pb-2 mb-3 mt-4">Items Ordered</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Item</th>
+                            <th class="text-end" width="100">Price</th>
+                            <th class="text-center" width="80">Qty</th>
+                            <th class="text-end" width="100">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalItemsTable"></tbody>
+                </table>
+            </div>
+
+            <div class="row justify-content-end">
+                <div class="col-md-5">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Subtotal:</span>
+                        <span id="modalSubtotal" class="fw-bold"></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1 text-muted">
+                        <span>Delivery Fee:</span>
+                        <span id="modalDeliveryFee"></span>
+                    </div>
+                    <div class="d-flex justify-content-between modal-total-row">
+                        <span>Total:</span>
+                        <span id="modalTotal" class="text-primary"></span>
+                    </div>
+                    <div class="mt-2 text-end">
+                        <span id="modalPaymentBadge" class="badge bg-secondary"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-3 border-top">
+                <small class="text-muted">Created: <span id="modalTime"></span></small>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const staffUserId = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
-  
+  const viewModalEl = document.getElementById('viewOrderModal');
+  const viewModal = new bootstrap.Modal(viewModalEl);
+
+  // --- View Details Logic ---
+  document.querySelectorAll('.btn-view-details').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+          const orderId = e.currentTarget.dataset.id;
+          
+          // Show modal & loader
+          viewModal.show();
+          document.getElementById('modalLoader').style.display = 'block';
+          document.getElementById('modalContent').style.display = 'none';
+          
+          try {
+              const res = await fetch(`actions/get_order_details.php?order_id=${orderId}`);
+              const data = await res.json();
+              
+              if(data.success) {
+                  const o = data.order;
+                  
+                  // Header Info
+                  document.getElementById('modalOrderNumber').textContent = o.order_number;
+                  document.getElementById('modalCustomer').textContent = o.customer_name;
+                  
+                  // Contact Info
+                  let contact = o.customer_phone || 'No phone';
+                  if(o.customer_email) contact += ` / ${o.customer_email}`;
+                  document.getElementById('modalContact').textContent = contact;
+                  
+                  // Type & Status
+                  document.getElementById('modalType').textContent = o.type_label;
+                  document.getElementById('modalStatus').innerHTML = 
+                      `<span class="badge ${o.status_badge_class}">${o.status_label}</span>`;
+                  
+                  // Address
+                  const addrDiv = document.getElementById('modalAddressContainer');
+                  if(o.delivery_address) {
+                      addrDiv.style.display = 'block';
+                      document.getElementById('modalAddress').textContent = o.delivery_address;
+                  } else {
+                      addrDiv.style.display = 'none';
+                  }
+                  
+                  // Items
+                  const tbody = document.getElementById('modalItemsTable');
+                  tbody.innerHTML = '';
+                  data.items.forEach(item => {
+                      const tr = document.createElement('tr');
+                      let instructions = '';
+                      if(item.special_instructions) {
+                          instructions = `<br><small class="text-danger">Note: ${item.special_instructions}</small>`;
+                      }
+                      tr.innerHTML = `
+                        <td>
+                            ${item.product_name}
+                            ${instructions}
+                        </td>
+                        <td class="text-end">${item.unit_price_fmt}</td>
+                        <td class="text-center">${item.quantity}</td>
+                        <td class="text-end fw-bold">${item.total_price_fmt}</td>
+                      `;
+                      tbody.appendChild(tr);
+                  });
+                  
+                  // Totals
+                  document.getElementById('modalSubtotal').textContent = o.subtotal_formatted;
+                  document.getElementById('modalDeliveryFee').textContent = o.delivery_fee_formatted;
+                  document.getElementById('modalTotal').textContent = o.total_formatted;
+                  
+                  // Payment Badge
+                  document.getElementById('modalPaymentBadge').textContent = o.payment_label;
+                  
+                  // Timestamp
+                  document.getElementById('modalTime').textContent = o.created_at;
+                  
+                  // Reveal Content
+                  document.getElementById('modalLoader').style.display = 'none';
+                  document.getElementById('modalContent').style.display = 'block';
+                  
+              } else {
+                  alert('Failed to load details: ' + data.message);
+                  viewModal.hide();
+              }
+          } catch(err) {
+              console.error(err);
+              alert('Error loading details');
+              viewModal.hide();
+          }
+      });
+  });
+
+  // --- Action Button Logic (Existing) ---
   document.querySelectorAll('.btn-action').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const button = e.currentTarget;
@@ -438,8 +645,9 @@ document.addEventListener('DOMContentLoaded', function() {
             statusBadge.className = `status-badge badge ${data.new_status_class}`;
           }
 
-          row.querySelector('.actions-cell').innerHTML = `<span class="text-success fw-bold">Done</span>`;
-          setTimeout(() => location.reload(), 1500);
+          // Temporarily show "Done" before reload
+          // We can also keep it simple and just reload immediately
+          setTimeout(() => location.reload(), 500);
         } else {
           throw new Error(data.message || 'Failed to update status');
         }

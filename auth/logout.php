@@ -7,7 +7,7 @@ require_once __DIR__ . '/../includes/db_connect.php'; // Provides $BASE_URL and 
 session_unset();  // Unset all session variables
 session_destroy(); // Destroy session
 
-// Redirect the user to the login page
-header('Location: ' . $BASE_URL . '/auth/login.php'); // FIXED
+// Redirect the user to the customer login page (now the central login)
+header('Location: ' . $BASE_URL . '/customer/auth/login.php');
 exit();
 ?>

@@ -10,7 +10,6 @@
     <a href="<?= htmlspecialchars($GALLERY) ?>">Gallery</a>
     <a href="<?= htmlspecialchars($CONTACT) ?>">Contact</a>
     <a href="<?= htmlspecialchars($ORDER_BTN_LINK) ?>">Order online</a>
-    <a href="<?= htmlspecialchars($BASE) ?>/auth/login.php">Staff / Admin Login</a>
   </div>
 
   <div class="footer-contact">

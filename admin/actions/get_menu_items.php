@@ -44,7 +44,7 @@ if (!empty($search)) {
 }
 
 // --- Pagination Logic ---
-$items_per_page = 5; // Show 5 items per page
+$items_per_page = 8; // Show 5 items per page
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) {
     $page = 1;

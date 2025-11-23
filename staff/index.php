@@ -2,6 +2,15 @@
 include __DIR__ . '/includes/header.php'; // brings in $conn, auth, helpers
 
 // ----------------------------
+// FETCH STORE STATUS
+// ----------------------------
+$store_status = 'open'; // default
+$status_query = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'store_status' LIMIT 1");
+if ($status_query && $status_query->num_rows > 0) {
+    $store_status = $status_query->fetch_assoc()['setting_value'];
+}
+
+// ----------------------------
 // DASHBOARD STATS (NO POS CARD)
 // ----------------------------
 $stats_sql = "
@@ -60,7 +69,7 @@ $active_orders = $conn->query($active_sql);
 // ----------------------------
 $pickup_sql = "
     SELECT 
-        o.order_id,
+        o.order_id, 
         o.order_number,
         o.status,
         o.ready_at,
@@ -167,6 +176,8 @@ $pickup_orders = $conn->query($pickup_sql);
   /* Tables */
   .dashboard-table {
     margin-bottom: 0;
+    /* Fix responsiveness: Force min width to trigger scroll on mobile */
+    min-width: 900px; 
   }
 
   .dashboard-table thead th {
@@ -176,15 +187,16 @@ $pickup_orders = $conn->query($pickup_sql);
     font-weight: 600;
     color: #6b7280;
     border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
   }
 
   .dashboard-table th,
   .dashboard-table td {
     font-size: 0.9rem;
-    white-space: normal !important;
-    word-wrap: break-word;
-    word-break: break-word;
-    vertical-align: top;
+    /* Force text to stay on one line to prevent vertical stacking */
+    white-space: nowrap !important;
+    vertical-align: middle;
+    padding: 12px 10px;
   }
 
   .dashboard-table td small {
@@ -279,6 +291,22 @@ $pickup_orders = $conn->query($pickup_sql);
     font-size: 0.8rem;
     color: #9ca3af;
   }
+  
+  /* Store Status Switch */
+  .store-status-toggle .form-check-input {
+      cursor: pointer;
+      height: 1.5em;
+      width: 3em;
+  }
+  .store-status-toggle .form-check-input:checked {
+      background-color: #198754;
+      border-color: #198754;
+  }
+  .store-status-toggle .form-check-input:not(:checked) {
+      background-color: #dc3545;
+      border-color: #dc3545;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+  }
 
   @media (max-width: 576px) {
     .content-card {
@@ -292,22 +320,30 @@ $pickup_orders = $conn->query($pickup_sql);
 
   <main class="main-content">
 
-    <!-- Top header card -->
     <div class="content-card mb-3">
-      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
           <h2 class="page-title mb-1">Staff Dashboard</h2>
           <p class="page-subtitle text-muted mb-1">
             Logged in as <strong><?= htmlspecialchars(get_user_name() ?? 'Staff') ?></strong>.
           </p>
           <p class="meta-text mb-0">
-            Focus on what's currently in the queue. Page auto-refreshes every 10 seconds.
+            Page auto-refreshes every 10 seconds.
           </p>
+        </div>
+        
+        <div class="store-status-toggle bg-light p-2 px-3 rounded-3 border d-flex align-items-center gap-3">
+            <span class="fw-bold text-muted small text-uppercase">Store Status:</span>
+            <div class="form-check form-switch mb-0 d-flex align-items-center gap-2 ps-0">
+                <input class="form-check-input ms-0" type="checkbox" role="switch" id="storeStatusSwitch" <?= $store_status === 'open' ? 'checked' : '' ?>>
+                <label class="form-check-label fw-bold <?= $store_status === 'open' ? 'text-success' : 'text-danger' ?>" for="storeStatusSwitch" id="storeStatusLabel">
+                    <?= $store_status === 'open' ? 'OPEN' : 'CLOSED' ?>
+                </label>
+            </div>
         </div>
       </div>
     </div>
 
-    <!-- STAT CARDS (3 cards, no POS) -->
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-md-4">
         <div class="stat-card">
@@ -332,7 +368,6 @@ $pickup_orders = $conn->query($pickup_sql);
       </div>
     </div>
 
-    <!-- ACTIVE ORDERS TABLE -->
     <section class="content-card mb-4">
       <div class="content-card-header">
         <div>
@@ -352,7 +387,7 @@ $pickup_orders = $conn->query($pickup_sql);
               <th>Order #</th>
               <th>Source / Customer</th>
               <th>Items</th>
-              <th>Payment</th>
+              <th>Total</th> <th>Payment</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -416,6 +451,9 @@ $pickup_orders = $conn->query($pickup_sql);
                   $created_time = $order['created_at']
                     ? date('g:i A', strtotime($order['created_at']))
                     : '';
+                    
+                  // Total
+                  $total = (float)($order['total_amount'] ?? 0);
                 ?>
                 <tr>
                   <td>
@@ -451,6 +489,11 @@ $pickup_orders = $conn->query($pickup_sql);
                     </ul>
                   </td>
                   <td>
+                    <span style="font-weight:600; white-space:nowrap;">
+                        ₱<?= number_format($total, 2) ?>
+                    </span>
+                  </td>
+                  <td>
                     <span class="payment-badge badge <?= $payment_badge_class ?>">
                       <?= htmlspecialchars($payment_label) ?>
                     </span>
@@ -464,7 +507,7 @@ $pickup_orders = $conn->query($pickup_sql);
               <?php endwhile; ?>
             <?php else: ?>
               <tr>
-                <td colspan="5" class="text-center text-muted">No active orders.</td>
+                <td colspan="6" class="text-center text-muted">No active orders.</td>
               </tr>
             <?php endif; ?>
           </tbody>
@@ -472,7 +515,6 @@ $pickup_orders = $conn->query($pickup_sql);
       </div>
     </section>
 
-    <!-- PICKUP COUNTER QUEUE TABLE -->
     <section class="content-card">
       <div class="content-card-header">
         <div>
@@ -491,7 +533,7 @@ $pickup_orders = $conn->query($pickup_sql);
               <th>Order #</th>
               <th>Customer</th>
               <th>Items</th>
-              <th>Time Ready</th>
+              <th>Total</th> <th>Time Ready</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -515,6 +557,7 @@ $pickup_orders = $conn->query($pickup_sql);
 
                   $status       = $order['status'];
                   $status_class = ($status === 'ready') ? 'badge-success' : 'badge-secondary';
+                  $total        = (float)($order['total_amount'] ?? 0);
                 ?>
                 <tr>
                   <td><strong>#<?= $order_no ?></strong></td>
@@ -539,6 +582,11 @@ $pickup_orders = $conn->query($pickup_sql);
                       <?php endwhile; $items_stmt->close(); ?>
                     </ul>
                   </td>
+                  <td>
+                    <span style="font-weight:600; white-space:nowrap;">
+                        ₱<?= number_format($total, 2) ?>
+                    </span>
+                  </td>
                   <td><?= htmlspecialchars($time_ready) ?></td>
                   <td>
                     <span class="status-badge badge <?= $status_class ?>">
@@ -549,7 +597,7 @@ $pickup_orders = $conn->query($pickup_sql);
               <?php endwhile; ?>
             <?php else: ?>
               <tr>
-                <td colspan="5" class="text-center text-muted">No pickup customers in the queue.</td>
+                <td colspan="6" class="text-center text-muted">No pickup customers in the queue.</td>
               </tr>
             <?php endif; ?>
           </tbody>
@@ -560,11 +608,79 @@ $pickup_orders = $conn->query($pickup_sql);
   </main>
 </div>
 
-<!-- crude "real-time" refresh: reload page every 10 seconds -->
 <script>
+  // Auto Refresh
   setInterval(function() {
-    location.reload();
+    // Only refresh if the switch is not being interacted with to avoid jarring UI
+    if (!document.activeElement.classList.contains('form-check-input')) {
+        location.reload();
+    }
   }, 10000);
+  
+  // Store Status Toggle Logic
+  document.addEventListener('DOMContentLoaded', function() {
+      const statusSwitch = document.getElementById('storeStatusSwitch');
+      const statusLabel = document.getElementById('storeStatusLabel');
+      
+      if (statusSwitch) {
+          statusSwitch.addEventListener('change', function() {
+              const newStatus = this.checked ? 'open' : 'closed';
+              
+              // Disable during request
+              statusSwitch.disabled = true;
+              
+              // Optimistic UI update
+              statusLabel.textContent = this.checked ? 'OPEN' : 'CLOSED';
+              statusLabel.className = 'form-check-label fw-bold ' + (this.checked ? 'text-success' : 'text-danger');
+              
+              const formData = new FormData();
+              formData.append('status', newStatus);
+              
+              fetch('actions/toggle_store_status.php', {
+                  method: 'POST',
+                  body: formData
+              })
+              .then(response => response.json())
+              .then(data => {
+                  statusSwitch.disabled = false;
+                  if (data.success) {
+                      Swal.fire({
+                          icon: 'success',
+                          title: 'Store Status Updated',
+                          text: data.message,
+                          showConfirmButton: false,
+                          timer: 1500
+                      });
+                  } else {
+                      // Revert
+                      statusSwitch.checked = !statusSwitch.checked;
+                      statusLabel.textContent = statusSwitch.checked ? 'OPEN' : 'CLOSED';
+                      statusLabel.className = 'form-check-label fw-bold ' + (statusSwitch.checked ? 'text-success' : 'text-danger');
+                      
+                      Swal.fire({
+                          icon: 'error',
+                          title: 'Error',
+                          text: data.message
+                      });
+                  }
+              })
+              .catch(err => {
+                  statusSwitch.disabled = false;
+                  // Revert
+                  statusSwitch.checked = !statusSwitch.checked;
+                  statusLabel.textContent = statusSwitch.checked ? 'OPEN' : 'CLOSED';
+                  statusLabel.className = 'form-check-label fw-bold ' + (statusSwitch.checked ? 'text-success' : 'text-danger');
+                  
+                  console.error(err);
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Network Error',
+                      text: 'Failed to update status.'
+                  });
+              });
+          });
+      }
+  });
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
