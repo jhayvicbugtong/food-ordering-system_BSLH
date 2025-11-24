@@ -236,25 +236,60 @@ include __DIR__ . '/includes/header.php';
   .menu-search-bar .input-group-text { border-radius: 999px 0 0 999px; background-color: #f9fafb; }
   .menu-search-bar .form-control { border-radius: 0 999px 999px 0; }
   .modern-table thead th { font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: #6b7280; }
-  .modern-table tbody td { vertical-align: middle; font-size: 0.9rem; }
-  .menu-table-img { width: 46px; height: 46px; border-radius: 12px; object-fit: cover; background: #e5e7eb; }
-  .menu-table-img-placeholder { width: 46px; height: 46px; border-radius: 12px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #adb5bd; }
+  .modern-table tbody td { vertical-align: middle; font-size: 0.9rem; overflow: visible; }
+
+  /* Make first column (image cell) a positioning context */
+  #menuTable tbody tr td:first-child {
+    position: relative;
+    overflow: visible;
+  }
+
+  /* IMAGE + HOVER (5x, centered in the cell) */
+  .menu-table-img {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #e5e7eb;
+    transition: transform 0.2s ease-in-out;
+    cursor: zoom-in;
+    display: block;
+  }
+
+  #menuTable tbody tr td:first-child .menu-table-img:hover {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(5); /* 5x5 and centered */
+    z-index: 50;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    border-radius: 12px;
+  }
+
+  .menu-table-img-placeholder { 
+    width: 46px; 
+    height: 46px; 
+    border-radius: 12px; 
+    background-color: #f0f0f0; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: #adb5bd; 
+  }
 
   /* Tabs - FIXED */
   .nav-tabs { border-bottom: none; gap: 10px; }
   
-  /* 1. Reset basic link styles */
   .nav-tabs .nav-link { 
       border-radius: 8px; 
       color: #6b7280; 
       font-weight: 500; 
-      border: none !important; /* Force removal of all borders */
+      border: none !important;
       background: transparent; 
       transition: all 0.2s; 
-      position: relative; /* Ensure we control positioning */
+      position: relative;
   }
 
-  /* 2. Force removal of any pseudo-elements (::before/::after) that might be creating the green line */
   .nav-tabs .nav-link::before,
   .nav-tabs .nav-link::after,
   .nav-tabs .nav-link.active::before,
@@ -266,10 +301,8 @@ include __DIR__ . '/includes/header.php';
       width: 0 !important;
   }
 
-  /* 3. Active state styling (Blue/Indigo background) */
   .nav-tabs .nav-link:hover { background: #e5e7eb; color: #111827; }
   
-  /* Use ID selector for higher specificity to override external CSS */
   #menuTabs .nav-link.active { 
       background: #4f46e5 !important; 
       color: #fff !important; 
@@ -283,6 +316,7 @@ include __DIR__ . '/includes/header.php';
   .pagination .page-item.active .page-link { background-color: #4f46e5; border-color: #4f46e5; color: white; }
   .pagination .page-item.disabled .page-link { color: #9ca3af; border-color: #e5e7eb; background-color: #f9fafb; }
 </style>
+
 
 <script>
 // --- Global Variables ---
@@ -496,12 +530,10 @@ function renderCategoryTable(categories) {
         html = '<tr><td colspan="5" class="text-center py-4 text-muted">No categories found.</td></tr>';
     } else {
         categories.forEach(cat => {
-            // Badge style
             const statusBadge = cat.is_active == 1 
                 ? '<span class="badge bg-success bg-opacity-10 text-success">Active</span>' 
                 : '<span class="badge bg-secondary bg-opacity-10 text-secondary">Inactive</span>';
             
-            // Edit/Delete Buttons: Matching Menu Items Style
             html += `
                 <tr>
                     <td class="fw-bold text-dark">${cat.category_name}</td>
@@ -525,10 +557,6 @@ function renderCategoryTable(categories) {
     $('#categoryTableBody').html(html);
 }
 
-
-// ... inside $(document).ready(function() { ...
-
-// [UPDATE THIS FUNCTION]
 function saveCategory() {
     const data = $('#categoryForm').serialize();
     $.post('actions/save_category.php', data, function(res) {
@@ -538,24 +566,17 @@ function saveCategory() {
             Swal.fire('Success', result.message, 'success');
             categoryModalInstance.hide();
             
-            // 1. Refresh the category table
             loadCategories(categoryPage, $('#categorySearchInput').val());
 
-            // 2. Update the "Add New Item" Category Dropdown immediately
             const $dropdown = $('#category_id');
             const catId = result.category_id;
             const catName = result.category_name;
             
-            // Check if this option already exists (Edit mode)
             let $option = $dropdown.find(`option[value="${catId}"]`);
             
             if ($option.length > 0) {
-                // Update existing option text
                 $option.text(catName);
             } else {
-                // Append new option for "Add" mode
-                // (We use append because categories are usually at the end, 
-                // or you could re-sort if strictly necessary)
                 $dropdown.append(new Option(catName, catId));
             }
 
@@ -565,7 +586,6 @@ function saveCategory() {
     });
 }
 
-// [UPDATE THIS FUNCTION]
 function deleteCategory(id) {
     Swal.fire({
         title: 'Delete Category?', 
@@ -581,13 +601,8 @@ function deleteCategory(id) {
                 
                 if(r.success) {
                     Swal.fire('Deleted!', r.message, 'success');
-                    
-                    // 1. Refresh table
                     loadCategories(categoryPage, $('#categorySearchInput').val());
-                    
-                    // 2. Remove from "Add New Item" Dropdown
                     $(`#category_id option[value="${id}"]`).remove();
-                    
                 } else {
                     Swal.fire('Cannot Delete', r.message, 'error');
                 }
@@ -595,8 +610,6 @@ function deleteCategory(id) {
         }
     });
 }
-
-// ... rest of your code
 
 function editCategory(id) {
     $.get('actions/get_category.php', { category_id: id }, function(cat) {
@@ -617,7 +630,6 @@ function editCategory(id) {
     }, 'json');
 }
 
-
 function resetCategoryForm() {
     $('#categoryForm')[0].reset();
     $('#cat_id').val('');
@@ -626,20 +638,18 @@ function resetCategoryForm() {
 // Shared Pagination Builder
 function buildPagination(pagination, containerSelector) {
     const { currentPage, totalPages } = pagination;
-    const container = $(containerSelector + ' .pagination');
+    const container = $((containerSelector + ' .pagination'));
     container.empty();
 
     if (totalPages <= 1) {
         return;
     }
 
-    // Previous Button
     let prevClass = (currentPage == 1) ? 'disabled' : '';
     container.append(`<li class="page-item ${prevClass}">
                         <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
                       </li>`);
 
-    // Page Numbers (1, 2 ... 5, 6, 7 ... 10)
     let startPage = Math.max(1, currentPage - 1);
     let endPage = Math.min(totalPages, currentPage + 1);
 
@@ -664,7 +674,6 @@ function buildPagination(pagination, containerSelector) {
         container.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`);
     }
 
-    // Next Button
     let nextClass = (currentPage == totalPages) ? 'disabled' : '';
     container.append(`<li class="page-item ${nextClass}">
                         <a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>
