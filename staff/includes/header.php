@@ -322,7 +322,7 @@ if ($settings_result && $settings_result->num_rows > 0) {
 
   @media (max-width: 576px) {
     .site-header {
-      padding: 8px 0;
+      padding: 20px 0;
     }
     
     .header-content {
