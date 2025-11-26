@@ -362,7 +362,7 @@
       <div class="gallery-grid">
         <div class="gallery-card">
           <div class="gallery-card-imgwrap">
-            <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan.jpg?v=0"
+            <img src="../uploads/gallery/lomi.jpg"
                  alt="Signature Lomi Bowl - Thick noodles, rich broth, crispy toppings">
           </div>
           <div class="gallery-card-body">
@@ -373,7 +373,7 @@
 
         <div class="gallery-card">
           <div class="gallery-card-imgwrap">
-            <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan2.jpg?v=0"
+            <img src="../uploads/gallery/silog.jpg"
                  alt="Silog Combo - Garlic rice, egg, and your choice of ulam">
           </div>
           <div class="gallery-card-body">
@@ -384,7 +384,7 @@
 
         <div class="gallery-card">
           <div class="gallery-card-imgwrap">
-            <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan3.jpg?v=0"
+            <img src="../uploads/gallery/pancit.jpg"
                  alt="Pancit Tray for Sharing - Perfect for parties and gatherings">
           </div>
           <div class="gallery-card-body">
@@ -393,38 +393,7 @@
           </div>
         </div>
 
-        <div class="gallery-card">
-          <div class="gallery-card-imgwrap">
-            <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/person.jpg?v=0"
-                 alt="Fresh Ingredients - Kitchen preparation and cooking process">
-          </div>
-          <div class="gallery-card-body">
-            <h3>Freshly Prepared</h3>
-            <p>No stale pans, no reheat drama. We prep throughout the day using the freshest ingredients.</p>
-          </div>
-        </div>
-
-        <div class="gallery-card">
-          <div class="gallery-card-imgwrap">
-            <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan_AFouckhG.jpg?v=0"
-                 alt="Toppings & Add-ons - Customize your bowl with extra goodness">
-          </div>
-          <div class="gallery-card-body">
-            <h3>Toppings & Add-ons</h3>
-            <p>Crunch, egg, chicharon, special sauce. Customize your bowl exactly how you like it.</p>
-          </div>
-        </div>
-
-        <div class="gallery-card">
-          <div class="gallery-card-imgwrap">
-            <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/hero.png?v=0"
-                 alt="Takeout and Delivery - Ready for pickup or delivery">
-          </div>
-          <div class="gallery-card-body">
-            <h3>Ready for Delivery</h3>
-            <p>Pickup or delivery? Your call. We pack it tight and hot to ensure perfect arrival.</p>
-          </div>
-        </div>
+       
       </div>
     </div>
   </section>

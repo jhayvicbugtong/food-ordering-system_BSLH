@@ -55,7 +55,7 @@ function isActive($names, $current) {
   <div class="site-header-inner">
     <a class="brand-left" href="<?= htmlspecialchars($HOME) ?>">
       <div class="logo-container">
-        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo_tranparent.png" alt="Logo">
+        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo_transparent.png" alt="Logo">
         <div class="logo-glow"></div>
       </div>
       <div class="brand-text">

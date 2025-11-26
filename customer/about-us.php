@@ -557,7 +557,7 @@
 
       <div class="hero-right">
         <img class="hero-img"
-             src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/person.jpg?v=0"
+             src="../uploads/about/chami.jpg"
              alt="Bente Sais Lomi House Kitchen - Preparing authentic Batangas comfort food">
       </div>
     </div>
@@ -588,7 +588,7 @@
   <section class="story-section">
     <div class="section-inner" style="flex-direction: row-reverse;">
       <div class="story-left">
-        <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan2.jpg?v=0" alt="Bente Sais Lomi House kitchen preparation and cooking process">
+        <img src="../uploads/about/lomi.jpg" alt="Bente Sais Lomi House kitchen preparation and cooking process">
       </div>
 
       <div class="story-right">
@@ -691,7 +691,7 @@
       </div>
 
       <div class="quality-col quality-img-wrap">
-        <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan.jpg?v=0"
+        <img src="../uploads/about/tokwa.jpg"
              alt="Signature Bente Sais Lomi Bowl with fresh ingredients">
       </div>
 
@@ -721,10 +721,10 @@
       <div class="cta-left">
         <div class="cta-photos">
           <div class="cta-photo-card">
-            <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan_AFouckhG.jpg?v=0" alt="Bente Sais Silog Meal - Perfect for any time of day">
+            <img src="../uploads/about/tapsi.jpg" alt="Bente Sais Silog Meal - Perfect for any time of day">
           </div>
           <div class="cta-photo-card">
-            <img src="https://cs.cdn-upm.com/themes/98dfb947-4a04-11ed-8bca-525400080621/assets-6/vegan3.jpg?v=0" alt="Group order party tray - Perfect for gatherings">
+            <img src="../uploads/about/liver.jpg" alt="Group order party tray - Perfect for gatherings">
           </div>
         </div>
       </div>

@@ -8,7 +8,7 @@ include __DIR__ . '/includes/header.php';
     <section class="content-card mb-4">
       <div class="content-card-header">
         <div class="left">
-          <h2 class="page-title mb-1">Staff Management</h2>
+          <h2 class="page-title mb-1">UserF Management</h2>
           <p class="text-muted small mb-0">Add and maintain users with access to the system.</p>
         </div>
         <div class="right header-actions">
@@ -75,7 +75,7 @@ include __DIR__ . '/includes/header.php';
     <section class="content-card">
       <div class="content-card-header">
         <div class="left">
-          <h2 class="section-title mb-1">Current Staff</h2>
+          <h2 class="section-title mb-1">Current Users</h2>
           <p class="text-muted small mb-0">Active team members with system access.</p>
         </div>
         <div class="right header-actions">
@@ -92,7 +92,7 @@ include __DIR__ . '/includes/header.php';
         <table class="table table-hover modern-table" id="staffTable">
           <thead>
             <tr>
-              <th>Staff Member</th>
+              <th>User Member</th>
               <th>Role</th>
               <th>Email</th>
               <th>Contact</th>
@@ -296,7 +296,7 @@ include __DIR__ . '/includes/header.php';
     align-items: center;
     justify-content: center;
     z-index: 1050;
-    backdrop-filter: blur(2px);
+
   }
   .simple-modal {
     width: 680px;
@@ -377,7 +377,7 @@ include __DIR__ . '/includes/header.php';
 <div class="simple-modal-backdrop" id="editBackdrop">
   <div class="simple-modal">
     <div class="hdr">
-      <strong>Edit Staff Member</strong>
+      <strong>Edit User Details</strong>
       <button type="button" id="editClose" class="btn btn-outline-secondary btn-sm">Close</button>
     </div>
     <form id="editForm" style="display: flex; flex-direction: column; height: 100%;">
@@ -583,7 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (data.status !== 'ok') throw new Error(data.message || 'Failed to load');
       if (!Array.isArray(data.rows)) data.rows = [];
-      tbody.innerHTML = data.rows.map(rowHTML).join('') || `<tr><td colspan="5" class="text-center py-4 text-muted">No staff found.</td></tr>`;
+      tbody.innerHTML = data.rows.map(rowHTML).join('') || `<tr><td colspan="5" class="text-center py-4 text-muted">No User found.</td></tr>`;
       applyRoleFilter();
     }catch(e){
       tbody.innerHTML = `<tr><td colspan="5" class="text-danger text-center py-4">${e.message}</td></tr>`;
@@ -616,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const ct = res.headers.get('content-type')||'';
       const data = ct.includes('json') ? await res.json() : {status:'error',message:await res.text()};
       if (data.status !== 'ok') throw new Error(data.message || 'Failed to add staff');
-      showAlert('success','Staff added successfully.');
+      showAlert('success','User added successfully.');
       form.reset();
       await loadStaff();
     }catch(err){
@@ -633,7 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.closest('.btn-remove')) {
       // SweetAlert2 confirmation
       Swal.fire({
-        title: 'Remove this staff member?',
+        title: 'Remove this user?',
         text: 'This action is permanent.',
         icon: 'warning',
         showCancelButton: true,
@@ -648,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const res = await fetch('actions/delete_staff.php', { method:'POST', body:fd });
           const data = await res.json();
           if (data.status !== 'ok') throw new Error(data.message || 'Delete failed');
-          showAlert('success','Staff removed.');
+          showAlert('success','User removed.');
           tr.remove();
           if (!tbody.children.length) loadStaff();
         }catch(err){
@@ -663,7 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try{
         const res = await fetch('actions/list_staff.php?user_id='+encodeURIComponent(id));
         const data = await res.json();
-        if (data.status !== 'ok' || !data.row) throw new Error('Failed to fetch staff details');
+        if (data.status !== 'ok' || !data.row) throw new Error('Failed to fetch user details');
 
         // Fill modal
         editForm.reset();
