@@ -66,7 +66,7 @@ function isActive($names, $current) {
 
     <nav class="nav-links">
       <div class="mobile-sidebar-header">
-        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo_tranparent.png" alt="Logo">
+        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo_transparent.png" alt="Logo">
         <div class="mobile-brand-text">
             <div class="brand-text-title"><?= htmlspecialchars($store_name) ?></div>
             <div class="brand-text-sub">Since 26</div>

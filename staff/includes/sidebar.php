@@ -84,7 +84,7 @@
 </nav>
 
 <style>
-  /* Enhanced Sidebar Styles - Copied from Admin */
+  /* Enhanced Sidebar Styles */
   .sidebar {
     background: linear-gradient(180deg, #212529 0%, #1a1d21 100%);
     width: 220px;
@@ -200,18 +200,12 @@
     box-shadow: 0 2px 8px rgba(92, 250, 99, 0.15);
   }
 
-  .nav-link.active::before {
-    content: '';
-    position: absolute;
-    left: -12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 3px;
-    height: 50%;
-    background: #5cfa63;
-    border-radius: 0 2px 2px 0;
-  }
+  /* REMOVED .nav-link.active::before block to remove vertical green line */
 
+  .nav-link.active .nav-icon {
+    transform: scale(1.05);
+  }
+  
   .nav-icon {
     width: 18px;
     height: 18px;
@@ -220,10 +214,6 @@
     justify-content: center;
     font-size: 14px;
     transition: all 0.3s ease;
-  }
-
-  .nav-link.active .nav-icon {
-    transform: scale(1.05);
   }
 
   .nav-text {
@@ -297,7 +287,6 @@
     border-color: rgba(220, 53, 69, 0.2);
   }
 
-  /* Mobile Responsive */
   @media (max-width: 992px) {
     .sidebar {
       transform: translateX(-100%);

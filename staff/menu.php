@@ -188,7 +188,7 @@ include __DIR__ . '/includes/header.php';
       font-size: 1.2rem;
   }
 
-  /* Tabs Styling - Scoped to prevent conflicts */
+  /* Tabs Styling */
   #menuTabs.nav-tabs {
     border-bottom: none;
     margin-bottom: 1.5rem;
@@ -203,6 +203,12 @@ include __DIR__ . '/includes/header.php';
     background: transparent !important;
     border-radius: 8px;
     transition: all 0.2s;
+  }
+
+  /* Explicitly remove the vertical green bar if it was bleeding in from global styles */
+  #menuTabs .nav-link::before {
+    display: none !important;
+    content: none !important;
   }
   
   #menuTabs .nav-link:hover {
