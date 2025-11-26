@@ -26,7 +26,7 @@ $BASE_URL = rtrim($base_path, '/');
 // --- END NEW DYNAMIC BASE URL ---
 
 
-// Database configuration in local development
+// // Database configuration in local development
 $host = "localhost";
 $user = "root";
 $pass = "";

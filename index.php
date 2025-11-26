@@ -680,7 +680,7 @@
 
       <div class="hero-right">
         <img class="hero-img"
-             src="uploads/landing_page/11401354.png"
+             src="uploads/logo/logo_tranparent.png"
              alt="Signature Lomi Bowl - Bente Sais Lomi House">
       </div>
     </div>

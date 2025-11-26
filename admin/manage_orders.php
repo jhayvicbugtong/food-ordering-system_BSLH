@@ -104,6 +104,8 @@ $orders_result = $conn->query($orders_query);
     min-height: 100vh;
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
+    margin-left: 220px; /* Default for desktop */
+    transition: margin-left 0.3s ease;
   }
 
   /* Modern cards */
@@ -232,6 +234,38 @@ $orders_result = $conn->query($orders_query);
     margin-top: 2px;
     text-transform: capitalize;
   }
+
+  /* Responsive Media Queries */
+  @media (max-width: 992px) {
+    .main-content {
+      margin-left: 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .content-card-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    
+    .content-card-header .right {
+      width: 100%;
+    }
+    
+    .content-card-header .right .btn {
+      width: 100%;
+    }
+    
+    .filter-form .d-flex.justify-content-sm-end {
+      justify-content: flex-start !important;
+      margin-top: 10px;
+    }
+    
+    .filter-form .btn {
+      width: 100%;
+    }
+  }
 </style>
 
 <div class="container-fluid">
@@ -264,10 +298,10 @@ $orders_result = $conn->query($orders_query);
         </div>
       </div>
 
-      <form class="row g-2 mb-3 filter-form" method="get">
+      <form class="row g-3 mb-4 filter-form" method="get">
         <input type="hidden" name="page" value="1">
 
-        <div class="col-md-3 col-sm-6">
+        <div class="col-12 col-sm-6 col-lg-3">
           <label class="form-label mb-1">Order Type</label>
           <select class="form-select form-select-sm" name="order_type">
             <option value="">All</option>
@@ -275,22 +309,22 @@ $orders_result = $conn->query($orders_query);
             <option value="delivery" <?= $order_type_filter === 'delivery' ? 'selected' : '' ?>>Delivery</option>
           </select>
         </div>
-        <div class="col-md-3 col-sm-6">
+        <div class="col-12 col-sm-6 col-lg-3">
           <label class="form-label mb-1">Date From</label>
           <input type="date"
                  class="form-control form-control-sm"
                  name="date_from"
                  value="<?= htmlspecialchars($date_from) ?>">
         </div>
-        <div class="col-md-3 col-sm-6">
+        <div class="col-12 col-sm-6 col-lg-3">
           <label class="form-label mb-1">Date To</label>
           <input type="date"
                  class="form-control form-control-sm"
                  name="date_to"
                  value="<?= htmlspecialchars($date_to) ?>">
         </div>
-        <div class="col-md-3 col-sm-6 d-flex align-items-end justify-content-sm-end">
-          <a href="manage_orders.php" class="btn btn-outline-secondary btn-sm">
+        <div class="col-12 col-sm-6 col-lg-3 d-flex align-items-end justify-content-sm-end">
+          <a href="manage_orders.php" class="btn btn-outline-secondary btn-sm w-100 w-sm-auto">
             Clear filters
           </a>
         </div>
@@ -300,12 +334,13 @@ $orders_result = $conn->query($orders_query);
         <table class="table table-hover modern-table">
           <thead>
             <tr>
-              <th>Order</th>
-              <th>Customer</th>
-              <th>Order Type</th>
-              <th>Payment</th> <th>Total (₱)</th>
-              <th>Status</th>
-              <th class="text-end">Actions</th>
+              <th class="text-nowrap">Order</th>
+              <th class="text-nowrap">Customer</th>
+              <th class="text-nowrap">Order Type</th>
+              <th class="text-nowrap">Payment</th> 
+              <th class="text-nowrap">Total (₱)</th>
+              <th class="text-nowrap">Status</th>
+              <th class="text-end text-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -342,11 +377,11 @@ $orders_result = $conn->query($orders_query);
                   }
                 ?>
                 <tr data-row-id="<?= (int)$order['order_id'] ?>">
-                  <td>
+                  <td class="text-nowrap">
                     <strong><?= htmlspecialchars($order['order_number'] ?? $order['order_id']) ?></strong><br>
                     <small class="text-muted"><?= date('Y-m-d g:i A', strtotime($order['created_at'])) ?></small>
                   </td>
-                  <td>
+                  <td class="text-nowrap">
                     <?= $customer_name ?><br>
                     <?php if (!empty($order['customer_phone'])): ?>
                       <small class="text-muted"><?= htmlspecialchars($order['customer_phone']) ?></small>
@@ -364,13 +399,13 @@ $orders_result = $conn->query($orders_query);
                           <?= ucfirst($pay_status ?: 'Pending') ?>
                       </span>
                   </td>
-                  <td>₱<?= number_format((float)$order['total_amount'], 2) ?></td>
+                  <td class="text-nowrap">₱<?= number_format((float)$order['total_amount'], 2) ?></td>
                   <td>
                     <span class="status-badge <?= $status_class ?>">
                       <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?>
                     </span>
                   </td>
-                  <td class="text-end">
+                  <td class="text-end text-nowrap">
                     <div class="btn-group btn-group-sm">
                       <button class="btn btn-outline-secondary btn-view"
                               data-order-id="<?= (int)$order['order_id'] ?>">
@@ -394,7 +429,7 @@ $orders_result = $conn->query($orders_query);
 
       <?php if ($total_pages > 1): ?>
         <nav aria-label="Orders pagination">
-          <ul class="pagination justify-content-end mt-3">
+          <ul class="pagination justify-content-center justify-content-sm-end mt-3 flex-wrap">
 
             <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
               <?php if ($page <= 1): ?>
@@ -432,14 +467,14 @@ $orders_result = $conn->query($orders_query);
     </section>
 
     <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Order Details — <span id="od-order-number"></span></h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <div class="row mb-3">
+            <div class="row mb-3 g-3">
               <div class="col-md-6">
                 <p class="mb-1"><strong>Status:</strong> <span id="od-status"></span></p>
                 <p class="mb-1"><strong>Type:</strong> <span id="od-type"></span></p>
@@ -562,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const odPhone       = document.getElementById('od-phone');
   const odCreatedAt   = document.getElementById('od-created-at');
   const odPayment     = document.getElementById('od-payment');
-  const odAddress     = document.getElementById('od-address'); // NEW
+  const odAddress     = document.getElementById('od-address');
   const odItemsBody   = document.getElementById('od-items-body');
   const odTotal       = document.getElementById('od-total');
 
@@ -575,13 +610,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
       // Initial values from row (placeholder)
       odOrderNumber.textContent = '#' + row.dataset.rowId;
-      odStatus.textContent      = '';
-      odType.textContent        = '';
-      odCustomer.textContent    = '';
-      odPhone.textContent       = '';
-      odCreatedAt.textContent   = '';
-      odAddress.textContent     = 'Loading...'; // NEW
-      odPayment.textContent     = 'Loading payment...';
+      odStatus.textContent      = 'Loading...';
+      odType.textContent        = 'Loading...';
+      odCustomer.textContent    = 'Loading...';
+      odPhone.textContent       = 'Loading...';
+      odCreatedAt.textContent   = 'Loading...';
+      odAddress.textContent     = 'Loading...';
+      odPayment.textContent     = 'Loading...';
 
       odItemsBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Loading...</td></tr>';
       odTotal.textContent   = '₱0.00';
@@ -613,7 +648,6 @@ document.addEventListener('DOMContentLoaded', function () {
         odCustomer.textContent    = o.customer;
         odPhone.textContent       = o.phone;
         odCreatedAt.textContent   = o.created_at;
-        // Populate address
         odAddress.textContent     = o.delivery_address || 'N/A (Pickup or Walk-in)';
         
         odTotal.textContent       = '₱' + o.total_amount.toFixed(2);
@@ -762,9 +796,6 @@ document.addEventListener('DOMContentLoaded', function () {
       // Update UI for the row to "Preparing"
       const row = document.querySelector(`tr[data-row-id="${form.dataset.rowId}"]`);
       if (row) {
-        const badge = row.querySelector('td:nth-child(5) .status-badge'); // Adjusted index if columns shifted, but likely safest to use class
-        // Actually, we just added a column, so status-badge is further right.
-        // Better selector:
         const statusBadge = row.querySelector('.status-badge');
         if (statusBadge) { 
           statusBadge.className = 'status-badge status-preparing';

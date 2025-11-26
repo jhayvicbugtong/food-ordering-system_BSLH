@@ -30,6 +30,7 @@ $order_id = $data->order_id ?? 0;
 $new_status = $data->new_status ?? '';
 $handler_id = $data->handler_id ?? null; 
 $driver_id = $data->driver_id ?? null;
+$rejection_reason = $data->rejection_reason ?? ''; // Capture rejection reason
 
 if ($order_id <= 0 || empty($new_status)) {
     http_response_code(400);
@@ -124,11 +125,12 @@ try {
 
     $conn->commit();
 
-    // --- ENHANCED EMAIL NOTIFICATIONS (AVOCADO THEME + FULL DETAILS) ---
+    // --- ENHANCED EMAIL NOTIFICATIONS ---
     $sendEmail = false;
     $subject = "";
     $headline = "";
     $mainMessage = "";
+    $headerColor = "#5cfa63"; // Default green
 
     if (in_array($new_status, ['confirmed', 'preparing'])) {
         $sendEmail = true;
@@ -148,6 +150,30 @@ try {
         $headline = "On the Way!";
         $mainMessage = "Your order is out for delivery. Our rider will be with you shortly!";
     }
+    // --- NEW: Cancellation Email Logic ---
+    elseif ($new_status === 'cancelled') {
+        $sendEmail = true;
+        $headerColor = "#dc3545"; // Red for rejection
+        $subject = "Order Update - " . $current_info['order_number'];
+        $headline = "Order Rejected";
+        $mainMessage = "We are sorry, but we cannot fulfill your order at this time.";
+
+        // Append rejection reason
+        if (!empty($rejection_reason)) {
+            $mainMessage .= "<br><br><strong>Reason:</strong> " . nl2br(htmlspecialchars($rejection_reason));
+        }
+
+        // Check for Online Payment (GCash/Card) + Paid status to append refund notice
+        $isOnline = in_array($current_info['payment_method'], ['gcash', 'card', 'paymongo']);
+        $isPaid = $current_info['payment_status'] === 'paid';
+
+        if ($isOnline && $isPaid) {
+            $mainMessage .= "<div style='background-color: #fff3cd; border: 1px solid #ffeeba; padding: 10px; margin-top: 15px; border-radius: 4px; color: #856404;'>
+                                <strong>Refund Notice:</strong> Since your order was paid online, a refund process has been initiated. 
+                                Please allow 2-3 business days for the funds to reflect in your account.
+                             </div>";
+        }
+    }
 
     if ($sendEmail) {
         try {
@@ -158,7 +184,7 @@ try {
             $custData = $custStmt->get_result()->fetch_assoc();
             $custStmt->close();
 
-            // 2. Get Order Items
+            // 2. Get Order Items (for context in email)
             $itemsStmt = $conn->prepare("SELECT product_name, quantity, total_price FROM order_items WHERE order_id = ?");
             $itemsStmt->bind_param('i', $order_id);
             $itemsStmt->execute();
@@ -176,15 +202,12 @@ try {
 
             // 3. Build Breakdown HTML
             $breakdownHtml = "";
-            
-            // Subtotal
             $breakdownHtml .= "
             <tr>
                 <td style='padding: 8px 0; padding-top: 15px; color: #777;'>Subtotal</td>
                 <td style='padding: 8px 0; padding-top: 15px; text-align: right; color: #777;'>₱" . number_format($current_info['subtotal'], 2) . "</td>
             </tr>";
 
-            // Delivery Fee
             if ($current_info['delivery_fee'] > 0) {
                 $breakdownHtml .= "
                 <tr>
@@ -193,20 +216,10 @@ try {
                 </tr>";
             }
 
-            // Tip
-            if ($current_info['tip_amount'] > 0) {
-                $breakdownHtml .= "
-                <tr>
-                    <td style='padding: 4px 0; color: #777;'>Tip</td>
-                    <td style='padding: 4px 0; text-align: right; color: #777;'>₱" . number_format($current_info['tip_amount'], 2) . "</td>
-                </tr>";
-            }
-
-            // Grand Total
             $breakdownHtml .= "
             <tr>
-                <td style='padding: 10px 0; border-top: 2px solid #568203; font-weight: bold; font-size: 16px;'>Total</td>
-                <td style='padding: 10px 0; border-top: 2px solid #568203; text-align: right; font-weight: bold; font-size: 16px;'>₱" . number_format($current_info['total_amount'], 2) . "</td>
+                <td style='padding: 10px 0; border-top: 2px solid #eee; font-weight: bold; font-size: 16px;'>Total</td>
+                <td style='padding: 10px 0; border-top: 2px solid #eee; text-align: right; font-weight: bold; font-size: 16px;'>₱" . number_format($current_info['total_amount'], 2) . "</td>
             </tr>";
 
 
@@ -226,29 +239,30 @@ try {
                 $mail->isHTML(true);
                 $mail->Subject = $subject;
 
+                // Email Template
                 $mail->Body = "
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;'>
-                    <div style='background-color: #5cfa63; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;'>
+                    <div style='background-color: $headerColor; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;'>
                         <h2 style='margin: 0;'>Bente Sais Lomi House</h2>
                     </div>
                     <div style='border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; padding: 20px;'>
                         <p>Hi <strong>" . htmlspecialchars($custData['customer_first_name']) . "</strong>,</p>
                         
-                        <h3 style='color: #5cfa63;'>$headline</h3>
+                        <h3 style='color: $headerColor;'>$headline</h3>
                         <p style='font-size: 16px; line-height: 1.5;'>$mainMessage</p>
                         
                         <div style='background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px;'>
-                            <h4 style='margin-top: 0; border-bottom: 2px solid #5cfa63; padding-bottom: 10px; display: inline-block;'>Order Summary</h4>
+                            <h4 style='margin-top: 0; border-bottom: 1px solid #ddd; padding-bottom: 10px;'>Order Reference</h4>
                             <p style='margin: 5px 0; font-size: 14px; color: #555;'>Order #: <strong>" . $current_info['order_number'] . "</strong></p>
                             
-                            <table style='width: 100%; border-collapse: collapse; margin-top: 10px;'>
+                            <table style='width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;'>
                                 $itemsHtml
                                 $breakdownHtml
                             </table>
                         </div>
 
                         <p style='margin-top: 30px; font-size: 14px; color: #777;'>
-                            Thank you for choosing us!<br>
+                            Thank you,<br>Bente Sais Team
                         </p>
                     </div>
                 </div>

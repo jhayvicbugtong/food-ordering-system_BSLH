@@ -78,8 +78,9 @@ $delivery_result = $conn->query($delivery_query);
     margin-bottom: 12px;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.75rem;
+    flex-wrap: wrap;
   }
 
   .content-card-header h2 {
@@ -117,6 +118,7 @@ $delivery_result = $conn->query($delivery_query);
     border: 1px solid rgba(129, 140, 248, 0.25);
     box-shadow: 0 12px 30px rgba(31, 41, 55, 0.06);
     transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+    height: 100%;
   }
   .stat-card:hover {
     transform: translateY(-2px);
@@ -143,8 +145,7 @@ $delivery_result = $conn->query($delivery_query);
   /* Table */
   .delivery-table {
     margin-bottom: 0;
-    /* Fix responsiveness: Force min width to trigger scroll on mobile */
-    min-width: 900px;
+    width: 100%;
   }
 
   .delivery-table thead th {
@@ -216,6 +217,96 @@ $delivery_result = $conn->query($delivery_query);
     white-space: nowrap;
   }
 
+  /* Search Box Styles */
+  .search-box {
+    position: relative;
+    width: 250px;
+  }
+  .search-box .form-control {
+    padding-left: 2.5rem;
+    border-radius: 999px;
+    border-color: #e5e7eb;
+    font-size: 0.9rem;
+  }
+  .search-box .form-control:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  }
+  .search-box .bi-search {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+  }
+
+  /* Mobile Responsive Table (Cards) */
+  @media (max-width: 768px) {
+    .delivery-table thead {
+        display: none;
+    }
+    .delivery-table tbody tr {
+        display: block;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        padding: 1rem;
+    }
+    .delivery-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 0.5rem 0;
+        border: none;
+        text-align: right;
+        flex-wrap: wrap;
+    }
+    .delivery-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-right: 1rem;
+        text-align: left;
+        flex-shrink: 0;
+    }
+    /* Address cell specific handling on mobile */
+    .delivery-table td[data-label="Dropoff Address"] {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+    .delivery-table td[data-label="Dropoff Address"] .address-main {
+        margin-top: 0.25rem;
+    }
+
+    .delivery-table td:last-child {
+        border-top: 1px solid #f3f4f6;
+        margin-top: 0.5rem;
+        padding-top: 1rem;
+        justify-content: flex-end;
+    }
+    .delivery-table td:last-child::before {
+        display: none;
+    }
+    
+    .content-card-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .search-box {
+        width: 100%;
+        margin-top: 10px;
+    }
+    .meta-text {
+        display: none;
+    }
+  }
+
   @media (max-width: 576px) {
     .content-card {
       padding: 14px 10px;
@@ -236,11 +327,6 @@ $delivery_result = $conn->query($delivery_query);
           <p class="meta-text mb-0">
             Sorted by time placed (Oldest first). Use this to coordinate riders and track progress.
           </p>
-        </div>
-        <div class="text-end">
-          <button class="btn btn-success btn-sm" onclick="location.reload();">
-            <i class="bi bi-arrow-clockwise"></i> Refresh
-          </button>
         </div>
       </div>
 
@@ -275,8 +361,12 @@ $delivery_result = $conn->query($delivery_query);
           <h2>Delivery Management</h2>
           <p>Move orders from ready ➝ out for delivery ➝ delivered.</p>
         </div>
-        <div class="text-end meta-text">
-          <span class="d-block">Includes confirmed, ready, and out-for-delivery orders.</span>
+        
+        <div class="d-flex align-items-center gap-3">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="deliverySearchInput" class="form-control" placeholder="Search order #, address...">
+            </div>
         </div>
       </div>
 
@@ -293,13 +383,14 @@ $delivery_result = $conn->query($delivery_query);
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="deliveryTableBody">
             <?php if ($delivery_result && $delivery_result->num_rows > 0): ?>
               <?php while($order = $delivery_result->fetch_assoc()): ?>
                 <?php
                   $status   = $order['status'];
                   $order_id = (int)$order['order_id'];
                   $total    = (float)($order['total_amount'] ?? 0);
+                  $order_number = htmlspecialchars($order['order_number'] ?? $order_id);
 
                   // Status Badge
                   $status_map = [
@@ -319,7 +410,6 @@ $delivery_result = $conn->query($delivery_query);
                   $addr_parts = [];
                   if (!empty($order['street']))    $addr_parts[] = $order['street'];
                   if (!empty($order['barangay']))  $addr_parts[] = 'Brgy. ' . $order['barangay'];
-                  // REMOVED: City and Province (Nasugbu, Batangas)
                   
                   $full_address = implode(', ', $addr_parts);
                   if ($full_address === '') $full_address = 'N/A';
@@ -348,45 +438,48 @@ $delivery_result = $conn->query($delivery_query);
                       $payment_badge_class = ($payment_status === 'paid') ? 'badge-success' : 'badge-warning';
                   }
                 ?>
-                <tr data-order-id="<?= $order_id ?>">
-                  <td>
-                    <strong><?= htmlspecialchars($order['order_number'] ?? $order_id) ?></strong><br>
-                    <?php if (!empty($order['created_at'])): ?>
-                      <span class="meta-text">
-                        Placed: <?= htmlspecialchars(date('g:i A', strtotime($order['created_at']))) ?>
-                      </span>
-                    <?php endif; ?>
+                <tr data-order-id="<?= $order_id ?>" class="order-row">
+                  <td data-label="Order #">
+                    <div class="searchable-text">
+                        <strong><?= $order_number ?></strong>
+                        <?php if (!empty($order['created_at'])): ?>
+                          <div class="meta-text">
+                            Placed: <?= htmlspecialchars(date('g:i A', strtotime($order['created_at']))) ?>
+                          </div>
+                        <?php endif; ?>
+                    </div>
                   </td>
-                  <td>
-                    <?= htmlspecialchars($customer_name) ?><br>
+                  <td data-label="Customer">
+                    <span class="searchable-text"><?= htmlspecialchars($customer_name) ?></span><br>
                     <small class="text-muted">
                       <?= htmlspecialchars($order['customer_phone'] ?: 'No phone') ?>
                     </small>
                   </td>
-                  <td>
-                    <span class="address-main"><?= htmlspecialchars($full_address) ?></span>
+                  <td data-label="Dropoff Address">
+                    <span class="address-main searchable-text"><?= htmlspecialchars($full_address) ?></span>
                     <?php if ($extra_text): ?>
                       <span class="address-meta">
                         <i class="bi bi-info-circle"></i> <?= htmlspecialchars($extra_text) ?>
                       </span>
                     <?php endif; ?>
                   </td>
-                  <td>
+                  <td data-label="Total">
                     <span style="font-weight:600; white-space:nowrap;">
                         ₱<?= number_format($total, 2) ?>
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Payment">
                     <span class="payment-badge badge <?= $payment_badge_class ?>">
                       <?= htmlspecialchars($payment_label) ?>
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span class="status-badge badge <?= $status_class ?>">
                       <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?>
                     </span>
                   </td>
                   <td class="actions-cell">
+                    <div class="action-group">
                     <?php if ($status == 'confirmed' || $status == 'ready'): ?>
                       <button 
                         class="btn btn-sm btn-outline-primary btn-action" 
@@ -406,16 +499,22 @@ $delivery_result = $conn->query($delivery_query);
                     <?php else: ?>
                       <span class="text-muted">No actions</span>
                     <?php endif; ?>
+                    </div>
                   </td>
                 </tr>
               <?php endwhile; ?>
             <?php else: ?>
-               <tr>
+               <tr id="no-orders-row">
                 <td colspan="7" class="text-center text-muted">No active deliveries.</td>
               </tr>
             <?php endif; ?>
           </tbody>
         </table>
+
+        <div id="no-search-results" class="text-center py-4 text-muted" style="display: none;">
+            <i class="bi bi-search" style="font-size: 1.5rem; display: block; margin-bottom: 10px;"></i>
+            No deliveries match your search.
+        </div>
       </div>
     </section>
 
@@ -425,51 +524,116 @@ $delivery_result = $conn->query($delivery_query);
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const staffUserId = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+  
+  // --- CLIENT SIDE SEARCH ---
+  const searchInput = document.getElementById('deliverySearchInput');
+  const tableBody = document.getElementById('deliveryTableBody');
+  const noResultsMsg = document.getElementById('no-search-results');
 
-  // Handle all delivery actions (out_for_delivery / delivered)
-  document.querySelectorAll('.btn-action').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const button = e.currentTarget;
-      const orderId = button.dataset.id;
-      const action  = button.dataset.action;
+  if(searchInput) {
+      searchInput.addEventListener('keyup', function() {
+          const query = this.value.toLowerCase().trim();
+          const rows = tableBody.querySelectorAll('.order-row');
+          let hasVisible = false;
 
-      let newStatus = '';
-      if (action === 'out_for_delivery') newStatus = 'out_for_delivery';
-      if (action === 'delivered')       newStatus = 'delivered';
+          rows.forEach(row => {
+              const searchableElements = row.querySelectorAll('.searchable-text');
+              let textContent = "";
+              searchableElements.forEach(el => textContent += el.textContent.toLowerCase() + " ");
 
-      if (!newStatus) return;
+              if (textContent.includes(query)) {
+                  row.style.display = '';
+                  hasVisible = true;
+              } else {
+                  row.style.display = 'none';
+              }
+          });
 
-      updateStatus(button, orderId, newStatus, staffUserId);
-    });
-  });
-
-  async function updateStatus(button, orderId, newStatus, handlerId) {
-    button.disabled = true;
-    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
-
-    try {
-      const res = await fetch('actions/update_order_status.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          order_id: orderId,
-          new_status: newStatus,
-          handler_id: handlerId
-        })
+          if(noResultsMsg) {
+              if (rows.length === 0) {
+                  noResultsMsg.style.display = 'none';
+              } else {
+                  noResultsMsg.style.display = hasVisible ? 'none' : 'block';
+              }
+          }
       });
+  }
 
-      const data = await res.json();
-
-      if (data.success) {
-        location.reload(); // simple refresh to show new state
-      } else {
-        throw new Error(data.message || 'Failed to update status');
+  // --- Helper to rebuild action buttons dynamically ---
+  function renderActionButtons(status, orderId) {
+      if (status === 'ready') {
+          return `<button class="btn btn-sm btn-outline-primary btn-action" data-action="out_for_delivery" data-id="${orderId}">Out for Delivery</button>`;
+      } else if (status === 'out_for_delivery') {
+          return `<button class="btn btn-sm btn-outline-success btn-action" data-action="delivered" data-id="${orderId}">Mark Delivered</button>`;
       }
-    } catch (err) {
-      alert('Error: ' + err.message);
-      button.disabled = false;
-      button.innerHTML = 'Retry';
-    }
+      return '<span class="text-muted">No actions</span>';
+  }
+
+  // Handle all delivery actions (out_for_delivery / delivered) with event delegation
+  const tableElement = document.querySelector('.delivery-table');
+  if (tableElement) {
+      tableElement.addEventListener('click', async (e) => {
+          const button = e.target.closest('.btn-action');
+          if (!button) return;
+
+          const orderId = button.dataset.id;
+          const action  = button.dataset.action;
+
+          let newStatus = '';
+          if (action === 'out_for_delivery') newStatus = 'out_for_delivery';
+          if (action === 'delivered')       newStatus = 'delivered';
+
+          if (!newStatus) return;
+
+          button.disabled = true;
+          button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+
+          try {
+            const res = await fetch('actions/update_order_status.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                order_id: orderId,
+                new_status: newStatus,
+                handler_id: staffUserId
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                const row = button.closest('tr');
+                
+                // 1. If Delivered, remove the row
+                if (newStatus === 'delivered') {
+                    row.style.transition = 'opacity 0.3s';
+                    row.style.opacity = '0';
+                    setTimeout(() => row.remove(), 300);
+                    return;
+                }
+
+                // 2. Update Status Badge
+                const statusBadge = row.querySelector('.status-badge');
+                if (statusBadge) {
+                    statusBadge.textContent = data.new_status_label;
+                    statusBadge.className = `status-badge badge ${data.new_status_class}`;
+                }
+
+                // 3. Dynamically Update Buttons
+                const actionGroup = row.querySelector('.action-group');
+                if (actionGroup) {
+                    actionGroup.innerHTML = renderActionButtons(newStatus, orderId);
+                }
+
+            } else {
+                throw new Error(data.message || 'Failed to update status');
+            }
+          } catch (err) {
+            alert('Error: ' + err.message);
+            button.disabled = false;
+            button.innerHTML = (action === 'out_for_delivery') ? 'Out for Delivery' : 'Mark Delivered';
+          }
+      });
   }
 });
 </script>

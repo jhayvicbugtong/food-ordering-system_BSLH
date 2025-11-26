@@ -128,15 +128,13 @@ if ($orders_result) {
         }
         $stmt_items->close();
         
-        $order['items'] = $items; // Attach items to the order array
+        $order['items'] = $items; 
         $order['progress'] = getOrderProgress($order['status'], $order['order_type']);
-        $orders[] = $order; // Add the complete order to the list
+        $orders[] = $order; 
     }
 }
 $stmt_orders->close();
 // $conn->close();
-
-// --- END: Fetch Order Data ---
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -146,7 +144,6 @@ $stmt_orders->close();
   <title>My Orders | Bente Sais Lomi House</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.css" rel="stylesheet">
@@ -439,13 +436,24 @@ $stmt_orders->close();
         font-weight: 600;
     }
     
-    .filter-tabs {
+    /* Enhanced Filter Toolbar */
+    .filter-toolbar {
         background: white;
         border-radius: var(--radius-md);
         padding: 1rem;
         margin-bottom: 1.5rem;
         box-shadow: var(--shadow-sm);
         border: 1px solid var(--border-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .filter-tabs {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
     }
     
     .filter-tab {
@@ -455,6 +463,8 @@ $stmt_orders->close();
         cursor: pointer;
         transition: all 0.2s ease;
         color: var(--text-light);
+        border: 1px solid transparent;
+        white-space: nowrap;
     }
     
     .filter-tab:hover {
@@ -467,6 +477,32 @@ $stmt_orders->close();
         color: #000;
     }
     
+    .order-search-box {
+        position: relative;
+        min-width: 280px;
+    }
+    
+    .order-search-box .form-control {
+        padding-left: 2.5rem;
+        border-radius: 50px;
+        border-color: var(--border-light);
+        background-color: #fcfcfc;
+    }
+    
+    .order-search-box .form-control:focus {
+        background-color: #fff;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(92, 250, 99, 0.15);
+    }
+    
+    .order-search-box .bi-search {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+    }
+
     .order-count-badge {
         background-color: var(--primary-light);
         color: var(--primary-dark);
@@ -635,6 +671,35 @@ $stmt_orders->close();
         .order-summary-value {
             font-size: 1.25rem;
         }
+
+        /* Responsive Filter Toolbar */
+        .filter-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 1rem;
+            gap: 1rem;
+        }
+        
+        .filter-tabs {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin: 0 -4px; /* Slight offset to align scroll with edge */
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        .filter-tabs::-webkit-scrollbar {
+            display: none; /* Safari/Chrome */
+        }
+        
+        .filter-tab {
+            flex-shrink: 0; /* Don't shrink tabs */
+        }
+
+        .order-search-box {
+            width: 100%;
+        }
     }
   </style>
 </head>
@@ -652,7 +717,7 @@ include __DIR__ . '/includes/header.php';
                 <h1 class="h3 fw-bold mb-2">My Orders</h1>
                 <p class="text-muted mb-0">Track and manage your food orders</p>
             </div>
-            <div class="col-md-4 text-md-end">
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
                 <a href="menu.php" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>New Order
                 </a>
@@ -674,9 +739,9 @@ include __DIR__ . '/includes/header.php';
           </a>
         </div>
       <?php else: ?>
-        <div class="row mb-4">
-          <div class="col-md-3">
-            <div class="order-summary-card">
+        <div class="row mb-4 g-3">
+          <div class="col-6 col-md-3">
+            <div class="order-summary-card h-100">
               <div class="order-summary-title">Total Orders</div>
               <div class="order-summary-value"><?= count($orders) ?></div>
               <div class="order-summary-change positive">
@@ -684,8 +749,8 @@ include __DIR__ . '/includes/header.php';
               </div>
             </div>
           </div>
-          <div class="col-md-3">
-            <div class="order-summary-card">
+          <div class="col-6 col-md-3">
+            <div class="order-summary-card h-100">
               <div class="order-summary-title">Pending</div>
               <div class="order-summary-value">
                 <?= count(array_filter($orders, function($order) { 
@@ -697,8 +762,8 @@ include __DIR__ . '/includes/header.php';
               </div>
             </div>
           </div>
-          <div class="col-md-3">
-            <div class="order-summary-card">
+          <div class="col-6 col-md-3">
+            <div class="order-summary-card h-100">
               <div class="order-summary-title">Completed</div>
               <div class="order-summary-value">
                 <?= count(array_filter($orders, function($order) { 
@@ -710,8 +775,8 @@ include __DIR__ . '/includes/header.php';
               </div>
             </div>
           </div>
-          <div class="col-md-3">
-            <div class="order-summary-card">
+          <div class="col-6 col-md-3">
+            <div class="order-summary-card h-100">
               <div class="order-summary-title">Total Spent</div>
               <div class="order-summary-value">
                 ₱<?= number_format(array_sum(array_column($orders, 'total_amount')), 2) ?>
@@ -723,10 +788,10 @@ include __DIR__ . '/includes/header.php';
           </div>
         </div>
 
-        <div class="filter-tabs">
-          <div class="d-flex flex-wrap gap-2">
+        <div class="filter-toolbar">
+          <div class="filter-tabs">
             <div class="filter-tab active" data-filter="all">
-              All Orders <span class="order-count-badge"><?= count($orders) ?></span>
+              All <span class="order-count-badge"><?= count($orders) ?></span>
             </div>
             <div class="filter-tab" data-filter="pending">
               Pending <span class="order-count-badge">
@@ -750,8 +815,18 @@ include __DIR__ . '/includes/header.php';
               </span>
             </div>
           </div>
+          
+          <div class="order-search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="orderSearch" class="form-control" placeholder="Search order # or item...">
+          </div>
         </div>
         
+        <div id="noSearchResults" class="text-center py-5" style="display: none;">
+            <i class="bi bi-search text-muted fs-1 d-block mb-3"></i>
+            <h5 class="text-muted">No matching orders found</h5>
+        </div>
+
         <div class="accordion" id="ordersAccordion">
           <?php foreach ($orders as $index => $order): 
                 $progress = $order['progress'];
@@ -761,8 +836,15 @@ include __DIR__ . '/includes/header.php';
                 $is_completed = in_array($order['status'], ['completed', 'delivered']);
                 $is_delivery = $order['order_type'] === 'delivery';
                 $has_tip = $order['tip_amount'] > 0;
+                
+                // Generate item search text
+                $item_text = '';
+                foreach($order['items'] as $it) {
+                    $item_text .= $it['product_name'] . ' ';
+                }
+                $search_data = strtolower($order['order_number'] . ' ' . $item_text . ' ' . $order['status']);
           ?>
-            <div class="order-card" data-status="<?= $order['status'] ?>">
+            <div class="order-card" data-status="<?= $order['status'] ?>" data-search="<?= htmlspecialchars($search_data) ?>">
               <div class="order-card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#collapse<?= $order['order_id'] ?>" aria-expanded="<?= $index === 0 ? 'true' : 'false' ?>" aria-controls="collapse<?= $order['order_id'] ?>">
                 <div class="d-flex flex-column flex-md-row w-100 align-items-md-center gap-3">
                   <div class="flex-grow-1">
@@ -954,14 +1036,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Auto-close other accordion items when one is opened (optional)
+    // Auto-close other accordion items when one is opened
     const accordionItems = document.querySelectorAll('.order-card');
     accordionItems.forEach(item => {
         const header = item.querySelector('.order-card-header');
         const collapse = item.querySelector('.collapse');
         
         header.addEventListener('click', function() {
-            // If this item is being opened, close others
             if (!collapse.classList.contains('show')) {
                 accordionItems.forEach(otherItem => {
                     if (otherItem !== item) {
@@ -979,7 +1060,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Animate progress bars when they come into view
+    // Progress bars animation
     const progressBars = document.querySelectorAll('.progress-bar');
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -993,12 +1074,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
-    progressBars.forEach(bar => {
-        observer.observe(bar);
-    });
+    progressBars.forEach(bar => observer.observe(bar));
 
-    // Cancel Order Logic
+    // Cancel Order
     document.querySelectorAll('.cancel-order-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -1021,38 +1099,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     fetch('actions/cancel_order.php', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ order_id: orderId })
                     })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            Swal.fire(
-                                'Cancelled!',
-                                'Your order has been cancelled.',
-                                'success'
-                            ).then(() => {
-                                location.reload();
-                            });
+                            Swal.fire('Cancelled!', 'Your order has been cancelled.', 'success').then(() => location.reload());
                         } else {
-                            Swal.fire(
-                                'Error!',
-                                data.message || 'Failed to cancel order.',
-                                'error'
-                            );
+                            Swal.fire('Error!', data.message || 'Failed to cancel order.', 'error');
                             btnEl.disabled = false;
                             btnEl.innerHTML = originalText;
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        Swal.fire(
-                            'Error!',
-                            'An error occurred. Please try again.',
-                            'error'
-                        );
+                        Swal.fire('Error!', 'An error occurred. Please try again.', 'error');
                         btnEl.disabled = false;
                         btnEl.innerHTML = originalText;
                     });
@@ -1061,48 +1123,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Filter orders by status
+    // --- UNIFIED FILTER & SEARCH LOGIC ---
     const filterTabs = document.querySelectorAll('.filter-tab');
-    const orderCards = document.querySelectorAll('.order-card');
+    const searchInput = document.getElementById('orderSearch');
+    const noResultsMsg = document.getElementById('noSearchResults');
+
+    function filterOrders() {
+        const query = searchInput.value.toLowerCase().trim();
+        const activeTab = document.querySelector('.filter-tab.active').dataset.filter;
+        let visibleCount = 0;
+
+        document.querySelectorAll('.order-card').forEach(card => {
+            const status = card.dataset.status;
+            const searchableText = card.dataset.search;
+
+            // 1. Check Tab Filter
+            let matchesTab = (activeTab === 'all');
+            if (activeTab === 'pending') matchesTab = ['pending', 'confirmed', 'preparing'].includes(status);
+            if (activeTab === 'completed') matchesTab = ['completed', 'delivered'].includes(status);
+            if (activeTab === 'cancelled') matchesTab = (status === 'cancelled');
+
+            // 2. Check Search Query
+            const matchesSearch = !query || searchableText.includes(query);
+
+            // 3. Show/Hide
+            if (matchesTab && matchesSearch) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Toggle "No Results"
+        if (visibleCount === 0) {
+            if (document.querySelectorAll('.order-card').length > 0) {
+                 noResultsMsg.style.display = 'block';
+            }
+        } else {
+            noResultsMsg.style.display = 'none';
+        }
+    }
     
+    // Event Listeners for Filter
     filterTabs.forEach(tab => {
         tab.addEventListener('click', function() {
-            // Remove active class from all tabs
             filterTabs.forEach(t => t.classList.remove('active'));
-            // Add active class to clicked tab
             this.classList.add('active');
-            
-            const filter = this.dataset.filter;
-            
-            // Show/hide orders based on filter
-            orderCards.forEach(card => {
-                if (filter === 'all') {
-                    card.style.display = 'block';
-                } else if (filter === 'pending') {
-                    const status = card.dataset.status;
-                    if (['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(status)) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                } else if (filter === 'completed') {
-                    const status = card.dataset.status;
-                    if (['completed', 'delivered'].includes(status)) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                } else if (filter === 'cancelled') {
-                    const status = card.dataset.status;
-                    if (status === 'cancelled') {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                }
-            });
+            filterOrders();
         });
     });
+
+    // Event Listener for Search
+    searchInput.addEventListener('keyup', filterOrders);
 });
 </script>
 

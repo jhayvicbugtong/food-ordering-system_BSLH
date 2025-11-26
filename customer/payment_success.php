@@ -66,7 +66,7 @@ require_once __DIR__ . '/../includes/db_connect.php';
       <div>
         We've received your payment. Our system is logging your order now.
         <br><br>
-        <button onclick="finishOrder()" class="btn btn-sm btn-success" style="color:black; font-weight:600;">Back to Menu</button>
+        <button onclick="finishOrder()" class="btn btn-sm btn-success" style="color:white; font-weight:600;">Back to Menu</button>
       </div>
     </div>
   </div>

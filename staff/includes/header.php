@@ -322,7 +322,7 @@ if ($settings_result && $settings_result->num_rows > 0) {
 
   @media (max-width: 576px) {
     .site-header {
-      padding: 8px 0;
+      padding: 20px 0;
     }
     
     .header-content {
@@ -429,7 +429,7 @@ if ($settings_result && $settings_result->num_rows > 0) {
           </span>
         </button>
         
-        <img src="<?= htmlspecialchars($BASE_URL) ?>/uploads/logo/logo.png" alt="Avocado Logo" class="brand-logo">
+        <img src="<?= htmlspecialchars($BASE_URL) ?>/uploads/logo/logo_transparent.png" alt="Avocado Logo" class="brand-logo">
         
         <div class="brand-text">
           <div class="brand-main"><?= htmlspecialchars($store_name) ?></div>

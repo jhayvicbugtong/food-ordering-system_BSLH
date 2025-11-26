@@ -242,7 +242,7 @@ if ($barangays_query) {
       <div>
         We've received your order. We'll send updates to your email and phone.
         <br><br>
-        <a href="<?php echo htmlspecialchars($MENU); ?>" class="btn btn-sm btn-success" style="color:black; font-weight:600;">Back to Menu</a>
+        <a href="<?php echo htmlspecialchars($MENU); ?>" class="btn btn-sm btn-success" style="color:white; font-weight:600;">Back to Menu</a>
       </div>
     </div>
   </div>

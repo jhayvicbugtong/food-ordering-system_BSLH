@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 23, 2025 at 11:02 AM
+-- Generation Time: Nov 26, 2025 at 02:17 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -43,14 +43,13 @@ CREATE TABLE `categories` (
 INSERT INTO `categories` (`category_id`, `category_name`, `description`, `display_order`, `is_active`, `created_at`) VALUES
 (1, 'Lomi Bowls', 'Hearty lomi soups with various toppings', 1, 1, '2025-11-14 12:54:35'),
 (2, 'Silog Meals', 'Classic Filipino rice meals with egg', 2, 1, '2025-11-14 12:54:35'),
-(3, 'Party Trays', 'Shareable trays for gatherings', 3, 1, '2025-11-14 12:54:35'),
 (4, 'Drinks', 'Beverages and refreshments', 4, 1, '2025-11-14 12:54:35'),
-(5, 'Sides', 'Side dishes and appetizers', 5, 1, '2025-11-14 12:54:35'),
-(6, 'Panghimagas (Desserts)', 'Sweet treats and desserts', 6, 1, '2025-11-14 12:54:35'),
-(7, 'Special Order', '', 7, 1, '0000-00-00 00:00:00'),
-(10, 'Pancit', '', 8, 1, '2025-11-19 20:42:04'),
-(11, 'Bilao Spaghetti', NULL, 9, 1, '2025-11-19 21:21:44'),
-(12, 'Chami', NULL, 10, 1, '2025-11-19 21:26:04');
+(7, 'Special Order', 'Special order items', 4, 1, '2025-11-14 12:54:35'),
+(10, 'Pancit (Short Order)', '', 5, 1, '2025-11-19 20:42:04'),
+(11, 'Bilao Spaghetti', 'Bilao Spaghetti – A Filipino-style sweet spaghetti served in a bilao (woven tray) for sharing.', 7, 1, '2025-11-19 21:21:44'),
+(12, 'Chami', 'Chami – A thick, savory Filipino noodle dish from Lucena made with chewy noodles, veggies, and meat.', 3, 1, '2025-11-19 21:26:04'),
+(13, 'Bilao Pansit', 'Bilao Pansit: A shareable platter of savory Filipino noodles with classic toppings.', 6, 1, '2025-11-24 14:05:18'),
+(14, 'Extra Orders', 'Extra Order: Additional add-on to complement your meal.', 8, 1, '2025-11-24 14:09:49');
 
 -- --------------------------------------------------------
 
@@ -88,7 +87,15 @@ INSERT INTO `contact_submissions` (`id`, `fullname`, `phone`, `email`, `message`
 (13, 'John Aldrie Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', 'sknskq', '2025-11-22 08:26:49', 0),
 (14, 'John Aldrie Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', 'sknskq', '2025-11-22 08:26:59', 0),
 (15, 'John Aldrie Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', 'hi', '2025-11-22 08:27:11', 0),
-(16, 'John Aldrie Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ',,mmlm', '2025-11-22 13:49:56', 0);
+(16, 'John Aldrie Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ',,mmlm', '2025-11-22 13:49:56', 0),
+(17, 'Alice Reyes', '09155555555', 'alice@example.com', 'Do you accept bulk orders for a wedding reception?', '2025-11-23 18:55:04', 0),
+(18, 'Bob Marquez', '09166666666', 'bob@example.com', 'The Lomi was fantastic! best in Nasugbu.', '2025-11-25 13:55:04', 0),
+(19, 'Charlie Brown', '09177777777', 'charlie@example.com', 'Is your store open on holidays?', '2025-11-25 18:55:04', 0),
+(20, 'John Aldrie Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', 'hi\\', '2025-11-26 02:10:20', 0),
+(21, 'John Aldrie Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', 'hi', '2025-11-26 02:11:25', 0),
+(22, 'John Aldrie Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', 'hi', '2025-11-26 02:13:24', 0),
+(23, 'John Aldrie T Baquiran', '09067035958', 'aldriebaquiran15@gmail.com', 'hi', '2025-11-26 02:13:39', 0),
+(24, 'John Aldrie T Baquiran', '09067035958', 'aldriebaquiran15@gmail.com', 'hi', '2025-11-26 02:15:31', 0);
 
 -- --------------------------------------------------------
 
@@ -153,8 +160,27 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `order_number`, `user_id`, `order_type`, `order_time`, `preferred_time`, `status`, `subtotal`, `delivery_fee`, `tip_amount`, `total_amount`, `handler_id`, `driver_id`, `confirmed_at`, `preparing_at`, `ready_at`, `out_for_delivery_at`, `delivered_at`, `cancelled_at`, `created_at`, `updated_at`) VALUES
-(103, 'BSLH-1763892051-Gwb7', 27, 'delivery', '2025-11-23 18:00:51', NULL, 'pending', 110.00, 100.00, 0.00, 210.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-23 18:00:51', '2025-11-23 18:00:51'),
-(104, 'BSLH-1763892085-3o5m', 27, 'pickup', '2025-11-23 18:01:25', NULL, 'pending', 340.00, 0.00, 0.00, 340.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-23 18:01:25', '2025-11-23 18:01:25');
+(105, 'BSLH-1764067932', 27, 'delivery', '2025-11-25 18:52:12', NULL, 'pending', 230.00, 100.00, 0.00, 330.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-25 18:52:12', '2025-11-25 18:52:12'),
+(106, 'BSLH-1764067954', 27, 'delivery', '2025-11-25 18:52:34', NULL, 'pending', 75.00, 100.00, 0.00, 175.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-25 18:52:34', '2025-11-25 18:52:34'),
+(200, 'BSLH-20251125-01', 30, 'delivery', '2025-11-25 16:55:04', NULL, 'delivered', 230.00, 30.00, 0.00, 260.00, NULL, 32, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-25 18:55:04', '2025-11-25 18:55:04'),
+(201, 'BSLH-20251125-02', 31, 'pickup', '2025-11-25 18:25:04', NULL, 'preparing', 900.00, 0.00, 0.00, 900.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-25 18:55:04', '2025-11-25 18:55:04'),
+(202, 'BSLH-20251125-03', 30, 'delivery', '2025-11-25 18:10:04', NULL, 'out_for_delivery', 165.00, 20.00, 0.00, 185.00, NULL, 32, NULL, NULL, NULL, '2025-11-25 18:55:04', NULL, NULL, '2025-11-25 18:55:04', '2025-11-25 18:55:04'),
+(203, 'BSLH-20251125-04', 31, 'delivery', '2025-11-24 18:55:04', NULL, 'cancelled', 75.00, 40.00, 0.00, 115.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-25 18:55:04', '2025-11-24 18:55:04', '2025-11-25 18:55:04'),
+(300, 'BSLH-20251125-10', 40, 'delivery', '2025-11-25 18:55:58', NULL, 'pending', 750.00, 100.00, 0.00, 850.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-25 18:55:58', '2025-11-25 18:55:58'),
+(301, 'BSLH-20251125-11', 41, 'delivery', '2025-11-25 18:40:58', NULL, 'confirmed', 270.00, 20.00, 0.00, 290.00, NULL, NULL, '2025-11-25 18:55:58', NULL, NULL, NULL, NULL, NULL, '2025-11-25 18:40:58', '2025-11-25 18:55:58'),
+(302, 'BSLH-20251125-12', 40, 'pickup', '2025-11-25 18:15:58', NULL, 'ready', 140.00, 0.00, 0.00, 140.00, NULL, NULL, '2025-11-25 18:20:58', '2025-11-25 18:25:58', '2025-11-25 18:55:58', NULL, NULL, NULL, '2025-11-25 18:15:58', '2025-11-25 18:55:58'),
+(400, 'BSLH-20251126-20', 50, 'delivery', '2025-11-24 18:56:45', NULL, 'completed', 1080.00, 20.00, 0.00, 1100.00, 52, 33, NULL, NULL, NULL, NULL, '2025-11-24 19:56:45', NULL, '2025-11-24 18:56:45', '2025-11-25 18:56:45'),
+(401, 'BSLH-20251126-21', 51, 'delivery', '2025-11-25 18:46:45', NULL, 'preparing', 180.00, 20.00, 0.00, 200.00, 52, NULL, '2025-11-25 18:51:45', '2025-11-25 18:56:45', NULL, NULL, NULL, NULL, '2025-11-25 18:46:45', '2025-11-25 18:56:45'),
+(402, 'BSLH-20251126-22', 50, 'pickup', '2025-11-25 18:56:45', NULL, 'pending', 950.00, 0.00, 0.00, 950.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-25 18:56:45', '2025-11-25 18:56:45'),
+(500, 'BSLH-HIST-001', 60, 'delivery', '2025-11-18 18:58:17', NULL, 'completed', 550.00, 30.00, 0.00, 580.00, NULL, 32, '2025-11-18 18:58:17', '2025-11-18 18:58:17', '2025-11-18 18:58:17', '2025-11-18 18:58:17', '2025-11-18 18:58:17', NULL, '2025-11-18 18:58:17', '2025-11-25 18:58:17'),
+(501, 'BSLH-HIST-002', 61, 'pickup', '2025-11-11 18:58:17', NULL, 'completed', 150.00, 0.00, 0.00, 150.00, NULL, NULL, '2025-11-11 18:58:17', '2025-11-11 18:58:17', '2025-11-11 18:58:17', NULL, '2025-11-11 18:58:17', NULL, '2025-11-11 18:58:17', '2025-11-25 18:58:17'),
+(502, 'BSLH-HIST-003', 62, 'delivery', '2025-11-24 18:58:17', NULL, 'completed', 330.00, 40.00, 0.00, 370.00, NULL, 33, '2025-11-24 18:58:17', '2025-11-24 18:58:17', '2025-11-24 18:58:17', '2025-11-24 18:58:17', '2025-11-24 18:58:17', NULL, '2025-11-24 18:58:17', '2025-11-25 18:58:17'),
+(503, 'BSLH-HIST-004', 60, 'delivery', '2025-10-25 18:58:17', NULL, 'completed', 1200.00, 100.00, 0.00, 1300.00, NULL, 32, '2025-10-25 18:58:17', '2025-10-25 18:58:17', '2025-10-25 18:58:17', '2025-10-25 18:58:17', '2025-10-25 18:58:17', NULL, '2025-10-25 18:58:17', '2025-11-25 18:58:17'),
+(504, 'BSLH-1764116391-yHUu', 27, 'pickup', '2025-11-26 08:19:51', NULL, 'pending', 230.00, 0.00, 0.00, 230.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-26 08:19:51', '2025-11-26 08:19:51'),
+(505, 'BSLH-1764116506', 27, 'pickup', '2025-11-26 08:21:46', NULL, 'pending', 90.00, 0.00, 0.00, 90.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-26 08:21:46', '2025-11-26 08:21:46'),
+(506, 'BSLH-1764116719-HqXU', 27, 'pickup', '2025-11-26 08:25:19', NULL, 'pending', 110.00, 0.00, 0.00, 110.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-26 08:25:19', '2025-11-26 08:25:19'),
+(507, 'BSLH-1764116874-qKJw', 27, 'pickup', '2025-11-26 08:27:54', NULL, 'pending', 110.00, 0.00, 0.00, 110.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-26 08:27:54', '2025-11-26 08:27:54'),
+(508, 'BSLH-1764116964-NBwC', 27, 'pickup', '2025-11-26 08:29:24', NULL, 'pending', 110.00, 0.00, 0.00, 110.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-26 08:29:24', '2025-11-26 08:29:24');
 
 -- --------------------------------------------------------
 
@@ -178,7 +204,18 @@ CREATE TABLE `order_addresses` (
 --
 
 INSERT INTO `order_addresses` (`order_address_id`, `order_id`, `street`, `barangay`, `city`, `province`, `floor_number`, `apt_landmark`) VALUES
-(28, 103, 'Dagundong', 'Papaya', 'Nasugbu', 'Batangas', '', '');
+(29, 105, 'Dagundong', 'Papaya', 'Nasugbu', 'Batangas', '', ''),
+(30, 106, 'Dagundong', 'Papaya', 'Nasugbu', 'Batangas', '', ''),
+(31, 200, 'J.P. Laurel St.', 'Wawa', 'Nasugbu', 'Batangas', NULL, 'Near Wawa Port'),
+(32, 202, 'Rizal Avenue', 'Poblacion', 'Nasugbu', 'Batangas', NULL, 'Beside 7-11'),
+(33, 203, 'National Highway', 'Lumbangan', 'Nasugbu', 'Batangas', NULL, 'Green Gate'),
+(34, 300, 'Sitio Pingkian', 'Papaya', 'Nasugbu', 'Batangas', NULL, 'Near Basketball Court'),
+(35, 301, 'Apacible Blvd', 'Bucana', 'Nasugbu', 'Batangas', NULL, 'Blue House with mango tree'),
+(36, 400, 'Mabini Street', 'Barangay 1', 'Nasugbu', 'Batangas', NULL, 'Red Gate'),
+(37, 401, 'Quezon Ave', 'Barangay 2', 'Nasugbu', 'Batangas', NULL, 'Back of School'),
+(38, 500, 'Port Road', 'Wawa', 'Nasugbu', 'Batangas', NULL, 'Near Market'),
+(39, 502, 'Highway 416', 'Lumbangan', 'Nasugbu', 'Batangas', NULL, 'Yellow House'),
+(40, 503, 'Mountain View', 'Papaya', 'Nasugbu', 'Batangas', NULL, 'Resort Entrance');
 
 -- --------------------------------------------------------
 
@@ -201,8 +238,27 @@ CREATE TABLE `order_customer_details` (
 --
 
 INSERT INTO `order_customer_details` (`detail_id`, `order_id`, `customer_first_name`, `customer_last_name`, `customer_phone`, `customer_email`, `order_notes`) VALUES
-(51, 103, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ''),
-(52, 104, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', '');
+(53, 105, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ''),
+(54, 106, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ''),
+(55, 200, 'Juan', 'Dela Cruz', '09171234567', 'juan.delacruz@example.com', 'Please separate the calamansi.'),
+(56, 201, 'Maria', 'Santos', '09181234567', 'maria.santos@example.com', 'I will pick up at 5pm.'),
+(57, 202, 'Juan', 'Dela Cruz', '09171234567', 'juan.delacruz@example.com', ''),
+(58, 203, 'Maria', 'Santos', '09181234567', 'maria.santos@example.com', 'Cancel please, emergency.'),
+(59, 300, 'Ana', 'Reyes', '09205551234', 'ana.reyes@email.com', 'Please include extra calamansi and chili.'),
+(60, 301, 'Ricardo', 'Dalisay', '09215556789', 'ricardo.d@email.com', 'Change for 500 pesos please.'),
+(61, 302, 'Ana', 'Reyes', '09205551234', 'ana.reyes@email.com', 'I am wearing a red shirt, will wait at counter.'),
+(62, 400, 'Elena', 'Gomez', '09301112222', 'elena.gomez@email.com', 'Please deliver before 6pm.'),
+(63, 401, 'Miguel', 'Tan', '09303334444', 'miguel.tan@email.com', ''),
+(64, 402, 'Elena', 'Gomez', '09301112222', 'elena.gomez@email.com', 'Will bring my own bilao tray for exchange if possible.'),
+(65, 500, 'Gabriel', 'Silang', '09401234567', 'gab.silang@email.com', 'Keep warm please'),
+(66, 501, 'Lara', 'Croft', '09409876543', 'lara.c@email.com', 'Pickup by 3pm'),
+(67, 502, 'Rico', 'Yan', '09405555555', 'rico.yan@email.com', ''),
+(68, 503, 'Gabriel', 'Silang', '09401234567', 'gab.silang@email.com', 'For birthday party'),
+(69, 504, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ''),
+(70, 505, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ''),
+(71, 506, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ''),
+(72, 507, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ''),
+(73, 508, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', '');
 
 -- --------------------------------------------------------
 
@@ -227,9 +283,30 @@ CREATE TABLE `order_items` (
 --
 
 INSERT INTO `order_items` (`order_item_id`, `order_id`, `product_id`, `product_name`, `unit_price`, `quantity`, `total_price`, `special_instructions`, `created_at`) VALUES
-(57, 103, 21, 'Chicken Lomi', 110.00, 1, 110.00, NULL, '2025-11-23 18:00:51'),
-(58, 104, 20, 'Barkada Lomi', 230.00, 1, 230.00, NULL, '2025-11-23 18:01:25'),
-(59, 104, 24, 'Liver Lomi', 110.00, 1, 110.00, NULL, '2025-11-23 18:01:25');
+(60, 105, 20, 'Barkada Lomi', 230.00, 1, 230.00, NULL, '2025-11-25 18:52:12'),
+(61, 106, 12, 'Shanghai Silog', 75.00, 1, 75.00, NULL, '2025-11-25 18:52:34'),
+(62, 200, 20, 'Barkada Lomi', 230.00, 1, 230.00, NULL, '2025-11-25 18:55:04'),
+(63, 201, 34, 'Bilao Spaghetti Large', 900.00, 1, 900.00, NULL, '2025-11-25 18:55:04'),
+(64, 202, 1, 'Tapsilog', 90.00, 1, 90.00, NULL, '2025-11-25 18:55:04'),
+(65, 202, 7, 'Cornsilog', 75.00, 1, 75.00, NULL, '2025-11-25 18:55:04'),
+(66, 203, 12, 'Shanghai Silog', 75.00, 1, 75.00, NULL, '2025-11-25 18:55:04'),
+(67, 300, 45, 'Bilao Pansit (Large)', 750.00, 1, 750.00, NULL, '2025-11-25 18:55:58'),
+(68, 301, 1, 'Tapsilog', 90.00, 3, 270.00, NULL, '2025-11-25 18:55:58'),
+(69, 302, 18, 'Special Lomi', 70.00, 2, 140.00, NULL, '2025-11-25 18:55:58'),
+(70, 400, 19, 'Jumbo Lomi', 90.00, 2, 180.00, 'Separate onions please', '2025-11-25 18:56:45'),
+(71, 400, 34, 'Bilao Spaghetti Large', 900.00, 1, 900.00, 'Include extra cheese packs', '2025-11-25 18:56:45'),
+(72, 401, 3, 'Porksilog', 90.00, 1, 90.00, 'Well done egg', '2025-11-25 18:56:45'),
+(73, 401, 4, 'Chicksilog', 90.00, 1, 90.00, NULL, '2025-11-25 18:56:45'),
+(74, 402, 46, 'Bilao Pansit (Extra Large)', 950.00, 1, 950.00, NULL, '2025-11-25 18:56:45'),
+(75, 500, 44, 'Bilao Pansit (Medium)', 550.00, 1, 550.00, NULL, '2025-11-25 18:58:17'),
+(76, 501, 17, 'Lechon Kawali only', 150.00, 1, 150.00, NULL, '2025-11-25 18:58:17'),
+(77, 502, 21, 'Chicken Lomi', 110.00, 3, 330.00, NULL, '2025-11-25 18:58:17'),
+(78, 503, 35, 'Bilao Spaghetti Extra Large', 1200.00, 1, 1200.00, NULL, '2025-11-25 18:58:17'),
+(79, 504, 20, 'Barkada Lomi', 230.00, 1, 230.00, NULL, '2025-11-26 08:19:51'),
+(80, 505, 19, 'Jumbo Lomi', 90.00, 1, 90.00, NULL, '2025-11-26 08:21:46'),
+(81, 506, 21, 'Chicken Lomi', 110.00, 1, 110.00, NULL, '2025-11-26 08:25:19'),
+(82, 507, 21, 'Chicken Lomi', 110.00, 1, 110.00, NULL, '2025-11-26 08:27:54'),
+(83, 508, 21, 'Chicken Lomi', 110.00, 1, 110.00, NULL, '2025-11-26 08:29:24');
 
 -- --------------------------------------------------------
 
@@ -255,8 +332,27 @@ CREATE TABLE `order_payment_details` (
 --
 
 INSERT INTO `order_payment_details` (`payment_id`, `order_id`, `payment_method`, `payment_status`, `gcash_reference`, `gcash_amount`, `gcash_sender_name`, `amount_paid`, `change_amount`, `paid_at`) VALUES
-(51, 103, 'gcash', 'paid', 'pay_FAybsF6uMbAnUJ7BiyuLwbHR', NULL, NULL, 210.00, NULL, '2025-11-23 18:00:51'),
-(52, 104, 'gcash', 'paid', 'pay_GcVbVEDVckWMfZgE8h4y4CQU', NULL, NULL, 340.00, NULL, '2025-11-23 18:01:25');
+(53, 105, 'cash', 'pending', NULL, NULL, NULL, 330.00, NULL, NULL),
+(54, 106, 'cash', 'pending', NULL, NULL, NULL, 175.00, NULL, NULL),
+(55, 200, 'gcash', 'paid', 'REF987654321', NULL, NULL, 260.00, NULL, '2025-11-25 18:55:04'),
+(56, 201, 'cash', 'pending', NULL, NULL, NULL, 0.00, NULL, NULL),
+(57, 202, 'cash', 'pending', NULL, NULL, NULL, 0.00, NULL, NULL),
+(58, 203, 'cash', 'failed', NULL, NULL, NULL, NULL, NULL, NULL),
+(59, 300, 'cash', 'pending', NULL, NULL, NULL, 0.00, NULL, NULL),
+(60, 301, 'gcash', 'paid', 'REF33445566', NULL, NULL, 290.00, NULL, '2025-11-25 18:55:59'),
+(61, 302, 'gcash', 'paid', 'REF77889900', NULL, NULL, 140.00, NULL, '2025-11-25 18:55:59'),
+(62, 400, 'cash', 'paid', NULL, NULL, NULL, 1100.00, 0.00, '2025-11-24 19:56:45'),
+(63, 401, 'gcash', 'paid', 'REF-KITCHEN-01', NULL, NULL, 200.00, NULL, '2025-11-25 18:56:45'),
+(64, 402, 'cash', 'pending', NULL, NULL, NULL, 0.00, NULL, NULL),
+(65, 500, 'cash', 'paid', NULL, NULL, NULL, 580.00, NULL, '2025-11-18 18:58:17'),
+(66, 501, 'gcash', 'paid', 'REF-HIST-002', NULL, NULL, 150.00, NULL, '2025-11-11 18:58:17'),
+(67, 502, 'cash', 'paid', NULL, NULL, NULL, 370.00, NULL, '2025-11-24 18:58:17'),
+(68, 503, 'gcash', 'paid', 'REF-HIST-004', NULL, NULL, 1300.00, NULL, '2025-10-25 18:58:17'),
+(69, 504, 'gcash', 'paid', 'pay_eodCvpia1ZTn6JsMhF13aWGE', NULL, NULL, 230.00, NULL, '2025-11-26 08:19:51'),
+(70, 505, 'cash', 'pending', NULL, NULL, NULL, 90.00, NULL, NULL),
+(71, 506, 'gcash', 'paid', 'pay_uv34LspaqhH8nfrvgjUFHd5h', NULL, NULL, 110.00, NULL, '2025-11-26 08:25:19'),
+(72, 507, 'gcash', 'paid', 'pay_SDNj6gcJr4GZsoa9v8HMJQKH', NULL, NULL, 110.00, NULL, '2025-11-26 08:27:54'),
+(73, 508, 'gcash', 'paid', 'pay_uNpsji6PH72ANxCT8yKT1FcH', NULL, NULL, 110.00, NULL, '2025-11-26 08:29:24');
 
 -- --------------------------------------------------------
 
@@ -302,7 +398,7 @@ INSERT INTO `products` (`product_id`, `category_id`, `name`, `description`, `bas
 (19, 1, 'Jumbo Lomi', 'Jumbo Lomi: Extra-large serving of rich, savory lomi perfect for big appetites', 90.00, 'uploads/products/691d6d0f08a30_1763536143.jpg', 2, 1, 1, '2025-11-14 12:54:35', '2025-11-19 15:32:38'),
 (20, 1, 'Barkada Lomi', 'Barkada Lomi: A giant lomi portion made for sharing packed with toppings and bold flavor.', 230.00, 'uploads/products/691d6e6933c78_1763536489.jpg', 15, 1, 0, '2025-11-19 15:14:49', '2025-11-19 15:32:50'),
 (21, 1, 'Chicken Lomi', 'Chicken Lomi: Warm, comforting lomi noodles served with tender chicken pieces in a thick, savory broth.', 110.00, 'uploads/products/691d6f6dd8f7d_1763536749.jpg', 15, 1, 0, '2025-11-19 15:19:09', '2025-11-19 20:39:04'),
-(22, 1, 'Pork Lomi', 'Pork Lomi: Classic lomi with juicy pork slices simmered in a rich, flavorful soup.', 120.00, '', 15, 1, 0, '2025-11-19 15:26:34', '2025-11-19 15:33:11'),
+(22, 1, 'Pork Lomi', 'Pork Lomi: Classic lomi with juicy pork slices simmered in a rich, flavorful soup.', 120.00, 'uploads/products/69242c6b6e7c7_1763978347.png', 15, 1, 0, '2025-11-19 15:26:34', '2025-11-24 17:59:07'),
 (23, 1, 'Lechon Lomi', 'Lechon Lomi: Crispy lechon paired with thick lomi noodles for a deliciously indulgent bowl.', 130.00, 'uploads/products/691d718ecfb17_1763537294.jpg', 15, 1, 0, '2025-11-19 15:28:14', '2025-11-19 15:33:28'),
 (24, 1, 'Liver Lomi', 'Liver Lomi: Traditional lomi with savory, tender liver pieces for a bold and hearty taste.', 110.00, 'uploads/products/691d725b148b4_1763537499.JPG', 15, 1, 0, '2025-11-19 15:31:39', '2025-11-19 15:33:39'),
 (25, 10, 'Bihon', 'Bihon: Classic thin rice noodles stir-fried with vegetables and savory seasonings.', 75.00, 'uploads/products/6922c3c1afb67_1763886017.jpg', 15, 1, 0, '2025-11-19 20:44:25', '2025-11-23 17:18:18'),
@@ -322,7 +418,21 @@ INSERT INTO `products` (`product_id`, `category_id`, `name`, `description`, `bas
 (40, 12, 'Lechon Kawali Chami Plain', 'Lechon Kawali Chami Plain: Crispy fried pork belly mixed with thick noodles in a savory plain sauce.', 145.00, 'uploads/products/6922cb2393955_1763887907.jpg', 15, 1, 0, '2025-11-23 16:38:44', '2025-11-23 17:14:54'),
 (41, 12, 'Lechon Kawali (Tamis Anghang)', 'Lechon Kawali Chami (Tamis Anghang): Crispy pork belly tossed with thick noodles in a sweet-spicy sauce.', 150.00, 'uploads/products/6922cb2bb0760_1763887915.jpg', 15, 1, 0, '2025-11-23 16:39:21', '2025-11-23 17:15:00'),
 (42, 12, 'Liver Chami Plain', 'Liver Chami Plain: Savory stir-fried noodles with sautéed liver in a mild, plain sauce.', 105.00, 'uploads/products/6922ced8a1937_1763888856.png', 15, 1, 0, '2025-11-23 16:39:35', '2025-11-23 17:15:12'),
-(43, 12, 'Liver Chami (Tamis Anghang)', 'Liver Chami (Tamis Anghang): Stir-fried noodles with tender liver in a sweet-spicy sauce.', 110.00, 'uploads/products/6922cf8b964d0_1763889035.jpg', 15, 1, 0, '2025-11-23 16:39:47', '2025-11-23 17:15:18');
+(43, 12, 'Liver Chami (Tamis Anghang)', 'Liver Chami (Tamis Anghang): Stir-fried noodles with tender liver in a sweet-spicy sauce.', 110.00, 'uploads/products/6922cf8b964d0_1763889035.jpg', 15, 1, 0, '2025-11-23 16:39:47', '2025-11-23 17:15:18'),
+(44, 13, 'Bilao Pansit (Meduim)', 'Bilao Pansit (Medium): Medium-sized platter of flavorful Filipino noodles for small groups.', 550.00, 'uploads/products/69242414e9906_1763976212.jpg', 15, 1, 0, '2025-11-24 14:07:12', '2025-11-24 17:23:32'),
+(45, 13, 'Bilao Pansit (Large)', 'Bilao Pansit (Large): Large noodle platter loaded with toppings for bigger gatherings.', 750.00, 'uploads/products/692424f7ca636_1763976439.jpg', 15, 1, 0, '2025-11-24 14:07:44', '2025-11-24 17:27:19'),
+(46, 13, 'Bilao Pansit (Extra Large)', 'Bilao Pansit (Extra Large): Extra-large festive noodle platter perfect for parties and celebrations.', 950.00, 'uploads/products/692424440c023_1763976260.jpg', 15, 1, 0, '2025-11-24 14:08:21', '2025-11-24 17:24:20'),
+(47, 14, 'Fried Rice', 'Fried Rice: Savory stir-fried rice to pair with any meal.', 17.00, 'uploads/products/6924266a50f6d_1763976810.png', 15, 1, 0, '2025-11-24 14:11:52', '2025-11-24 17:33:30'),
+(48, 14, 'Plain Rice', 'Plain Rice: Soft steamed rice for a simple, satisfying side.', 12.00, 'uploads/products/692425b999e03_1763976633.png', 15, 1, 0, '2025-11-24 14:12:12', '2025-11-24 17:30:33'),
+(49, 14, 'Egg', 'Egg: Lightly cooked egg to complete your dish.', 15.00, 'uploads/products/6924271c77e1c_1763976988.jpg', 15, 1, 0, '2025-11-24 14:12:38', '2025-11-24 17:36:28'),
+(50, 14, 'Add Onion', 'Onion: Fresh sliced onions to enhance flavor.', 5.00, 'uploads/products/692427921e768_1763977106.jpg', 15, 1, 0, '2025-11-24 14:13:07', '2025-11-24 17:38:26'),
+(51, 14, 'Add Mang Tomas', 'Mang Tomas: Classic savory sauce to boost taste.', 5.00, 'uploads/products/692428740d8eb_1763977332.png', 15, 1, 0, '2025-11-24 14:13:32', '2025-11-24 17:42:12'),
+(52, 14, 'Chicken', 'Chicken: Tender chicken serving to match any meal.', 70.00, 'uploads/products/6924293300876_1763977523.jpg', 15, 1, 0, '2025-11-24 14:13:56', '2025-11-24 17:45:23'),
+(53, 14, 'Porkchop', 'Porkchop: Juicy porkchop for a hearty addition.', 70.00, 'uploads/products/692429d8550ff_1763977688.jpg', 15, 1, 0, '2025-11-24 14:14:17', '2025-11-24 17:48:08'),
+(54, 14, 'Siomai', 'Siomai: Steamed dumplings for a tasty side.', 35.00, 'uploads/products/69242a94393bb_1763977876.jpeg', 15, 1, 0, '2025-11-24 14:14:40', '2025-11-24 17:51:16'),
+(55, 4, 'Coke', 'Coke: Classic refreshing cola drink.', 25.00, 'uploads/products/69242b9dcf366_1763978141.png', 15, 1, 0, '2025-11-24 14:16:00', '2025-11-24 17:55:41'),
+(56, 4, 'Sprite', 'Sprite: Crisp and clear lemon-lime soda.', 20.00, 'uploads/products/69242b818513e_1763978113.png', 15, 1, 0, '2025-11-24 14:16:22', '2025-11-24 17:55:13'),
+(57, 4, 'Royal', 'Royal: Sweet and fruity orange soft drink.', 20.00, 'uploads/products/69242b6723455_1763978087.png', 15, 1, 0, '2025-11-24 14:16:42', '2025-11-24 17:54:47');
 
 -- --------------------------------------------------------
 
@@ -344,12 +454,13 @@ CREATE TABLE `system_settings` (
 --
 
 INSERT INTO `system_settings` (`setting_id`, `setting_key`, `setting_value`, `setting_type`, `description`, `updated_at`) VALUES
-(1, 'store_name', 'Bente Sais Lomi Houses', 'string', 'Restaurant name', '2025-11-23 14:56:28'),
-(2, 'store_phone', '+63 956 244 6616', 'string', 'Contact number', '2025-11-23 14:56:28'),
-(3, 'store_email', 'info@bentesaislomi.com', 'string', 'Contact email', '2025-11-23 14:56:28'),
-(5, 'opening_time', '09:00', 'string', 'Store opening time', '2025-11-23 15:12:03'),
-(6, 'closing_time', '11:00', 'string', 'Store closing time', '2025-11-23 15:12:21'),
-(9, 'store_status', 'open', 'string', 'Manually open or close the store', '2025-11-23 16:05:35');
+(1, 'store_name', 'Bente Sais Lomi Houses', 'string', 'Restaurant name', '2025-11-26 09:16:44'),
+(2, 'store_phone', '+63 956 244 6616', 'string', 'Contact number', '2025-11-26 09:16:44'),
+(3, 'store_email', 'info@bentesaislomi.com', 'string', 'Contact email', '2025-11-26 09:16:44'),
+(5, 'opening_time', '09:00', 'string', 'Store opening time', '2025-11-26 09:16:44'),
+(6, 'closing_time', '22:00', 'string', 'Store closing time', '2025-11-26 09:16:44'),
+(9, 'store_status', 'open', 'string', 'Manually open or close the store', '2025-11-26 09:16:44'),
+(10, 'store_location', 'Bucana, Nasugbu, Batangas', 'string', 'Store physical address', '2025-11-26 09:16:44');
 
 -- --------------------------------------------------------
 
@@ -379,7 +490,19 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `email`, `phone`, `password`, `verification_code`, `email_verified_at`, `role`, `is_active`, `created_at`, `updated_at`) VALUES
 (1, 'Admin', 'Admin', 'admin@gmail.com', '9123456789', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', '480434', NULL, 'admin', 1, '2025-11-14 12:54:35', '2025-11-22 22:51:10'),
 (2, 'Staff', 'Staff', 'staff@gmail.com', '9123456788', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', '978827', NULL, 'staff', 1, '2025-11-14 12:54:35', '2025-11-23 15:32:00'),
-(27, 'John Aldrie', 'Baquiran', 'johnaldriebaquiran51@gmail.com', '09067035958', '$2y$10$i9qL/tfqjw6p4r/yHYHt4.Ui8P5qL76fU7sq7IncAS.dFz88Hfo7i', NULL, '2025-11-23 16:06:20', 'customer', 1, '2025-11-23 16:06:02', '2025-11-23 16:06:20');
+(27, 'John Aldrie', 'Baquiran', 'johnaldriebaquiran51@gmail.com', '09067035958', '$2y$10$i9qL/tfqjw6p4r/yHYHt4.Ui8P5qL76fU7sq7IncAS.dFz88Hfo7i', NULL, '2025-11-23 16:06:20', 'customer', 1, '2025-11-23 16:06:02', '2025-11-23 16:06:20'),
+(30, 'Juan', 'Dela Cruz', 'juan.delacruz@example.com', '09171234567', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', NULL, NULL, 'customer', 1, '2025-11-25 18:55:04', '2025-11-25 18:55:04'),
+(31, 'Maria', 'Santos', 'maria.santos@example.com', '09181234567', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', NULL, NULL, 'customer', 1, '2025-11-25 18:55:04', '2025-11-25 18:55:04'),
+(32, 'Pedro', 'Penduko', 'driver.pedro@example.com', '09191234567', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', NULL, NULL, 'driver', 1, '2025-11-25 18:55:04', '2025-11-25 18:55:04'),
+(33, 'Cardo', 'Dalisay', 'cardo.driver@example.com', '09201234567', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', NULL, NULL, 'driver', 1, '2025-11-25 18:55:04', '2025-11-25 18:55:04'),
+(40, 'Ana', 'Reyes', 'ana.reyes@email.com', '09205551234', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', NULL, NULL, 'customer', 1, '2025-11-25 18:55:58', '2025-11-25 18:55:58'),
+(41, 'Ricardo', 'Dalisay', 'ricardo.d@email.com', '09215556789', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', NULL, NULL, 'customer', 1, '2025-11-25 18:55:58', '2025-11-25 18:55:58'),
+(50, 'Elena', 'Gomez', 'elena.gomez@email.com', '09301112222', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', NULL, NULL, 'customer', 1, '2025-11-25 18:56:45', '2025-11-25 18:56:45'),
+(51, 'Miguel', 'Tan', 'miguel.tan@email.com', '09303334444', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', NULL, NULL, 'customer', 1, '2025-11-25 18:56:45', '2025-11-25 18:56:45'),
+(52, 'Kitchen', 'Staff', 'kitchen@bentesais.com', '09305556666', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', NULL, NULL, 'staff', 1, '2025-11-25 18:56:45', '2025-11-25 18:56:45'),
+(60, 'Gabriel', 'Silang', 'gab.silang@email.com', '09401234567', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', NULL, NULL, 'customer', 1, '2025-09-25 18:58:17', '2025-11-25 18:58:17'),
+(61, 'Lara', 'Croft', 'lara.c@email.com', '09409876543', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', NULL, NULL, 'customer', 1, '2025-10-25 18:58:17', '2025-11-25 18:58:17'),
+(62, 'Rico', 'Yan', 'rico.yan@email.com', '09405555555', '$2y$10$pP/Sn1QnRJqcNEctb53NcO/Xo535av5gsWBGwuGLc1N40wZlIvjru', NULL, NULL, 'customer', 1, '2025-11-04 18:58:17', '2025-11-25 18:58:17');
 
 --
 -- Indexes for dumped tables
@@ -478,7 +601,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `contact_submissions`
 --
 ALTER TABLE `contact_submissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `deliverable_barangays`
@@ -490,49 +613,49 @@ ALTER TABLE `deliverable_barangays`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=509;
 
 --
 -- AUTO_INCREMENT for table `order_addresses`
 --
 ALTER TABLE `order_addresses`
-  MODIFY `order_address_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `order_address_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `order_customer_details`
 --
 ALTER TABLE `order_customer_details`
-  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT for table `order_payment_details`
 --
 ALTER TABLE `order_payment_details`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT for table `system_settings`
 --
 ALTER TABLE `system_settings`
-  MODIFY `setting_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `setting_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
 
 --
 -- Constraints for dumped tables
