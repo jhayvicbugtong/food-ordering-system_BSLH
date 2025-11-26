@@ -44,6 +44,16 @@
       </li>
       
       <li class="nav-item">
+        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'menu.php' ? 'active' : ''; ?>" 
+           href="<?= htmlspecialchars($BASE_URL) ?>/staff/menu.php">
+          <div class="nav-icon">
+            <i class="bi bi-book"></i>
+          </div>
+          <span class="nav-text">Menu</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
         <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'order_history.php' ? 'active' : ''; ?>" 
            href="<?= htmlspecialchars($BASE_URL) ?>/staff/order_history.php">
           <div class="nav-icon">

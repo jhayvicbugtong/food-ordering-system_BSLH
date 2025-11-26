@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 25, 2025 at 11:58 AM
+-- Generation Time: Nov 26, 2025 at 02:17 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -90,7 +90,12 @@ INSERT INTO `contact_submissions` (`id`, `fullname`, `phone`, `email`, `message`
 (16, 'John Aldrie Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ',,mmlm', '2025-11-22 13:49:56', 0),
 (17, 'Alice Reyes', '09155555555', 'alice@example.com', 'Do you accept bulk orders for a wedding reception?', '2025-11-23 18:55:04', 0),
 (18, 'Bob Marquez', '09166666666', 'bob@example.com', 'The Lomi was fantastic! best in Nasugbu.', '2025-11-25 13:55:04', 0),
-(19, 'Charlie Brown', '09177777777', 'charlie@example.com', 'Is your store open on holidays?', '2025-11-25 18:55:04', 0);
+(19, 'Charlie Brown', '09177777777', 'charlie@example.com', 'Is your store open on holidays?', '2025-11-25 18:55:04', 0),
+(20, 'John Aldrie Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', 'hi\\', '2025-11-26 02:10:20', 0),
+(21, 'John Aldrie Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', 'hi', '2025-11-26 02:11:25', 0),
+(22, 'John Aldrie Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', 'hi', '2025-11-26 02:13:24', 0),
+(23, 'John Aldrie T Baquiran', '09067035958', 'aldriebaquiran15@gmail.com', 'hi', '2025-11-26 02:13:39', 0),
+(24, 'John Aldrie T Baquiran', '09067035958', 'aldriebaquiran15@gmail.com', 'hi', '2025-11-26 02:15:31', 0);
 
 -- --------------------------------------------------------
 
@@ -170,7 +175,12 @@ INSERT INTO `orders` (`order_id`, `order_number`, `user_id`, `order_type`, `orde
 (500, 'BSLH-HIST-001', 60, 'delivery', '2025-11-18 18:58:17', NULL, 'completed', 550.00, 30.00, 0.00, 580.00, NULL, 32, '2025-11-18 18:58:17', '2025-11-18 18:58:17', '2025-11-18 18:58:17', '2025-11-18 18:58:17', '2025-11-18 18:58:17', NULL, '2025-11-18 18:58:17', '2025-11-25 18:58:17'),
 (501, 'BSLH-HIST-002', 61, 'pickup', '2025-11-11 18:58:17', NULL, 'completed', 150.00, 0.00, 0.00, 150.00, NULL, NULL, '2025-11-11 18:58:17', '2025-11-11 18:58:17', '2025-11-11 18:58:17', NULL, '2025-11-11 18:58:17', NULL, '2025-11-11 18:58:17', '2025-11-25 18:58:17'),
 (502, 'BSLH-HIST-003', 62, 'delivery', '2025-11-24 18:58:17', NULL, 'completed', 330.00, 40.00, 0.00, 370.00, NULL, 33, '2025-11-24 18:58:17', '2025-11-24 18:58:17', '2025-11-24 18:58:17', '2025-11-24 18:58:17', '2025-11-24 18:58:17', NULL, '2025-11-24 18:58:17', '2025-11-25 18:58:17'),
-(503, 'BSLH-HIST-004', 60, 'delivery', '2025-10-25 18:58:17', NULL, 'completed', 1200.00, 100.00, 0.00, 1300.00, NULL, 32, '2025-10-25 18:58:17', '2025-10-25 18:58:17', '2025-10-25 18:58:17', '2025-10-25 18:58:17', '2025-10-25 18:58:17', NULL, '2025-10-25 18:58:17', '2025-11-25 18:58:17');
+(503, 'BSLH-HIST-004', 60, 'delivery', '2025-10-25 18:58:17', NULL, 'completed', 1200.00, 100.00, 0.00, 1300.00, NULL, 32, '2025-10-25 18:58:17', '2025-10-25 18:58:17', '2025-10-25 18:58:17', '2025-10-25 18:58:17', '2025-10-25 18:58:17', NULL, '2025-10-25 18:58:17', '2025-11-25 18:58:17'),
+(504, 'BSLH-1764116391-yHUu', 27, 'pickup', '2025-11-26 08:19:51', NULL, 'pending', 230.00, 0.00, 0.00, 230.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-26 08:19:51', '2025-11-26 08:19:51'),
+(505, 'BSLH-1764116506', 27, 'pickup', '2025-11-26 08:21:46', NULL, 'pending', 90.00, 0.00, 0.00, 90.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-26 08:21:46', '2025-11-26 08:21:46'),
+(506, 'BSLH-1764116719-HqXU', 27, 'pickup', '2025-11-26 08:25:19', NULL, 'pending', 110.00, 0.00, 0.00, 110.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-26 08:25:19', '2025-11-26 08:25:19'),
+(507, 'BSLH-1764116874-qKJw', 27, 'pickup', '2025-11-26 08:27:54', NULL, 'pending', 110.00, 0.00, 0.00, 110.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-26 08:27:54', '2025-11-26 08:27:54'),
+(508, 'BSLH-1764116964-NBwC', 27, 'pickup', '2025-11-26 08:29:24', NULL, 'pending', 110.00, 0.00, 0.00, 110.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-11-26 08:29:24', '2025-11-26 08:29:24');
 
 -- --------------------------------------------------------
 
@@ -243,7 +253,12 @@ INSERT INTO `order_customer_details` (`detail_id`, `order_id`, `customer_first_n
 (65, 500, 'Gabriel', 'Silang', '09401234567', 'gab.silang@email.com', 'Keep warm please'),
 (66, 501, 'Lara', 'Croft', '09409876543', 'lara.c@email.com', 'Pickup by 3pm'),
 (67, 502, 'Rico', 'Yan', '09405555555', 'rico.yan@email.com', ''),
-(68, 503, 'Gabriel', 'Silang', '09401234567', 'gab.silang@email.com', 'For birthday party');
+(68, 503, 'Gabriel', 'Silang', '09401234567', 'gab.silang@email.com', 'For birthday party'),
+(69, 504, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ''),
+(70, 505, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ''),
+(71, 506, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ''),
+(72, 507, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', ''),
+(73, 508, 'John Aldrie', 'Baquiran', '09067035958', 'johnaldriebaquiran51@gmail.com', '');
 
 -- --------------------------------------------------------
 
@@ -286,7 +301,12 @@ INSERT INTO `order_items` (`order_item_id`, `order_id`, `product_id`, `product_n
 (75, 500, 44, 'Bilao Pansit (Medium)', 550.00, 1, 550.00, NULL, '2025-11-25 18:58:17'),
 (76, 501, 17, 'Lechon Kawali only', 150.00, 1, 150.00, NULL, '2025-11-25 18:58:17'),
 (77, 502, 21, 'Chicken Lomi', 110.00, 3, 330.00, NULL, '2025-11-25 18:58:17'),
-(78, 503, 35, 'Bilao Spaghetti Extra Large', 1200.00, 1, 1200.00, NULL, '2025-11-25 18:58:17');
+(78, 503, 35, 'Bilao Spaghetti Extra Large', 1200.00, 1, 1200.00, NULL, '2025-11-25 18:58:17'),
+(79, 504, 20, 'Barkada Lomi', 230.00, 1, 230.00, NULL, '2025-11-26 08:19:51'),
+(80, 505, 19, 'Jumbo Lomi', 90.00, 1, 90.00, NULL, '2025-11-26 08:21:46'),
+(81, 506, 21, 'Chicken Lomi', 110.00, 1, 110.00, NULL, '2025-11-26 08:25:19'),
+(82, 507, 21, 'Chicken Lomi', 110.00, 1, 110.00, NULL, '2025-11-26 08:27:54'),
+(83, 508, 21, 'Chicken Lomi', 110.00, 1, 110.00, NULL, '2025-11-26 08:29:24');
 
 -- --------------------------------------------------------
 
@@ -327,7 +347,12 @@ INSERT INTO `order_payment_details` (`payment_id`, `order_id`, `payment_method`,
 (65, 500, 'cash', 'paid', NULL, NULL, NULL, 580.00, NULL, '2025-11-18 18:58:17'),
 (66, 501, 'gcash', 'paid', 'REF-HIST-002', NULL, NULL, 150.00, NULL, '2025-11-11 18:58:17'),
 (67, 502, 'cash', 'paid', NULL, NULL, NULL, 370.00, NULL, '2025-11-24 18:58:17'),
-(68, 503, 'gcash', 'paid', 'REF-HIST-004', NULL, NULL, 1300.00, NULL, '2025-10-25 18:58:17');
+(68, 503, 'gcash', 'paid', 'REF-HIST-004', NULL, NULL, 1300.00, NULL, '2025-10-25 18:58:17'),
+(69, 504, 'gcash', 'paid', 'pay_eodCvpia1ZTn6JsMhF13aWGE', NULL, NULL, 230.00, NULL, '2025-11-26 08:19:51'),
+(70, 505, 'cash', 'pending', NULL, NULL, NULL, 90.00, NULL, NULL),
+(71, 506, 'gcash', 'paid', 'pay_uv34LspaqhH8nfrvgjUFHd5h', NULL, NULL, 110.00, NULL, '2025-11-26 08:25:19'),
+(72, 507, 'gcash', 'paid', 'pay_SDNj6gcJr4GZsoa9v8HMJQKH', NULL, NULL, 110.00, NULL, '2025-11-26 08:27:54'),
+(73, 508, 'gcash', 'paid', 'pay_uNpsji6PH72ANxCT8yKT1FcH', NULL, NULL, 110.00, NULL, '2025-11-26 08:29:24');
 
 -- --------------------------------------------------------
 
@@ -429,12 +454,13 @@ CREATE TABLE `system_settings` (
 --
 
 INSERT INTO `system_settings` (`setting_id`, `setting_key`, `setting_value`, `setting_type`, `description`, `updated_at`) VALUES
-(1, 'store_name', 'Bente Sais Lomi Houses', 'string', 'Restaurant name', '2025-11-23 14:56:28'),
-(2, 'store_phone', '+63 956 244 6616', 'string', 'Contact number', '2025-11-23 14:56:28'),
-(3, 'store_email', 'info@bentesaislomi.com', 'string', 'Contact email', '2025-11-23 14:56:28'),
-(5, 'opening_time', '09:00', 'string', 'Store opening time', '2025-11-23 15:12:03'),
-(6, 'closing_time', '11:00', 'string', 'Store closing time', '2025-11-23 15:12:21'),
-(9, 'store_status', 'open', 'string', 'Manually open or close the store', '2025-11-23 16:05:35');
+(1, 'store_name', 'Bente Sais Lomi Houses', 'string', 'Restaurant name', '2025-11-26 09:16:44'),
+(2, 'store_phone', '+63 956 244 6616', 'string', 'Contact number', '2025-11-26 09:16:44'),
+(3, 'store_email', 'info@bentesaislomi.com', 'string', 'Contact email', '2025-11-26 09:16:44'),
+(5, 'opening_time', '09:00', 'string', 'Store opening time', '2025-11-26 09:16:44'),
+(6, 'closing_time', '22:00', 'string', 'Store closing time', '2025-11-26 09:16:44'),
+(9, 'store_status', 'open', 'string', 'Manually open or close the store', '2025-11-26 09:16:44'),
+(10, 'store_location', 'Bucana, Nasugbu, Batangas', 'string', 'Store physical address', '2025-11-26 09:16:44');
 
 -- --------------------------------------------------------
 
@@ -575,7 +601,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `contact_submissions`
 --
 ALTER TABLE `contact_submissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `deliverable_barangays`
@@ -587,7 +613,7 @@ ALTER TABLE `deliverable_barangays`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=504;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=509;
 
 --
 -- AUTO_INCREMENT for table `order_addresses`
@@ -599,19 +625,19 @@ ALTER TABLE `order_addresses`
 -- AUTO_INCREMENT for table `order_customer_details`
 --
 ALTER TABLE `order_customer_details`
-  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
+  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT for table `order_payment_details`
 --
 ALTER TABLE `order_payment_details`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT for table `products`
@@ -623,7 +649,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `system_settings`
 --
 ALTER TABLE `system_settings`
-  MODIFY `setting_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `setting_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users`

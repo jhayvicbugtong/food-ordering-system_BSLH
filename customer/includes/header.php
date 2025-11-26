@@ -55,7 +55,7 @@ function isActive($names, $current) {
   <div class="site-header-inner">
     <a class="brand-left" href="<?= htmlspecialchars($HOME) ?>">
       <div class="logo-container">
-        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo.png" alt="Logo">
+        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo_tranparent.png" alt="Logo">
         <div class="logo-glow"></div>
       </div>
       <div class="brand-text">
@@ -66,7 +66,7 @@ function isActive($names, $current) {
 
     <nav class="nav-links">
       <div class="mobile-sidebar-header">
-        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo.png" alt="Logo">
+        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo_tranparent.png" alt="Logo">
         <div class="mobile-brand-text">
             <div class="brand-text-title"><?= htmlspecialchars($store_name) ?></div>
             <div class="brand-text-sub">Since 26</div>
@@ -139,7 +139,7 @@ function isActive($names, $current) {
       <div class="mobile-only w-100 mt-2">
          <div class="nav-divider mb-2" style="border-top: 1px solid rgba(255,255,255,0.1);"></div>
          <?php if ($is_logged_in_customer): ?>
-            <div class="px-3 py-2 text-muted small text-uppercase fw-bold">Account (<?= htmlspecialchars($_SESSION['name']) ?>)</div>
+            <div class="px-3 py-2 text-ligth small text-uppercase fw-bold">Account (<?= htmlspecialchars($_SESSION['name']) ?>)</div>
             <a class="nav-link" href="<?= htmlspecialchars($PROFILE) ?>"><i class="bi bi-person me-2"></i>Profile</a>
             <a class="nav-link" href="<?= htmlspecialchars($MY_ORDERS) ?>"><i class="bi bi-receipt me-2"></i>My Orders</a>
             <a class="nav-link text-danger" href="<?= htmlspecialchars($LOGOUT) ?>"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>

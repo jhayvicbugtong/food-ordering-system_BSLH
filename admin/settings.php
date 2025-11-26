@@ -333,6 +333,14 @@ $barangays_query = $conn->query("SELECT * FROM deliverable_barangays ORDER BY ba
                     <label class="form-label">Store Name</label>
                     <input type="text" class="form-control" name="store_name" value="<?= htmlspecialchars(get_setting('store_name', $settings)) ?>" required>
                   </div>
+
+                  <div class="mb-4">
+                    <label class="form-label">Store Location</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                        <input type="text" class="form-control" name="store_location" value="<?= htmlspecialchars(get_setting('store_location', $settings)) ?>" placeholder="City, Province">
+                    </div>
+                  </div>
                   
                   <div class="row g-3">
                       <div class="col-12 col-md-6">
