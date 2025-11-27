@@ -29,7 +29,7 @@ require_once __DIR__ . '/../includes/db_connect.php';
     <div class="confirm-icon">✅</div>
     <div class="confirm-main">
       <h2 id="confirmTitle">Payment Successful!</h2>
-      <p id="confirmSubtitle">Your order is being confirmed. Please check your email/phone for updates.</p>
+      <p id="confirmSubtitle">Your order has been placed. Please wait for the store to confirm.</p>
     </div>
   </div>
 

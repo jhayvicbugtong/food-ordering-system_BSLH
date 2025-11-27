@@ -694,7 +694,7 @@
             <div class="image-box-badge">
               <i class="bi bi-star-fill"></i> Fresh Daily
             </div>
-            <img src="uploads/home/store.jpg" alt="Freshly Prepared Lomi - Bente Sais Lomi House">
+            <img src="uploads/home/store_image.png" alt="Freshly Prepared Lomi - Bente Sais Lomi House">
           </div>
           <div class="image-box-decoration decoration-1"></div>
           <div class="image-box-decoration decoration-2"></div>

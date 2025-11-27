@@ -711,7 +711,7 @@ include __DIR__ . '/includes/header.php';
 ?>
 
 <div class="orders-header">
-    <div class="container">
+    <div class="container position-relative" style="z-index: 5;">
         <div class="row align-items-center">
             <div class="col-md-8">
                 <h1 class="h3 fw-bold mb-2">My Orders</h1>

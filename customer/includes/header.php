@@ -60,7 +60,7 @@ function isActive($names, $current) {
       </div>
       <div class="brand-text">
         <div class="brand-text-title"><?= htmlspecialchars($store_name) ?></div>
-        <div class="brand-text-sub">Since 2016</div>
+        <div class="brand-text-sub">Since 2013</div>
       </div>
     </a>
 
@@ -69,7 +69,7 @@ function isActive($names, $current) {
         <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo_transparent.png" alt="Logo">
         <div class="mobile-brand-text">
             <div class="brand-text-title"><?= htmlspecialchars($store_name) ?></div>
-            <div class="brand-text-sub">Since 26</div>
+            <div class="brand-text-sub">Since 2013</div>
         </div>
       </div>
 

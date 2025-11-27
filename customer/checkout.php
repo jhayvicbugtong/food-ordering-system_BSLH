@@ -209,7 +209,7 @@ if ($barangays_query) {
     <div class="confirm-icon">✅</div>
     <div class="confirm-main">
       <h2 id="confirmTitle">Order Placed!</h2>
-      <p id="confirmSubtitle">Your order #<span id="confirmOrderNumber"></span> is confirmed.</p>
+      <p id="confirmSubtitle">Your order #<span id="confirmOrderNumber"></span> has been placed. Please wait for the store to confirm.</p>
     </div>
   </div>
   <div class="summary-grid-block" id="confirmSummary">
@@ -1021,7 +1021,7 @@ include __DIR__ . '/includes/delivery_time_modal.php';
       };
       
       setText('confirmTitle', 'Order Placed!');
-      setText('confirmSubtitle', `Your order #${orderNumber} is confirmed.`);
+      setText('confirmSubtitle', `Your order #${orderNumber} has been placed. Please wait for the store to confirm.`);
       setText('confirmOrderNumber', orderNumber);
       
       const itemsEl = el('confirmItems');
