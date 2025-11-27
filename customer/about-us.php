@@ -567,15 +567,15 @@
   <section class="stats-section">
     <div class="stats-inner">
       <div class="stat-card">
-        <span class="stat-number">26+</span>
+        <span class="stat-number">12+</span>
         <div class="stat-label">Years of Service</div>
       </div>
       <div class="stat-card">
-        <span class="stat-number">50K+</span>
-        <div class="stat-label">Happy Customers</div>
+        <span class="stat-number">40+</span>
+        <div class="stat-label">Food Choices</div>
       </div>
       <div class="stat-card">
-        <span class="stat-number">3</span>
+        <span class="stat-number">1</span>
         <div class="stat-label">Generations</div>
       </div>
       <div class="stat-card">

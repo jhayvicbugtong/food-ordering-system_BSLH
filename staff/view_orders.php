@@ -164,6 +164,14 @@ $orders_result = $conn->query($orders_query);
   }
 
   /* Status pills */
+  /* ADDED: Missing badge-primary class for 'Confirmed' state */
+  .status-badge.badge-primary,
+  .status-badge.bg-primary {
+    background: #dbeafe; 
+    color: #1d4ed8; 
+    border: 1px solid rgba(37, 99, 235, 0.2);
+  }
+
   .status-badge.badge-warning,
   .status-badge.bg-warning {
     background: #fef3c7;
@@ -316,6 +324,10 @@ $orders_result = $conn->query($orders_query);
       padding: 14px 14px;
     }
   }
+  
+  /* Fade animation for row updates */
+  .fade-in-row { animation: fadeIn 0.5s; }
+  @keyframes fadeIn { from { opacity: 0; background-color: #ecfdf3; } to { opacity: 1; background-color: transparent; } }
 </style>
 
 <div class="container-fluid">
@@ -368,7 +380,7 @@ $orders_result = $conn->query($orders_query);
                   $status = $order['status'];
                   $status_map = [
                     'pending'          => 'badge-warning',
-                    'confirmed'        => 'badge-info',
+                    'confirmed'        => 'badge-primary', // UPDATED: Match API/JS logic (was badge-info)
                     'preparing'        => 'badge-info',
                     'ready'            => 'badge-success',
                     'out_for_delivery' => 'badge-success',
@@ -419,6 +431,7 @@ $orders_result = $conn->query($orders_query);
                 <tr data-order-id="<?= $order_id ?>" 
                     data-order-type="<?= htmlspecialchars($order['order_type']) ?>" 
                     data-payment-status="<?= htmlspecialchars($payment_status ?? '') ?>"
+                    data-status="<?= htmlspecialchars($status) ?>"
                     class="order-row">
                   <td data-label="Order #">
                     <div class="searchable-text">
@@ -606,9 +619,69 @@ document.addEventListener('DOMContentLoaded', function() {
   const viewModalEl = document.getElementById('viewOrderModal');
   const viewModal = new bootstrap.Modal(viewModalEl);
 
-  // --- CLIENT SIDE SEARCH ---
-  const searchInput = document.getElementById('orderSearchInput');
+  // --- REAL-TIME UPDATES LOGIC ---
   const tableBody = document.getElementById('ordersTableBody');
+  const noOrdersRow = document.getElementById('no-orders-row');
+
+  function fetchQueueUpdates() {
+      // Don't poll if user is typing search query to avoid jitter
+      if (document.getElementById('orderSearchInput').value.length > 0) return;
+
+      fetch('actions/fetch_queue_updates.php')
+          .then(response => response.json())
+          .then(data => {
+              if (!data.orders) return;
+              
+              const newOrders = data.orders;
+              const existingRows = Array.from(tableBody.querySelectorAll('tr.order-row'));
+              const existingIds = existingRows.map(row => row.dataset.orderId);
+              const newIds = Object.keys(newOrders);
+
+              // 1. Remove rows that are no longer in the queue
+              existingRows.forEach(row => {
+                  if (!newIds.includes(row.dataset.orderId)) {
+                      row.remove();
+                  }
+              });
+
+              // 2. Add or Update rows
+              newIds.forEach(id => {
+                  const orderData = newOrders[id];
+                  const existingRow = tableBody.querySelector(`tr[data-order-id="${id}"]`);
+
+                  if (!existingRow) {
+                      // ADD NEW ROW
+                      tableBody.insertAdjacentHTML('beforeend', orderData.html);
+                      // Add fade-in animation
+                      const newRow = tableBody.querySelector(`tr[data-order-id="${id}"]`);
+                      if(newRow) newRow.classList.add('fade-in-row');
+                  } else {
+                      // UPDATE EXISTING ROW (only if status changed)
+                      if (existingRow.dataset.status !== orderData.status) {
+                          existingRow.outerHTML = orderData.html;
+                      }
+                  }
+              });
+
+              // 3. Toggle "No Active Orders" message
+              if (newIds.length === 0) {
+                  if (!document.getElementById('no-orders-row')) {
+                      tableBody.innerHTML = '<tr id="no-orders-row"><td colspan="7" class="text-center text-muted">No active orders in the queue.</td></tr>';
+                  }
+              } else {
+                  if (document.getElementById('no-orders-row')) {
+                      document.getElementById('no-orders-row').remove();
+                  }
+              }
+          })
+          .catch(err => console.error("Polling error:", err));
+  }
+
+  // Poll every 1 seconds
+  setInterval(fetchQueueUpdates, 1000);
+
+  // --- CLIENT SIDE SEARCH (Unchanged) ---
+  const searchInput = document.getElementById('orderSearchInput');
   const noResultsMsg = document.getElementById('no-search-results');
 
   if(searchInput) {
@@ -618,7 +691,6 @@ document.addEventListener('DOMContentLoaded', function() {
           let hasVisible = false;
 
           rows.forEach(row => {
-              // Get text from specific searchable cells to avoid searching "Hidden" fields or button text
               const searchableElements = row.querySelectorAll('.searchable-text');
               let textContent = "";
               searchableElements.forEach(el => textContent += el.textContent.toLowerCase() + " ");
@@ -631,11 +703,9 @@ document.addEventListener('DOMContentLoaded', function() {
               }
           });
 
-          // Toggle "No Results" message
           if(noResultsMsg) {
-              // Check if table is actually empty (no rows at all vs filtered)
               if (rows.length === 0) {
-                  noResultsMsg.style.display = 'none'; // Table handles "No active orders"
+                  noResultsMsg.style.display = 'none';
               } else {
                   noResultsMsg.style.display = hasVisible ? 'none' : 'block';
               }
@@ -681,7 +751,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (action === 'ready')          newStatus = 'ready';
       if (action === 'complete')       newStatus = 'completed';
       
-      // Prompt for rejection reason if cancelling
       if (action === 'cancel') {
           const { value: reason } = await Swal.fire({
               title: 'Reject Order',
@@ -700,7 +769,7 @@ document.addEventListener('DOMContentLoaded', function() {
               newStatus = 'cancelled';
               rejectionReason = reason;
           } else {
-              return; // User cancelled
+              return; 
           }
       }
       
@@ -716,7 +785,7 @@ document.addEventListener('DOMContentLoaded', function() {
           body: JSON.stringify({
             order_id: orderId,
             new_status: newStatus,
-            rejection_reason: rejectionReason, // Pass reason
+            rejection_reason: rejectionReason, 
             handler_id: staffUserId 
           })
         });
@@ -725,34 +794,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (data.success) {
           const row = button.closest('tr');
-          
-          // 1. Remove row if it leaves this view
           const orderType = row.getAttribute('data-order-type');
+          
           if (
               newStatus === 'cancelled' || 
               newStatus === 'completed' || 
               (orderType === 'delivery' && newStatus === 'ready')
           ) {
-              // Animate removal for better UX
               row.style.transition = 'opacity 0.3s';
               row.style.opacity = '0';
               setTimeout(() => row.remove(), 300);
+              fetchQueueUpdates(); 
               return; 
           }
 
-          // 2. Update Status Badge
           const statusBadge = row.querySelector('.status-badge');
           if (statusBadge) {
             statusBadge.textContent = data.new_status_label;
             statusBadge.className = `status-badge badge ${data.new_status_class}`;
           }
 
-          // 3. Dynamically Update Buttons
           const paymentStatus = row.getAttribute('data-payment-status');
           const actionGroup = row.querySelector('.action-group');
           if (actionGroup) {
              actionGroup.innerHTML = renderActionButtons(newStatus, orderType, paymentStatus, orderId);
           }
+          // Update data-status so poll doesn't overwrite it immediately
+          row.setAttribute('data-status', newStatus);
 
         } else {
           throw new Error(data.message || 'Failed to update status');
@@ -766,9 +834,12 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // --- View Details Modal Logic ---
-  document.querySelectorAll('.btn-view-details').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-          const orderId = e.currentTarget.dataset.id;
+  document.querySelectorAll('.orders-queue-table').forEach(table => {
+      table.addEventListener('click', async (e) => {
+          const btn = e.target.closest('.btn-view-details');
+          if(!btn) return;
+          
+          const orderId = btn.dataset.id;
           viewModal.show();
           document.getElementById('modalLoader').style.display = 'block';
           document.getElementById('modalContent').style.display = 'none';
@@ -837,4 +908,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
-}
