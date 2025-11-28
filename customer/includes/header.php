@@ -114,7 +114,7 @@ function isActive($names, $current) {
       
       <div class="nav-item dropdown user-dropdown desktop-only">
         <?php if ($is_logged_in_customer): ?>
-          <a class="nav-link dropdown-toggle user-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <a class="nav-link dropdown-toggle user-toggle" href="javascript:void(0);" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-person-circle"></i>
             <span>Hi, <?= htmlspecialchars($_SESSION['name'] ?? 'Customer') ?></span>
           </a>
@@ -125,7 +125,7 @@ function isActive($names, $current) {
             <li><a class="dropdown-item" href="<?= htmlspecialchars($LOGOUT) ?>"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
           </ul>
         <?php else: ?>
-          <a class="nav-link dropdown-toggle user-toggle" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <a class="nav-link dropdown-toggle user-toggle" href="javascript:void(0);" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-person-circle"></i>
             <span>Account</span>
           </a>
@@ -144,7 +144,7 @@ function isActive($names, $current) {
             <a class="nav-link" href="<?= htmlspecialchars($MY_ORDERS) ?>"><i class="bi bi-receipt me-2"></i>My Orders</a>
             <a class="nav-link text-danger" href="<?= htmlspecialchars($LOGOUT) ?>"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
          <?php else: ?>
-            <div class="px-3 py-2 text-muted small text-uppercase fw-bold">Account</div>
+            <div class="px-3 py-2 text-ligth small text-uppercase fw-bold">Account</div>
             <a class="nav-link" href="<?= htmlspecialchars($LOGIN_URL) ?>"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a>
             <a class="nav-link" href="<?= htmlspecialchars($SIGNUP_URL) ?>"><i class="bi bi-person-plus me-2"></i>Register</a>
          <?php endif; ?>
@@ -188,6 +188,11 @@ function isActive($names, $current) {
   background-color: #343a40;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid #454d55;
+}
+
+/* FIX: Elevate Header Z-Index when Menu is Open */
+body.menu-open .site-header {
+  z-index: 1055 !important;
 }
 
 .site-header-inner {
@@ -395,6 +400,7 @@ function isActive($names, $current) {
   border-radius: 6px;
   transition: all 0.2s ease;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .user-toggle:hover {
@@ -445,7 +451,8 @@ function isActive($names, $current) {
   border: none;
   cursor: pointer;
   padding: 0;
-  z-index: 1031;
+  /* CHANGED: Z-index higher than backdrop (1050) and sidebar (1051) */
+  z-index: 1052; 
 }
 
 .mobile-menu-toggle span {
@@ -511,7 +518,8 @@ function isActive($names, $current) {
     /* Added border-right like admin sidebar */
     border-right: 1px solid #454d55;
     transition: all 0.3s ease;
-    z-index: 1040; /* Higher than header */
+    /* CHANGED: Higher than backdrop (1050) and floating cart (1025) */
+    z-index: 1051; 
     overflow-y: auto;
     margin: 0;
     align-items: flex-start;
@@ -636,7 +644,8 @@ function isActive($names, $current) {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1019;
+  /* CHANGED: Covers header (1030) and cart (1025) */
+  z-index: 1050; 
   transition: opacity 0.3s ease;
 }
 

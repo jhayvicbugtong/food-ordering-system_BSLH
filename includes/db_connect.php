@@ -26,27 +26,17 @@ $BASE_URL = rtrim($base_path, '/');
 // --- END NEW DYNAMIC BASE URL ---
 
 
-// // Database configuration in local development
+// Database configuration in local development
 $host = "localhost";
 $user = "root";
 $pass = "";
 $dbname = "online_food_ordering_db";
 
-// Database configuration in infinityfree hosting
-// $host = "sql204.infinityfree.com";
-// $user = "if0_40429008";
-// $pass = "bentesais3102";
-// $dbname = "if0_40429008_online_food_ordering_db";
-
-// Hosting configuration for mysqli
-// $hostname = "localhost";
+// // Database configuration in production
+// $host = "localhost";
 // $user = "u920374553_bentesais";
 // $pass = "Bentesais.26";
 // $dbname = "u920374553_bentesais_db";
-
-// // Create connection
-// $conn = mysqli_connect($servername, $username, $password, $database);
-
 
 $conn = new mysqli($host, $user, $pass, $dbname);
 

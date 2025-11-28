@@ -2,13 +2,12 @@
 // customer/includes/delivery-cart.php
 require_once __DIR__ . '/../../includes/db_connect.php';
 
-// 1. Default Values
+// ... (Existing PHP logic for settings) ...
 $cart_store_status = 'open';
 $cart_store_name   = $store_name ?? 'Bente Sais Lomi House';
 $opening_time      = '08:00';
 $closing_time      = '22:00';
 
-// 2. Fetch Settings
 if (isset($conn) && $conn instanceof mysqli) {
     $keys = "'store_status', 'store_name', 'opening_time', 'closing_time'";
     $res = $conn->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ($keys)");
@@ -22,29 +21,24 @@ if (isset($conn) && $conn instanceof mysqli) {
     }
 }
 
-// 3. Logic: Store Status overrides Time
-// The store is OPEN if the admin setting is 'open', regardless of the time.
 $is_open = ($cart_store_status === 'open');
-
-// Format times for display
 $open_display  = date('g:i A', strtotime($opening_time));
 $close_display = date('g:i A', strtotime($closing_time));
 
-// Status Label
 if ($is_open) {
     $status_label = "Open";
     $status_class = "text-success";
     $closed_msg   = "";
 } else {
-    // If manually closed
     $status_label = "Closed";
     $status_class = "text-danger";
     $closed_msg   = "We are currently closed for orders.";
 }
 ?>
-<aside class="cart-sidebar card shadow-sm border-0 position-sticky" style="top: 86px; z-index: 1020; max-height: calc(100vh - 106px); display: flex; flex-direction: column;">
+
+<aside class="cart-sidebar card shadow-sm border-0 d-flex flex-column h-100" style="overflow: hidden;">
   
-  <div class="store-card card-body border-bottom" style="flex-shrink: 0;">
+  <div class="store-card card-body border-bottom" style="flex-shrink: 0; flex-grow: 0 !important; height: auto;">
     <div class="d-flex justify-content-between align-items-start">
       <div class="flex-grow-1">
         <div class="store-name fw-bold fs-6"><?= htmlspecialchars($cart_store_name) ?></div>
@@ -72,7 +66,7 @@ if ($is_open) {
       </h5>
     </div>
 
-    <div class="cart-items-container flex-grow-1 mb-3" id="cartItems" style="overflow-y: auto; min-height: 0;">
+    <div class="cart-items-container js-cart-items flex-grow-1 mb-3" style="overflow-y: auto; min-height: 0; overscroll-behavior: contain;">
       <div class="cart-empty text-center p-3">
         <div class="text-muted small">Your cart is empty</div>
       </div>
@@ -81,15 +75,15 @@ if ($is_open) {
     <div class="cart-summary-block pt-3 border-top" style="flex-shrink: 0;">
       <div class="cart-summary-row d-flex justify-content-between small mb-2">
         <span class="text-muted">Sub-total</span>
-        <span id="cartSubtotal" class="fw-medium">₱0.00</span>
+        <span class="js-cart-subtotal fw-medium">₱0.00</span>
       </div>
       <div class="cart-summary-row d-flex justify-content-between small mb-2">
         <span class="text-muted">Delivery</span>
-        <span id="cartDeliveryFee" class="fw-medium">₱0.00</span>
+        <span class="js-cart-delivery fw-medium">₱0.00</span>
       </div>
       <div class="cart-summary-row total d-flex justify-content-between pt-2 mt-2 border-top">
         <span class="fw-bold">Total</span>
-        <span id="cartTotal" class="fw-bold fs-6">₱0.00</span>
+        <span class="js-cart-total fw-bold fs-6">₱0.00</span>
       </div>
     </div>
 

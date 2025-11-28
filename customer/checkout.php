@@ -52,6 +52,7 @@ if ($barangays_query) {
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
   <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/customer.css"/>
   <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/checkout.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     /* ... (CSS styles are unchanged) ... */
     .input-error { border-color:#EF4444 !important; outline-color:#EF4444 !important; }
@@ -683,6 +684,15 @@ include __DIR__ . '/includes/delivery_time_modal.php';
 
       if (data.status.code === 200 && data.results.length > 0) {
         const address = parseOpenCageResponse(data.results[0].components);
+
+        // --- NEW VALIDATION: Check Province ---
+        if (!address.province || !address.province.toLowerCase().includes('batangas')) {
+             showAllErrors([{ el: elements.useLocationBtn, msg: 'Sorry, we only deliver within Batangas.' }]);
+             setUseLocationButtonState('error', 'Outside Batangas');
+             return; 
+        }
+        // --------------------------------------
+
         const parsedBarangayName = address.barangay.toLowerCase();
 
         // --- START OF NEW LOGIC ---
@@ -842,6 +852,16 @@ include __DIR__ . '/includes/delivery_time_modal.php';
             localStorage.removeItem('bslh_pending_order');
             hydrateConfirmation(orderData, result.orderNumber);
             showConfirmationScreen();
+            
+            // --- ADDED: SweetAlert2 Success Popup for Cash/Pickup ---
+            Swal.fire({
+              icon: 'success',
+              title: 'Order Placed!',
+              text: 'Your order has been successfully placed.',
+              confirmButtonColor: '#3085d6',
+              confirmButtonText: 'OK'
+            });
+            // --------------------------------------------------------
           }
         } else {
           localStorage.removeItem('bslh_pending_order');
@@ -885,27 +905,32 @@ include __DIR__ . '/includes/delivery_time_modal.php';
       if (!formData.get('street')?.trim()) errors.push({ el: streetEl, msg: 'Street is required for delivery.' });
       
       // --- BARANGAY CHECK (FROM DB MAP) ---
-      const barangayEl = document.getElementById('barangayInput'); // <-- Use new ID
+      const barangayEl = document.getElementById('barangayInput'); 
       const barangayVal = barangayEl.value.trim().toLowerCase(); 
       
       if (!barangayVal) {
           errors.push({ el: barangayEl, msg: 'Barangay is required for delivery.' });
       } else if (BARANGAY_FEES_MAP[barangayVal] === undefined) {
-          // Check if the key exists in our map
           errors.push({ el: barangayEl, msg: 'Sorry, we do not deliver to this barangay.' });
       }
-      // --- END BARANGAY CHECK ---
 
+      // --- CITY CHECK ---
       const cityEl = document.querySelector('input[name="city"]');
       const cityVal = formData.get('city')?.trim().toLowerCase();
       if (!cityVal) {
           errors.push({ el: cityEl, msg: 'City is required for delivery.' });
-      } else if (cityVal.includes('nasugbu') === false) { // A bit more flexible
+      } else if (!cityVal.includes('nasugbu')) {
           errors.push({ el: cityEl, msg: 'Sorry, we only deliver within Nasugbu.' });
       }
       
+      // --- PROVINCE CHECK ---
       const provinceEl = document.querySelector('input[name="province"]');
-      if (!formData.get('province')?.trim()) errors.push({ el: provinceEl, msg: 'Province is required for delivery.' });
+      const provinceVal = formData.get('province')?.trim().toLowerCase();
+      if (!provinceVal) {
+          errors.push({ el: provinceEl, msg: 'Province is required for delivery.' });
+      } else if (!provinceVal.includes('batangas')) {
+          errors.push({ el: provinceEl, msg: 'Sorry, we only deliver within Batangas.' });
+      }
     }
     
     // ... (rest of the validation) ...

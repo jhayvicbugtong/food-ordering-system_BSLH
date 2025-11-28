@@ -528,7 +528,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </h2>
           <p>
             <strong><?= htmlspecialchars($store_phone) ?></strong><br/>
-            Place advance orders / reserve trays / ask if lomi is still available.
+            For orders, reservations, or lomi availability, contact us.
           </p>
           <p style="margin-top:14px;">
             <strong>Pickup Location:</strong><br/>
