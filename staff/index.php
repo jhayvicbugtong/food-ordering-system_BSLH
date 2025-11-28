@@ -11,7 +11,7 @@ if ($status_query && $status_query->num_rows > 0) {
 }
 
 // ----------------------------
-// DASHBOARD STATS
+// DASHBOARD STATS (Initial Load)
 // ----------------------------
 $stats_sql = "
     SELECT
@@ -28,7 +28,7 @@ $for_pickup_ready  = (int)($stats['ready_pickup'] ?? 0);
 $out_for_delivery  = (int)($stats['out_for_delivery'] ?? 0);
 
 // ----------------------------
-// ACTIVE ORDERS (TOP TABLE)
+// ACTIVE ORDERS (Initial Load)
 // ----------------------------
 $active_sql = "
     SELECT 
@@ -63,7 +63,7 @@ $active_sql = "
 $active_orders = $conn->query($active_sql);
 
 // ----------------------------
-// PICKUP COUNTER QUEUE (BOTTOM TABLE)
+// PICKUP COUNTER QUEUE (Initial Load)
 // ----------------------------
 $pickup_sql = "
     SELECT 
@@ -308,7 +308,7 @@ $pickup_orders = $conn->query($pickup_sql);
             Logged in as <strong><?= htmlspecialchars(get_user_name() ?? 'Staff') ?></strong>.
           </p>
           <p class="meta-text mb-0">
-            Page auto-refreshes every 10 seconds.
+            Page updates automatically.
           </p>
         </div>
         
@@ -328,21 +328,21 @@ $pickup_orders = $conn->query($pickup_sql);
       <div class="col-12 col-md-6 col-xl-4">
         <div class="stat-card">
           <h5>Orders To Prepare</h5>
-          <div class="value"><?= $orders_to_prepare ?></div>
+          <div class="value" id="stat-to-prepare"><?= $orders_to_prepare ?></div>
           <div class="hint">Pending / Confirmed / Preparing</div>
         </div>
       </div>
       <div class="col-12 col-md-6 col-xl-4">
         <div class="stat-card">
           <h5>For Pickup / Ready</h5>
-          <div class="value"><?= $for_pickup_ready ?></div>
+          <div class="value" id="stat-pickup-ready"><?= $for_pickup_ready ?></div>
           <div class="hint">Waiting at counter</div>
         </div>
       </div>
       <div class="col-12 col-md-6 col-xl-4">
         <div class="stat-card">
           <h5>Out for Delivery</h5>
-          <div class="value"><?= $out_for_delivery ?></div>
+          <div class="value" id="stat-out-delivery"><?= $out_for_delivery ?></div>
           <div class="hint">On the road</div>
         </div>
       </div>
@@ -375,106 +375,33 @@ $pickup_orders = $conn->query($pickup_sql);
             <?php if ($active_orders && $active_orders->num_rows > 0): ?>
               <?php while ($order = $active_orders->fetch_assoc()): ?>
                 <?php
+                  // ... (Existing initial render logic preserved) ...
                   $order_id  = (int)$order['order_id'];
                   $order_no  = htmlspecialchars($order['order_number'] ?? $order_id);
                   $full_name = trim(($order['customer_first_name'] ?? '') . ' ' . ($order['customer_last_name'] ?? ''));
-                  if ($full_name === '') {
-                    $full_name = 'Walk-in POS';
-                  }
-
-                  // Source Label
-                  if ($order['order_type'] === 'delivery') {
-                    $source_label = 'Online Delivery';
-                    $source_class = 'delivery';
-                  } elseif ($order['order_type'] === 'pickup') {
-                    $source_label = 'Pickup';
-                    $source_class = 'pickup';
-                  } else {
-                    $source_label = 'Walk-in POS';
-                    $source_class = 'pos';
-                  }
-
-                  // Status Label
+                  if ($full_name === '') $full_name = 'Walk-in POS';
+                  if ($order['order_type'] === 'delivery') { $source_label = 'Online Delivery'; $source_class = 'delivery'; } elseif ($order['order_type'] === 'pickup') { $source_label = 'Pickup'; $source_class = 'pickup'; } else { $source_label = 'Walk-in POS'; $source_class = 'pos'; }
                   $status = $order['status'];
-                  $status_map = [
-                    'pending'          => 'badge-warning',
-                    'confirmed'        => 'badge-info',
-                    'preparing'        => 'badge-info',
-                    'ready'            => 'badge-success',
-                    'out_for_delivery' => 'badge-success',
-                  ];
+                  $status_map = ['pending'=>'badge-warning', 'confirmed'=>'badge-info', 'preparing'=>'badge-info', 'ready'=>'badge-success', 'out_for_delivery'=>'badge-success'];
                   $status_class = $status_map[$status] ?? 'badge-secondary';
-
-                  // Payment Label
                   $payment_method = $order['payment_method'] ?? null;
                   $payment_status = $order['payment_status'] ?? null;
-
-                  if (!$payment_method) {
-                      $payment_label = 'Unpaid';
-                      $payment_badge_class = 'badge-secondary';
-                  } else {
-                      $payment_label = strtoupper($payment_method);
-                      if ($payment_status && $payment_status !== 'paid') {
-                          $payment_label .= ' (' . ucfirst($payment_status) . ')';
-                      } else {
-                          $payment_label .= ' (Paid)';
-                      }
-                      $payment_badge_class = ($payment_status === 'paid') ? 'badge-success' : 'badge-warning';
-                  }
-
+                  if (!$payment_method) { $payment_label = 'Unpaid'; $payment_badge_class = 'badge-secondary'; } 
+                  else { $payment_label = strtoupper($payment_method); $payment_label .= ($payment_status && $payment_status !== 'paid') ? ' (' . ucfirst($payment_status) . ')' : ' (Paid)'; $payment_badge_class = ($payment_status === 'paid') ? 'badge-success' : 'badge-warning'; }
                   $created_time = $order['created_at'] ? date('g:i A', strtotime($order['created_at'])) : '';
                   $total = (float)($order['total_amount'] ?? 0);
                 ?>
                 <tr>
-                  <td>
-                    <strong>#<?= $order_no ?></strong><br>
-                    <?php if ($created_time): ?>
-                      <span class="meta-text">Placed: <?= htmlspecialchars($created_time) ?></span>
-                    <?php endif; ?>
-                  </td>
-                  <td>
-                    <span class="source-pill <?= $source_class ?>">
-                      <?= htmlspecialchars($source_label) ?>
-                    </span><br>
-                    <small class="text-muted"><?= htmlspecialchars($full_name) ?></small>
-                  </td>
-                  <td>
-                    <ul class="mb-0" style="padding-left: 15px; font-size: 0.85rem;">
-                      <?php
-                        $items_stmt = $conn->prepare("SELECT product_name, quantity FROM order_items WHERE order_id = ?");
-                        $items_stmt->bind_param('i', $order_id);
-                        $items_stmt->execute();
-                        $items_res = $items_stmt->get_result();
-                        while ($item = $items_res->fetch_assoc()):
-                      ?>
-                        <li>
-                          <?= htmlspecialchars($item['product_name']) ?> 
-                          x <strong><?= (int)$item['quantity'] ?></strong>
-                        </li>
-                      <?php endwhile; $items_stmt->close(); ?>
-                    </ul>
-                  </td>
-                  <td>
-                    <span style="font-weight:600; white-space:nowrap;">
-                        ₱<?= number_format($total, 2) ?>
-                    </span>
-                  </td>
-                  <td>
-                    <span class="payment-badge badge <?= $payment_badge_class ?>">
-                      <?= htmlspecialchars($payment_label) ?>
-                    </span>
-                  </td>
-                  <td>
-                    <span class="status-badge badge <?= $status_class ?>">
-                      <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?>
-                    </span>
-                  </td>
+                  <td><strong>#<?= $order_no ?></strong><br><?php if ($created_time): ?><span class="meta-text">Placed: <?= htmlspecialchars($created_time) ?></span><?php endif; ?></td>
+                  <td><span class="source-pill <?= $source_class ?>"><?= htmlspecialchars($source_label) ?></span><br><small class="text-muted"><?= htmlspecialchars($full_name) ?></small></td>
+                  <td><ul class="mb-0" style="padding-left: 15px; font-size: 0.85rem;"><?php $items_stmt = $conn->prepare("SELECT product_name, quantity FROM order_items WHERE order_id = ?"); $items_stmt->bind_param('i', $order_id); $items_stmt->execute(); $items_res = $items_stmt->get_result(); while ($item = $items_res->fetch_assoc()): ?><li><?= htmlspecialchars($item['product_name']) ?> x <strong><?= (int)$item['quantity'] ?></strong></li><?php endwhile; $items_stmt->close(); ?></ul></td>
+                  <td><span style="font-weight:600; white-space:nowrap;">₱<?= number_format($total, 2) ?></span></td>
+                  <td><span class="payment-badge badge <?= $payment_badge_class ?>"><?= htmlspecialchars($payment_label) ?></span></td>
+                  <td><span class="status-badge badge <?= $status_class ?>"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?></span></td>
                 </tr>
               <?php endwhile; ?>
             <?php else: ?>
-              <tr>
-                <td colspan="6" class="text-center text-muted">No active orders.</td>
-              </tr>
+              <tr><td colspan="6" class="text-center text-muted">No active orders.</td></tr>
             <?php endif; ?>
           </tbody>
         </table>
@@ -508,13 +435,11 @@ $pickup_orders = $conn->query($pickup_sql);
             <?php if ($pickup_orders && $pickup_orders->num_rows > 0): ?>
               <?php while ($order = $pickup_orders->fetch_assoc()): ?>
                 <?php
+                  // ... (Existing initial render logic preserved) ...
                   $order_id  = (int)$order['order_id'];
                   $order_no  = htmlspecialchars($order['order_number'] ?? $order_id);
                   $full_name = trim(($order['customer_first_name'] ?? '') . ' ' . ($order['customer_last_name'] ?? ''));
-                  if ($full_name === '') {
-                    $full_name = 'Walk-in POS';
-                  }
-
+                  if ($full_name === '') $full_name = 'Walk-in POS';
                   $time_ready = $order['ready_at'] ? date('g:i A', strtotime($order['ready_at'])) : '-';
                   $status       = $order['status'];
                   $status_class = ($status === 'ready') ? 'badge-success' : 'badge-secondary';
@@ -523,39 +448,14 @@ $pickup_orders = $conn->query($pickup_sql);
                 <tr>
                   <td><strong>#<?= $order_no ?></strong></td>
                   <td><?= htmlspecialchars($full_name) ?></td>
-                  <td>
-                    <ul class="mb-0" style="padding-left: 15px; font-size: 0.85rem;">
-                      <?php
-                        $items_stmt = $conn->prepare("SELECT product_name, quantity FROM order_items WHERE order_id = ?");
-                        $items_stmt->bind_param('i', $order_id);
-                        $items_stmt->execute();
-                        $items_res = $items_stmt->get_result();
-                        while ($item = $items_res->fetch_assoc()):
-                      ?>
-                        <li>
-                          <?= htmlspecialchars($item['product_name']) ?> 
-                          x <strong><?= (int)$item['quantity'] ?></strong>
-                        </li>
-                      <?php endwhile; $items_stmt->close(); ?>
-                    </ul>
-                  </td>
-                  <td>
-                    <span style="font-weight:600; white-space:nowrap;">
-                        ₱<?= number_format($total, 2) ?>
-                    </span>
-                  </td>
+                  <td><ul class="mb-0" style="padding-left: 15px; font-size: 0.85rem;"><?php $items_stmt = $conn->prepare("SELECT product_name, quantity FROM order_items WHERE order_id = ?"); $items_stmt->bind_param('i', $order_id); $items_stmt->execute(); $items_res = $items_stmt->get_result(); while ($item = $items_res->fetch_assoc()): ?><li><?= htmlspecialchars($item['product_name']) ?> x <strong><?= (int)$item['quantity'] ?></strong></li><?php endwhile; $items_stmt->close(); ?></ul></td>
+                  <td><span style="font-weight:600; white-space:nowrap;">₱<?= number_format($total, 2) ?></span></td>
                   <td><?= htmlspecialchars($time_ready) ?></td>
-                  <td>
-                    <span class="status-badge badge <?= $status_class ?>">
-                      <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?>
-                    </span>
-                  </td>
+                  <td><span class="status-badge badge <?= $status_class ?>"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?></span></td>
                 </tr>
               <?php endwhile; ?>
             <?php else: ?>
-              <tr>
-                <td colspan="6" class="text-center text-muted">No pickup customers in the queue.</td>
-              </tr>
+              <tr><td colspan="6" class="text-center text-muted">No pickup customers in the queue.</td></tr>
             <?php endif; ?>
           </tbody>
         </table>
@@ -566,14 +466,38 @@ $pickup_orders = $conn->query($pickup_sql);
 </div>
 
 <script>
-  // Auto Refresh
-  setInterval(function() {
-    if (!document.activeElement.classList.contains('form-check-input')) {
-        location.reload();
-    }
-  }, 10000);
-  
-  // Store Status Toggle Logic
+  // --- REAL-TIME UPDATES ---
+  function fetchDashboardUpdates() {
+      // Don't poll if store switch is being interacted with (optional safety check)
+      if (document.activeElement.classList.contains('form-check-input')) return;
+
+      fetch('actions/fetch_dashboard_updates.php')
+          .then(response => response.json())
+          .then(data => {
+              // 1. Update Stats
+              if (data.stats) {
+                  document.getElementById('stat-to-prepare').textContent = data.stats.to_prepare;
+                  document.getElementById('stat-pickup-ready').textContent = data.stats.ready_pickup;
+                  document.getElementById('stat-out-delivery').textContent = data.stats.out_for_delivery;
+              }
+
+              // 2. Update Active Orders Table
+              if (data.active_html !== undefined) {
+                  document.getElementById('active-orders-body').innerHTML = data.active_html;
+              }
+
+              // 3. Update Pickup Queue Table
+              if (data.pickup_html !== undefined) {
+                  document.getElementById('pickup-queue-body').innerHTML = data.pickup_html;
+              }
+          })
+          .catch(err => console.error("Polling error:", err));
+  }
+
+  // Poll every 1 seconds
+  setInterval(fetchDashboardUpdates, 1000);
+
+  // --- Store Status Toggle Logic (Unchanged) ---
   document.addEventListener('DOMContentLoaded', function() {
       const statusSwitch = document.getElementById('storeStatusSwitch');
       const statusLabel = document.getElementById('storeStatusLabel');
@@ -589,21 +513,12 @@ $pickup_orders = $conn->query($pickup_sql);
               const formData = new FormData();
               formData.append('status', newStatus);
               
-              fetch('actions/toggle_store_status.php', {
-                  method: 'POST',
-                  body: formData
-              })
+              fetch('actions/toggle_store_status.php', { method: 'POST', body: formData })
               .then(response => response.json())
               .then(data => {
                   statusSwitch.disabled = false;
                   if (data.success) {
-                      Swal.fire({
-                          icon: 'success',
-                          title: 'Store Status Updated',
-                          text: data.message,
-                          showConfirmButton: false,
-                          timer: 1500
-                      });
+                      Swal.fire({ icon: 'success', title: 'Store Status Updated', text: data.message, showConfirmButton: false, timer: 1500 });
                   } else {
                       statusSwitch.checked = !statusSwitch.checked;
                       statusLabel.textContent = statusSwitch.checked ? 'OPEN' : 'CLOSED';
@@ -616,7 +531,6 @@ $pickup_orders = $conn->query($pickup_sql);
                   statusSwitch.checked = !statusSwitch.checked;
                   statusLabel.textContent = statusSwitch.checked ? 'OPEN' : 'CLOSED';
                   statusLabel.className = 'form-check-label fw-bold ' + (statusSwitch.checked ? 'text-success' : 'text-danger');
-                  console.error(err);
                   Swal.fire({ icon: 'error', title: 'Network Error', text: 'Failed to update status.' });
               });
           });

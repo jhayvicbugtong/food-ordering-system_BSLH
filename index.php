@@ -680,7 +680,7 @@
 
       <div class="hero-right">
         <img class="hero-img"
-             src="uploads/logo/logo_tranparent.png"
+             src="uploads/logo/logo_transparent.png"
              alt="Signature Lomi Bowl - Bente Sais Lomi House">
       </div>
     </div>
@@ -694,7 +694,7 @@
             <div class="image-box-badge">
               <i class="bi bi-star-fill"></i> Fresh Daily
             </div>
-            <img src="uploads/landing_page/5312810.jpg" alt="Freshly Prepared Lomi - Bente Sais Lomi House">
+            <img src="uploads/home/store_image.png" alt="Freshly Prepared Lomi - Bente Sais Lomi House">
           </div>
           <div class="image-box-decoration decoration-1"></div>
           <div class="image-box-decoration decoration-2"></div>
@@ -766,7 +766,7 @@
       </div>
 
       <div class="col-split middle-img-wrap">
-        <img src="uploads/landing_page/f57s_6t51_230518.jpg"
+        <img src="uploads/home/hotdog.jpg"
              alt="Fresh Ingredients - Bente Sais Lomi House">
       </div>
 
@@ -786,10 +786,10 @@
       <div class="cta-img-col">
         <div class="cta-img-grid">
           <div class="cta-img-card">
-            <img src="uploads/landing_page/thai-food-noodles-spicy-boil-with-pork-boil-egg.jpg" alt="Silog Meal Combo">
+            <img src="uploads/home/bulaklak.jpg" alt="Silog Meal Combo">
           </div>
           <div class="cta-img-card">
-            <img src="uploads/landing_page/thai-food-noodles-spicy-boil-with-seafood-pork-hot-pot.jpg" alt="Party Tray Pancit">
+            <img src="uploads/home/maling.jpg" alt="Party Tray Pancit">
           </div>
         </div>
       </div>

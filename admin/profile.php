@@ -223,7 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             
                             <a href="<?= htmlspecialchars($BASE_URL) ?>/admin/manage_staff.php" class="quick-link">
                                 <i class="bi bi-people"></i>
-                                <span>Staff Management</span>
+                                <span>User Management</span>
                             </a>
                             
                             <a href="<?= htmlspecialchars($BASE_URL) ?>/auth/logout.php" class="quick-link text-danger">

@@ -55,12 +55,12 @@ function isActive($names, $current) {
   <div class="site-header-inner">
     <a class="brand-left" href="<?= htmlspecialchars($HOME) ?>">
       <div class="logo-container">
-        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo_tranparent.png" alt="Logo">
+        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo_transparent.png" alt="Logo">
         <div class="logo-glow"></div>
       </div>
       <div class="brand-text">
         <div class="brand-text-title"><?= htmlspecialchars($store_name) ?></div>
-        <div class="brand-text-sub">Since 2016</div>
+        <div class="brand-text-sub">Since 2013</div>
       </div>
     </a>
 
@@ -69,7 +69,7 @@ function isActive($names, $current) {
         <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo_transparent.png" alt="Logo">
         <div class="mobile-brand-text">
             <div class="brand-text-title"><?= htmlspecialchars($store_name) ?></div>
-            <div class="brand-text-sub">Since 26</div>
+            <div class="brand-text-sub">Since 2013</div>
         </div>
       </div>
 
@@ -185,7 +185,7 @@ function isActive($names, $current) {
 
 .site-header.scrolled {
   padding: 10px 20px;
-  background-color: rgba(26, 26, 26, 0.95);
+  background-color: #343a40;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid #454d55;
 }
@@ -336,7 +336,8 @@ function isActive($names, $current) {
   padding: 10px 16px;
   text-decoration: none;
   line-height: 1.2;
-  box-shadow: 0 10px 20px rgba(92,250,99,0.4);
+  /* box-shadow: 0 10px 20px rgba(92,250,99,0.4);  <-- REMOVED or commented out */
+  box-shadow: none; /* <-- Added to remove the static glow */
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -363,7 +364,8 @@ function isActive($names, $current) {
 
 .order-btn:hover {
   filter: brightness(1.05);
-  box-shadow: 0 12px 24px rgba(92,250,99,0.5);
+  /* box-shadow: 0 12px 24px rgba(92,250,99,0.5); <-- REMOVED or commented out */
+  box-shadow: none; /* <-- Added to remove the hover glow */
   transform: translateY(-1px);
 }
 
@@ -372,7 +374,8 @@ function isActive($names, $current) {
 }
 
 .order-btn.active {
-  box-shadow: 0 0 0 2px var(--accent), 0 12px 24px rgba(92,250,99,0.5);
+  /* box-shadow: 0 0 0 2px var(--accent), 0 12px 24px rgba(92,250,99,0.5); <-- REMOVED */
+  box-shadow: 0 0 0 2px var(--accent); /* <-- Kept only the border outline for active state */
 }
 
 .order-btn i {

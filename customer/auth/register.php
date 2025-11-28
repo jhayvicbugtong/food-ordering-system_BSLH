@@ -2,7 +2,7 @@
 // customer/auth/register.php
 require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL and starts session
 
-// --- NEW: Fetch Store Name ---
+// --- Fetch Store Name ---
 $store_name = "Bente Sais Lomi House";
 if (isset($conn) && $conn instanceof mysqli) {
     $res = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'store_name' LIMIT 1");
@@ -16,7 +16,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-// --- NEW: Use the $BASE_URL from db_connect.php ---
+// --- Use the $BASE_URL from db_connect.php ---
 $next = isset($_GET['next']) && $_GET['next'] !== ''
   ? $_GET['next']
   : $BASE_URL . '/customer/menu.php';
@@ -49,32 +49,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   } elseif ($pass !== $pass2) {
     $err = 'Passwords do not match.';
   } else {
-    // unique email check
-    $stmt = $conn->prepare("SELECT 1 FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1");
+    // --- UPDATED CHECK LOGIC ---
+    // Check if user exists AND get their status
+    $stmt = $conn->prepare("SELECT user_id, is_active FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1");
     $stmt->bind_param('s', $email);
     $stmt->execute();
-    $stmt->store_result();
-    $exists = $stmt->num_rows > 0;
+    $result = $stmt->get_result();
+    $existing_user = $result->fetch_assoc();
     $stmt->close();
 
-    if ($exists) {
+    // If user exists AND is already verified (is_active = 1), block them.
+    if ($existing_user && $existing_user['is_active'] == 1) {
       $err = 'Email already registered. Try signing in.';
     } else {
+      // Proceed if it's a new user OR an unverified existing user (retry)
       $hash = password_hash($pass, PASSWORD_DEFAULT);
       
       // 1. Generate 6-digit OTP
       $otp = rand(100000, 999999);
 
-      // 2. Insert user as INACTIVE (is_active = 0) and save OTP
-      $sql = "INSERT INTO users (first_name, last_name, email, phone, password, role, is_active, verification_code) 
-              VALUES (?, ?, ?, ?, ?, 'customer', 0, ?)";
-      $stmt = $conn->prepare($sql);
-      $stmt->bind_param('ssssss', $first_name, $last_name, $email, $phone, $hash, $otp);
-      
-      if ($stmt->execute()) {
-        $id = $stmt->insert_id;
-        $stmt->close();
+      $success_db = false;
 
+      if ($existing_user) {
+          // CASE A: User exists but is UNVERIFIED (Retry). Update their info and new OTP.
+          $sql = "UPDATE users SET first_name=?, last_name=?, phone=?, password=?, verification_code=? WHERE user_id=?";
+          $stmt = $conn->prepare($sql);
+          $stmt->bind_param('sssssi', $first_name, $last_name, $phone, $hash, $otp, $existing_user['user_id']);
+          if ($stmt->execute()) {
+              $success_db = true;
+          }
+          $stmt->close();
+      } else {
+          // CASE B: Brand new user. Insert them.
+          $sql = "INSERT INTO users (first_name, last_name, email, phone, password, role, is_active, verification_code) 
+                  VALUES (?, ?, ?, ?, ?, 'customer', 0, ?)";
+          $stmt = $conn->prepare($sql);
+          $stmt->bind_param('ssssss', $first_name, $last_name, $email, $phone, $hash, $otp);
+          if ($stmt->execute()) {
+              $success_db = true;
+          }
+          $stmt->close();
+      }
+      
+      // If DB operation was successful, send the email
+      if ($success_db) {
+        
         // 3. Send OTP via Email (PHPMailer)
         require_once __DIR__ . '/../../includes/PHPMailer/Exception.php';
         require_once __DIR__ . '/../../includes/PHPMailer/PHPMailer.php';
@@ -202,19 +221,15 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       gap: 16px;
     }
 
+    /* UPDATED: Matches header style logic */
     .brand-logo {
-      height: 48px;
-      width: 48px;
+      height: 64px;
+      width: 64px;
       border-radius: 12px;
-      background: radial-gradient(circle at 30% 30%, #5cfa63 0%, #1c1f1f 70%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      color: #000;
-      font-size: 18px;
-      line-height: 1;
-      box-shadow: 0 0 20px rgba(92,250,99,0.4);
+      object-fit: cover;
+      background: transparent;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      box-shadow: none;
     }
 
     .brand-text h1 {
@@ -356,7 +371,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       .aside-bottom { display: none; }
       
       .auth-main { padding: 40px 24px; }
-      .brand-logo { height: 40px; width: 40px; font-size: 16px; }
+      .brand-logo { height: 50px; width: 50px; }
       .brand-text h1 { font-size: 20px; }
     }
   </style>
@@ -368,7 +383,8 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     <aside class="auth-aside">
       <div>
         <div class="brand-block">
-          <div class="brand-logo">BS</div>
+          <img src="<?= htmlspecialchars($BASE_URL) ?>/uploads/logo/logo_transparent.png" alt="Store Logo" class="brand-logo">
+          
           <div class="brand-text">
             <h1><?= h($store_name) ?></h1>
             <p>Join the family</p>
