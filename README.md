@@ -1,5 +1,6 @@
 🍲 Web-Based Food Ordering System - BSLH-FOS 🚀
 1. Project Overview and Executive Summary
+   
 
 The Bente Sais Lomi House Food Ordering System (BSLH-FOS) is a comprehensive web-based application developed to modernize and manage the operational workflow of Bente Sais Lomi House. Launched in November 2025, this system transitions the restaurant from manual processes—such as paper-based order logging and verbal communication—to a streamlined, digitized platform.
 
