@@ -44,6 +44,12 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Set timezone to Philippines Standard Time
+date_default_timezone_set('Asia/Manila');
+
+// +08:00 is the offset for Philippines Standard Time
+$conn->query("SET time_zone = '+08:00'");
+
 // Set charset to utf8
 $conn->set_charset("utf8mb4");
 ?>

@@ -8,7 +8,7 @@ include __DIR__ . '/includes/header.php';
     <section class="content-card mb-4">
       <div class="content-card-header">
         <div class="left">
-          <h2 class="page-title mb-1">UserF Management</h2>
+          <h2 class="page-title mb-1">User Management</h2>
           <p class="text-muted small mb-0">Add and maintain users with access to the system.</p>
         </div>
         <div class="right header-actions">
@@ -616,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const ct = res.headers.get('content-type')||'';
       const data = ct.includes('json') ? await res.json() : {status:'error',message:await res.text()};
       if (data.status !== 'ok') throw new Error(data.message || 'Failed to add staff');
-      showAlert('success','User added successfully.');
+      showAlert('success','Userx added successfully.');
       form.reset();
       await loadStaff();
     }catch(err){

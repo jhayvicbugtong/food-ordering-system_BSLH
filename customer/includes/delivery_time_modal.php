@@ -39,7 +39,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-success" id="timeConfirmBtn" style="color:black; font-weight:600;">Use this time</button>
+        <button type="button" class="btn btn-success" id="timeConfirmBtn" style="color:white; font-weight:600;">Use this time</button>
       </div>
     </div>
   </div>
