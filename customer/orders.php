@@ -761,7 +761,7 @@ $stmt_orders->close();
             <div class="order-summary-card h-100">
               <div class="order-summary-title">Total Spent</div>
               <div class="order-summary-value">₱<?= number_format(array_sum(array_column($orders, 'total_amount')), 2) ?></div>
-              <div class="order-summary-change positive" style="font-weight: 600;">₱ All orders</div>
+             <div class="order-summary-change positive" style="font-weight: 600;">₱ All orders</div>
             </div>
           </div>
         </div>
