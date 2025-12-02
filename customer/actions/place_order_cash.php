@@ -88,7 +88,8 @@ try {
     }
 
     // 4. INSERT INTO `orders` TABLE
-    $order_number = 'BSLH-' . time();
+    // Use a temporary order number first to get the ID
+    $temp_order_number = 'TEMP-' . uniqid();
     $status = 'pending'; 
     $preferred_time_iso = $details->preferredTime ? $details->preferredTime : null;
     
@@ -97,7 +98,7 @@ try {
     $stmt_order = $conn->prepare($sql_order);
     $stmt_order->bind_param(
         'sisssdddd',
-        $order_number,
+        $temp_order_number,
         $user_id,
         $details->orderType,
         $preferred_time_iso,
@@ -112,7 +113,16 @@ try {
     if ($order_id === 0) throw new Exception("Failed to create order.");
     $stmt_order->close();
 
-    // ... (Rest of the inserts: order_items, order_customer_details, order_addresses are unchanged) ...
+    // --- UPDATE ORDER NUMBER FORMAT (BSLH + Date + ID) ---
+    $final_order_number = 'BSLH-' . date('Ymd') . '-' . $order_id;
+    
+    $update_sql = "UPDATE orders SET order_number = ? WHERE order_id = ?";
+    $stmt_update = $conn->prepare($update_sql);
+    $stmt_update->bind_param('si', $final_order_number, $order_id);
+    $stmt_update->execute();
+    $stmt_update->close();
+    // -----------------------------------------------------
+
     // 5. INSERT INTO `order_items`
     $sql_items = "INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity, total_price) VALUES (?, ?, ?, ?, ?, ?)";
     $stmt_items = $conn->prepare($sql_items);
@@ -167,7 +177,7 @@ try {
     echo json_encode([
         'success' => true,
         'orderId' => $order_id,
-        'orderNumber' => $order_number,
+        'orderNumber' => $final_order_number, // Return the formatted number
         'paymentMethod' => 'cash'
     ]);
 

@@ -16,18 +16,21 @@ include __DIR__ . '/../includes/db_connect.php'; // Get $conn
 $customer_id = (int)$_SESSION['user_id'];
 
 // Helper function for status badges
-function formatStatus($status) {
+function formatStatus($status, $order_type) {
+    // Dynamic label based on order type
+    $readyLabel = ($order_type === 'delivery') ? 'Ready for Delivery' : 'Ready for Pickup';
+
     $status_map = [
         'pending' => ['class' => 'warning', 'label' => 'Pending Confirmation', 'icon' => 'clock'],
         'confirmed' => ['class' => 'primary', 'label' => 'Confirmed', 'icon' => 'check-circle'],
         'preparing' => ['class' => 'info', 'label' => 'Preparing', 'icon' => 'egg-fried'],
-        'ready' => ['class' => 'success', 'label' => 'Ready for Pickup', 'icon' => 'box-seam'],
+        'ready' => ['class' => 'success', 'label' => $readyLabel, 'icon' => 'box-seam'], // Use variable here
         'out_for_delivery' => ['class' => 'success', 'label' => 'Out for Delivery', 'icon' => 'truck'],
         'delivered' => ['class' => 'secondary', 'label' => 'Delivered', 'icon' => 'check-lg'],
         'completed' => ['class' => 'secondary', 'label' => 'Completed', 'icon' => 'award'],
         'cancelled' => ['class' => 'danger', 'label' => 'Cancelled', 'icon' => 'x-circle'],
     ];
-    // Use 'text-dark' for light-colored badges for better readability
+    
     $text_class = in_array($status, ['pending', 'preparing']) ? ' text-dark' : '';
     $config = $status_map[$status] ?? ['class' => 'light', 'label' => ucfirst($status), 'icon' => 'question-circle'];
     
@@ -812,7 +815,7 @@ $stmt_orders->close();
                   
                   <div class="d-flex flex-wrap align-items-center gap-3">
                     <div class="flex-shrink-0 js-status-container">
-                        <?= formatStatus($order['status']) ?>
+                        <?= formatStatus($order['status'], $order['order_type']) ?>
                     </div>
                     <div class="fw-bold text-dark fs-5">
                         ₱<?= number_format($order['total_amount'], 2) ?>

@@ -26,17 +26,17 @@ $BASE_URL = rtrim($base_path, '/');
 // --- END NEW DYNAMIC BASE URL ---
 
 
-// Database configuration in local development
-$host = "localhost";
-$user = "root";
-$pass = "";
-$dbname = "online_food_ordering_db";
-
-// // Database configuration in production
+// // Database configuration in local development
 // $host = "localhost";
-// $user = "u920374553_bentesais";
-// $pass = "Bentesais.26";
-// $dbname = "u920374553_bentesais_db";
+// $user = "root";
+// $pass = "";
+// $dbname = "online_food_ordering_db";
+
+// Database configuration in production
+$host = "localhost";
+$user = "u920374553_bentesais";
+$pass = "Bentesais.26";
+$dbname = "u920374553_bentesais_db";
 
 $conn = new mysqli($host, $user, $pass, $dbname);
 

@@ -12,13 +12,13 @@ require_once __DIR__ . '/../../includes/db_connect.php';
 
 // !! REPLACE WITH YOUR ACTUAL SECRETS !!
 // for testing purposes only 
-define('PAYMONGO_WEBHOOK_SECRET', 'whsk_EH9ab63WRBCxmhccfaxTChwp'); // Aldrie's test secret
+// define('PAYMONGO_WEBHOOK_SECRET', 'whsk_EH9ab63WRBCxmhccfaxTChwp'); // Aldrie's test secret
 // define('PAYMONGO_WEBHOOK_SECRET', 'whsk_oYvkB1xmdV28sCpwWaP6FDLP'); // Jhabik's test secret
 // define('PAYMONGO_WEBHOOK_SECRET', 'whsk_SpkukLULkqPBJxfP3nAqWT3C'); // Aeron's test secret
 // define('PAYMONGO_WEBHOOK_SECRET', 'whsk_Ygex7arKmhxzMJCQNF2frSVk'); // Kier's test secret
 
 // for production purposes
-// define('PAYMONGO_WEBHOOK_SECRET', 'whsk_weCBDTMq6we2NPo2bnsd8j5f');
+define('PAYMONGO_WEBHOOK_SECRET', 'whsk_weCBDTMq6we2NPo2bnsd8j5f');
 define('PAYMONGO_SECRET_KEY', 'sk_test_MVV2EXZhRxpfiQmM16c18aM7');
 
 // 2. GET RAW BODY
@@ -202,12 +202,12 @@ if ($event_type === 'checkout_session.payment.paid') {
         }
         // --- END RE-CALCULATION ---
 
-
-        $order_number = 'BSLH-' . time() . '-' . substr($checkout_session_id, -4);
+        // USE TEMP NUMBER FOR INSERT
+        $temp_order_number = 'TEMP-' . uniqid();
         $status = 'pending'; 
         $preferred_time_iso = $details->preferredTime ? $details->preferredTime : null;
         
-        error_log("Creating order: " . $order_number);
+        error_log("Creating order with temp number: " . $temp_order_number);
         
         // INSERT ORDER
         $sql_order = "INSERT INTO orders 
@@ -220,7 +220,7 @@ if ($event_type === 'checkout_session.payment.paid') {
         }
         
         $stmt_order->bind_param('sisssdddd', 
-            $order_number, $final_user_id, $details->orderType, $preferred_time_iso, $status, 
+            $temp_order_number, $final_user_id, $details->orderType, $preferred_time_iso, $status, 
             $subtotal, $delivery_fee, $tip_amount, $total_amount // <-- Use VERIFIED fees
         );
         
@@ -232,7 +232,18 @@ if ($event_type === 'checkout_session.payment.paid') {
         error_log("Order created with ID: " . $order_id);
         $stmt_order->close();
 
-        // ... (Rest of inserts: order_items, order_customer_details, order_addresses are unchanged) ...
+        // --- UPDATE ORDER NUMBER FORMAT (BSLH + Date + ID) ---
+        $final_order_number = 'BSLH-' . date('Ymd') . '-' . $order_id;
+        
+        $update_sql = "UPDATE orders SET order_number = ? WHERE order_id = ?";
+        $stmt_update = $conn->prepare($update_sql);
+        $stmt_update->bind_param('si', $final_order_number, $order_id);
+        $stmt_update->execute();
+        $stmt_update->close();
+        
+        error_log("Order number updated to: " . $final_order_number);
+        // -----------------------------------------------------
+
         // INSERT ITEMS
         $sql_items = "INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity, total_price) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt_items = $conn->prepare($sql_items);
@@ -294,7 +305,7 @@ if ($event_type === 'checkout_session.payment.paid') {
         
         // COMMIT TRANSACTION
         $conn->commit();
-        error_log("SUCCESS: Transaction committed! Order #" . $order_number . " created.");
+        error_log("SUCCESS: Transaction committed! Order #" . $final_order_number . " created.");
 
     } catch (Exception $e) {
         $conn->rollback();

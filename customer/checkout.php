@@ -250,7 +250,6 @@ if ($barangays_query) {
 </section>
 
 <?php 
-// *** MODAL IS NOW INCLUDED ***
 include __DIR__ . '/includes/footer.php'; 
 include __DIR__ . '/includes/delivery_time_modal.php'; 
 ?>
@@ -261,16 +260,13 @@ include __DIR__ . '/includes/delivery_time_modal.php';
   // =================================================================
   // !! PASTE YOUR OPENCAGE API KEY HERE !!
   // =================================================================
-  const OPENCAGE_API_KEY = "c8efbf57adb44ed195a99bffec41260d"; // <-- REPLACE THIS
+  const OPENCAGE_API_KEY = "c8efbf57adb44ed195a99bffec41260d"; 
   // =================================================================
-  
   
   // =================================================================
   // !! THIS MAP IS NOW POWERED BY THE DATABASE !!
   // =================================================================
-  // Example: { 'wawa': 20.00, 'bucana': 20.00, 'poblacion': 0.00 }
   const BARANGAY_FEES_MAP = <?php echo json_encode($barangay_fees_php); ?>;
-  // This array is just for validation: [ 'wawa', 'bucana', 'poblacion' ]
   const ALLOWED_DELIVERY_BARANGAYS = Object.keys(BARANGAY_FEES_MAP);
   // =================================================================
 
@@ -300,6 +296,29 @@ include __DIR__ . '/includes/delivery_time_modal.php';
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
   }
+  
+  // --- NEW HELPER: Normalize for robust comparison ---
+  // Removes "barangay", "brgy", "pob", "poblacion", and all special chars
+  function normalizeBarangayName(str) {
+    if (!str) return '';
+    return str.toLowerCase()
+      .replace(/\b(barangay|brgy\.?|poblacion|pob\.?)\b/g, '') // Remove keywords
+      .replace(/[^a-z0-9]/g, ''); // Remove spaces, parens, dots, etc.
+  }
+
+  // --- NEW HELPER: Find matching DB key ---
+  function findMatchingBarangayKey(searchName) {
+    const normSearch = normalizeBarangayName(searchName);
+    if (!normSearch) return null;
+
+    const keys = Object.keys(BARANGAY_FEES_MAP);
+    for (const key of keys) {
+      if (normalizeBarangayName(key) === normSearch) {
+        return key;
+      }
+    }
+    return null;
+  }
 
   const STORE_OPEN_24  = "08:00";
   const STORE_CLOSE_24 = "22:00";
@@ -307,7 +326,6 @@ include __DIR__ . '/includes/delivery_time_modal.php';
 
   // Element cache
   const elements = {
-    // ... (all other elements are unchanged) ...
     placeOrderBtn: document.getElementById('placeOrderBtn'),
     checkoutScreen: document.getElementById('checkoutScreen'),
     confirmScreen: document.getElementById('confirmScreen'),
@@ -371,7 +389,6 @@ include __DIR__ . '/includes/delivery_time_modal.php';
   /* ===========================
    SUMMARY & TIP LOGIC
    =========================== */
-  // ... (renderSummaryFromCart, initTipButtons, updateTotals functions are unchanged) ...
     function renderSummaryFromCart() {
     const cart = getCart();
     if (!elements.summaryItems) return;
@@ -445,7 +462,6 @@ include __DIR__ . '/includes/delivery_time_modal.php';
   /* ===========================
    UI TOGGLES (MODALS, RADIOS)
    =========================== */
-  // ... (cancelCheckout, initRadioHighlights, bindRadioGroupByName functions are unchanged) ...
     function cancelCheckout() {
     if (confirm("Are you sure you want to leave checkout and go back to the menu?")) {
       window.location.href = "<?php echo htmlspecialchars($MENU); ?>";
@@ -496,7 +512,6 @@ include __DIR__ . '/includes/delivery_time_modal.php';
   /* ===========================
    TIME PICKER MODAL
    =========================== */
-  // ... (initTimeModal function is unchanged) ...
     function initTimeModal() {
     function pad(n){ return String(n).padStart(2,'0'); }
     function tzOffsetISO(date){
@@ -600,18 +615,19 @@ include __DIR__ . '/includes/delivery_time_modal.php';
 
   // --- MODIFICATION: Updated to handle the <input> element ---
   function initDeliveryFeeCheck() {
-    const barangayInput = document.getElementById('barangayInput'); // <-- Use new ID
+    const barangayInput = document.getElementById('barangayInput'); 
     if (barangayInput) {
-      barangayInput.addEventListener('change', updateDeliveryFee); // 'change' fires on blur
+      barangayInput.addEventListener('change', updateDeliveryFee); 
     }
   }
   
   function updateDeliveryFee() {
-    const barangayInput = document.getElementById('barangayInput'); // <-- Use new ID
-    const barangayVal = barangayInput.value.trim().toLowerCase();
+    const barangayInput = document.getElementById('barangayInput'); 
+    const val = barangayInput.value.trim();
     
-    // Look up the fee from our database-powered map
-    const fee = BARANGAY_FEES_MAP[barangayVal] ?? 0;
+    // Look up the fee using Fuzzy Match
+    const matchKey = findMatchingBarangayKey(val);
+    const fee = matchKey ? (BARANGAY_FEES_MAP[matchKey] || 0) : 0;
 
     const cart = getCart();
     cart.deliveryFee = fee;
@@ -624,7 +640,6 @@ include __DIR__ . '/includes/delivery_time_modal.php';
    LOCATION BUTTON LOGIC
    =========================== */
   function initUseLocationButton() {
-    // ... (this function is unchanged) ...
     if (!elements.useLocationBtn) return;
     if (OPENCAGE_API_KEY === 'YOUR_OPENCAGE_API_KEY' || !OPENCAGE_API_KEY) {
         setUseLocationButtonState('error', 'API Key is missing.');
@@ -641,7 +656,7 @@ include __DIR__ . '/includes/delivery_time_modal.php';
 
   function handleLocationClick() {
     setUseLocationButtonState('loading');
-    clearAllErrors(); // <-- Clear old validation errors
+    clearAllErrors(); 
     navigator.geolocation.getCurrentPosition(handleLocationSuccess, handleLocationError, {
       enableHighAccuracy: true,
       timeout: 10000,
@@ -650,13 +665,11 @@ include __DIR__ . '/includes/delivery_time_modal.php';
   }
 
   function handleLocationSuccess(position) {
-    // ... (this function is unchanged) ...
     const { latitude, longitude } = position.coords;
     reverseGeocode(latitude, longitude);
   }
 
   function handleLocationError(error) {
-    // ... (this function is unchanged) ...
     let msg = 'Could not get location. Please enter manually.';
     if (error.code === error.PERMISSION_DENIED) {
       msg = 'You denied location access. Please enter manually.';
@@ -669,7 +682,7 @@ include __DIR__ . '/includes/delivery_time_modal.php';
     setUseLocationButtonState('default');
   }
   
-  // --- MODIFICATION: This function now validates the barangay immediately ---
+  // --- MODIFICATION: Uses Fuzzy Match to Validate ---
   async function reverseGeocode(lat, lng) {
     const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=${OPENCAGE_API_KEY}&language=en&countrycode=ph&pretty=1`;
     
@@ -685,43 +698,44 @@ include __DIR__ . '/includes/delivery_time_modal.php';
       if (data.status.code === 200 && data.results.length > 0) {
         const address = parseOpenCageResponse(data.results[0].components);
 
-        // --- NEW VALIDATION: Check Province ---
+        // Check Province
         if (!address.province || !address.province.toLowerCase().includes('batangas')) {
              showAllErrors([{ el: elements.useLocationBtn, msg: 'Sorry, we only deliver within Batangas.' }]);
              setUseLocationButtonState('error', 'Outside Batangas');
              return; 
         }
-        // --------------------------------------
 
-        const parsedBarangayName = address.barangay.toLowerCase();
-
-        // --- START OF NEW LOGIC ---
-        // 1. ALWAYS fill the fields, no matter what.
         streetInput.value = address.street;
         cityInput.value = address.city || '';
         provinceInput.value = address.province || '';
-        barangayInput.value = address.barangay; // Use the original cased name
-  
-        // 2. Manually trigger the 'change' event on the barangay input.
-        // This will automatically call our existing `updateDeliveryFee()` function.
-        barangayInput.dispatchEvent(new Event('change'));
-  
-        // 3. Now, check if the found barangay is valid.
-        if (BARANGAY_FEES_MAP[parsedBarangayName] !== undefined) {
-          // SUCCESS: We deliver here.
-          setUseLocationButtonState('success');
+        
+        // --- MATCHING LOGIC ---
+        // 1. Check if the detected name loosely matches a DB key
+        const matchKey = findMatchingBarangayKey(address.barangay);
+        
+        // 2. If matched, use the OFFICIAL database name (e.g. "Barangay 1 (Pob.)")
+        if (matchKey) {
+             // Convert "barangay 1 (pob.)" -> "Barangay 1 (Pob.)" for display
+             // A simple way is to Capitalize words, or just use the raw key if we don't mind lowercase.
+             // Better yet, just use the key but title-cased:
+             const prettyName = matchKey.replace(/\b\w/g, l => l.toUpperCase());
+             barangayInput.value = prettyName;
+             setUseLocationButtonState('success');
         } else {
-          // FAILURE: Barangay not in our list.
-          let errorMsg = `Sorry, we do not deliver to '${h(address.barangay)}'.`;
-          if (!address.barangay) {
-            errorMsg = "Could not find a valid barangay for your location. Please select manually.";
-          }
-          // Show the error right next to the input
-          showAllErrors([{ el: barangayInput, msg: errorMsg }]);
-          // Show error on the button itself
-          setUseLocationButtonState('error', 'Out of delivery area');
+             // No match found -> leave the detected name so user sees what failed
+             barangayInput.value = address.barangay;
+             
+             let errorMsg = `Sorry, we do not deliver to '${h(address.barangay)}'.`;
+             if (!address.barangay) {
+                errorMsg = "Could not find a valid barangay for your location. Please select manually.";
+             }
+             showAllErrors([{ el: barangayInput, msg: errorMsg }]);
+             setUseLocationButtonState('error', 'Out of delivery area');
         }
-        // --- END OF NEW LOGIC ---
+
+        // Trigger fee update (it will re-run fuzzy match, which is fine)
+        barangayInput.dispatchEvent(new Event('change'));
+        // ----------------------
 
       } else {
         throw new Error(data.status.message || 'No results found');
@@ -734,15 +748,38 @@ include __DIR__ . '/includes/delivery_time_modal.php';
   }
   
    function parseOpenCageResponse(components) {
-    // ... (this function is unchanged) ...
     let streetParts = [];
-    if (components.road) streetParts.push(components.road);
-    if (components.house_number) streetParts.unshift(components.house_number);
-    if (components.neighbourhood) streetParts.push(components.neighbourhood);
+    
+    // Helper check: returns true if the string starts with "Barangay" or "Brgy"
+    const isBarangayName = (str) => /^(barangay|brgy\.?)\s+/i.test(str || '');
 
-    let barangay = components.suburb || components.village || '';
-    let city = components.city || components.town || components.city_district || '';
-    let province = components.state || ''; // OpenCage uses 'state' for province/region
+    // 1. Specific Place Name
+    const placeName = components.amenity || components.shop || components.tourism || components.building || components.public_building || components.office;
+    if (placeName && !isBarangayName(placeName)) streetParts.push(placeName);
+
+    // 2. House Number
+    if (components.house_number) streetParts.push(components.house_number);
+
+    // 3. Street / Road
+    if (components.road && !isBarangayName(components.road)) streetParts.push(components.road);
+    else if (components.street && !isBarangayName(components.street)) streetParts.push(components.street);
+    
+    // 4. Purok / Zone / Sitio
+    if (components.hamlet && !isBarangayName(components.hamlet)) streetParts.push(components.hamlet);
+
+    // Barangay Detection with Priority
+    // 'suburb' is prioritized as it often holds "Bucana", "Wawa", etc.
+    let barangay = components.suburb || components.village || components.neighbourhood || components.quarter || '';
+    
+    // If 'neighbourhood' exists and wasn't used as the barangay, append to street
+    if (components.neighbourhood && barangay !== components.neighbourhood && !streetParts.includes(components.neighbourhood)) {
+        if (!isBarangayName(components.neighbourhood)) {
+            streetParts.push(components.neighbourhood);
+        }
+    }
+
+    let city = components.city || components.town || components.municipality || components.city_district || '';
+    let province = components.state || components.region || '';
 
     return {
       street: streetParts.join(', ') || '',
@@ -753,7 +790,6 @@ include __DIR__ . '/includes/delivery_time_modal.php';
   }
   
   function setUseLocationButtonState(state, text = '') {
-    // ... (this function is unchanged) ...
     if (!elements.useLocationBtn) return;
     elements.useLocationBtn.disabled = false;
     elements.useLocationBtn.classList.remove('loading');
@@ -790,7 +826,6 @@ include __DIR__ . '/includes/delivery_time_modal.php';
   /* ===========================
    VALIDATION & ORDER SUBMISSION
    =========================== */
-  // ... (initPlaceOrderButton and setLoading are unchanged) ...
   function initPlaceOrderButton() {
     if (!elements.placeOrderBtn) return;
     
@@ -878,7 +913,6 @@ include __DIR__ . '/includes/delivery_time_modal.php';
   }
 
   function setLoading(isLoading) {
-    // ... (this function is unchanged) ...
     isSubmitting = isLoading;
     if (elements.placeOrderBtn) {
       if (isLoading) {
@@ -893,7 +927,7 @@ include __DIR__ . '/includes/delivery_time_modal.php';
     }
   }
   
-  // --- MODIFICATION: VALIDATION NOW USES THE DB-POWERED MAP ---
+  // --- MODIFICATION: VALIDATION NOW USES THE DB-POWERED MAP & FUZZY LOGIC ---
   function validateForm() {
     const errors = [];
     const formData = new FormData(elements.checkoutForm);
@@ -904,13 +938,14 @@ include __DIR__ . '/includes/delivery_time_modal.php';
       const streetEl = document.querySelector('input[name="street"]');
       if (!formData.get('street')?.trim()) errors.push({ el: streetEl, msg: 'Street is required for delivery.' });
       
-      // --- BARANGAY CHECK (FROM DB MAP) ---
+      // --- BARANGAY CHECK ---
       const barangayEl = document.getElementById('barangayInput'); 
-      const barangayVal = barangayEl.value.trim().toLowerCase(); 
+      const val = barangayEl.value.trim();
+      const matchKey = findMatchingBarangayKey(val);
       
-      if (!barangayVal) {
+      if (!val) {
           errors.push({ el: barangayEl, msg: 'Barangay is required for delivery.' });
-      } else if (BARANGAY_FEES_MAP[barangayVal] === undefined) {
+      } else if (!matchKey) {
           errors.push({ el: barangayEl, msg: 'Sorry, we do not deliver to this barangay.' });
       }
 

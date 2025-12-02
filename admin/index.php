@@ -301,7 +301,7 @@ while ($row = $status_counts_result->fetch_assoc()) { $status_labels[] = ucfirst
     <span id="top"></span>
     <div class="content-card mb-4">
       <div class="content-card-header">
-        <h2 class="section-title mb-1">Order Pipeline</h2>
+        <h2 class="section-title mb-1">Order Progress</h2>
         <p class="text-muted small mb-0">Orders for the selected date.</p>
       </div>
       <div class="table-responsive">
@@ -346,7 +346,7 @@ while ($row = $status_counts_result->fetch_assoc()) { $status_labels[] = ucfirst
 
     <div class="content-card">
       <div class="content-card-header">
-        <h2 class="section-title mb-1">Business Snapshot (Day)</h2>
+        <h2 class="section-title mb-1">Business Overview (Day)</h2>
       </div>
       <div class="row g-4">
         <div class="col-md-6">

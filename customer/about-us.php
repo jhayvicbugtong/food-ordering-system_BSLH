@@ -576,7 +576,7 @@
       </div>
       <div class="stat-card">
         <span class="stat-number">1</span>
-        <div class="stat-label">Generations</div>
+        <div class="stat-label">Generation</div>
       </div>
       <div class="stat-card">
         <span class="stat-number">100%</span>

@@ -30,7 +30,7 @@ $order_id = $data->order_id ?? 0;
 $new_status = $data->new_status ?? '';
 $handler_id = $data->handler_id ?? null; 
 $driver_id = $data->driver_id ?? null;
-$rejection_reason = $data->rejection_reason ?? ''; // Capture rejection reason
+$rejection_reason = $data->rejection_reason ?? ''; 
 
 if ($order_id <= 0 || empty($new_status)) {
     http_response_code(400);
@@ -51,7 +51,7 @@ if (!in_array($new_status, $valid_statuses)) {
 
 $conn->begin_transaction();
 try {
-    // --- FETCH CURRENT INFO (Including Subtotal, Delivery Fee, Tip) ---
+    // --- FETCH CURRENT INFO ---
     $info_stmt = $conn->prepare("
         SELECT 
             o.order_type, o.status, o.order_number, 
@@ -125,32 +125,35 @@ try {
 
     $conn->commit();
 
-    // --- ENHANCED EMAIL NOTIFICATIONS ---
+    // --- MODIFIED: RESTRICTED EMAIL NOTIFICATIONS ---
     $sendEmail = false;
     $subject = "";
     $headline = "";
     $mainMessage = "";
     $headerColor = "#5cfa63"; // Default green
 
-    if (in_array($new_status, ['confirmed', 'preparing'])) {
+    // 1. ACCEPT (Confirmed) - Removed 'preparing'
+    if ($new_status === 'confirmed') {
         $sendEmail = true;
         $subject = "Order Accepted - " . $current_info['order_number'];
         $headline = "Order Accepted!";
-        $mainMessage = "Your order has been accepted by our staff and is now being prepared.";
+        $mainMessage = "Your order has been accepted by our staff and is being processed.";
     }
+    // 2. READY FOR PICKUP (Only if Pickup type)
     elseif ($new_status === 'ready' && $current_info['order_type'] === 'pickup') {
         $sendEmail = true;
         $subject = "Order Ready for Pickup - " . $current_info['order_number'];
         $headline = "Order Ready!";
         $mainMessage = "Your order is fresh and ready for pickup. Please proceed to the counter to claim it.";
     }
+    // 3. OUT FOR DELIVERY
     elseif ($new_status === 'out_for_delivery') {
         $sendEmail = true;
         $subject = "Order Out for Delivery - " . $current_info['order_number'];
         $headline = "On the Way!";
         $mainMessage = "Your order is out for delivery. Our rider will be with you shortly!";
     }
-    // --- NEW: Cancellation Email Logic ---
+    // 4. REJECT (Cancelled)
     elseif ($new_status === 'cancelled') {
         $sendEmail = true;
         $headerColor = "#dc3545"; // Red for rejection
@@ -158,12 +161,11 @@ try {
         $headline = "Order Rejected";
         $mainMessage = "We are sorry, but we cannot fulfill your order at this time.";
 
-        // Append rejection reason
         if (!empty($rejection_reason)) {
             $mainMessage .= "<br><br><strong>Reason:</strong> " . nl2br(htmlspecialchars($rejection_reason));
         }
 
-        // Check for Online Payment (GCash/Card) + Paid status to append refund notice
+        // Refund Notice for Online Payments
         $isOnline = in_array($current_info['payment_method'], ['gcash', 'card', 'paymongo']);
         $isPaid = $current_info['payment_status'] === 'paid';
 
@@ -177,14 +179,14 @@ try {
 
     if ($sendEmail) {
         try {
-            // 1. Get Customer Info
+            // Get Customer Info
             $custStmt = $conn->prepare("SELECT customer_email, customer_first_name FROM order_customer_details WHERE order_id = ?");
             $custStmt->bind_param('i', $order_id);
             $custStmt->execute();
             $custData = $custStmt->get_result()->fetch_assoc();
             $custStmt->close();
 
-            // 2. Get Order Items (for context in email)
+            // Get Order Items
             $itemsStmt = $conn->prepare("SELECT product_name, quantity, total_price FROM order_items WHERE order_id = ?");
             $itemsStmt->bind_param('i', $order_id);
             $itemsStmt->execute();
@@ -200,9 +202,8 @@ try {
             }
             $itemsStmt->close();
 
-            // 3. Build Breakdown HTML
-            $breakdownHtml = "";
-            $breakdownHtml .= "
+            // Build Breakdown
+            $breakdownHtml = "
             <tr>
                 <td style='padding: 8px 0; padding-top: 15px; color: #777;'>Subtotal</td>
                 <td style='padding: 8px 0; padding-top: 15px; text-align: right; color: #777;'>₱" . number_format($current_info['subtotal'], 2) . "</td>
@@ -222,7 +223,6 @@ try {
                 <td style='padding: 10px 0; border-top: 2px solid #eee; text-align: right; font-weight: bold; font-size: 16px;'>₱" . number_format($current_info['total_amount'], 2) . "</td>
             </tr>";
 
-
             if ($custData && !empty($custData['customer_email'])) {
                 $mail = new PHPMailer(true);
                 $mail->isSMTP();
@@ -239,7 +239,6 @@ try {
                 $mail->isHTML(true);
                 $mail->Subject = $subject;
 
-                // Email Template
                 $mail->Body = "
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;'>
                     <div style='background-color: $headerColor; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;'>

@@ -86,7 +86,7 @@ $barangays_query = $conn->query("SELECT * FROM deliverable_barangays ORDER BY ba
     padding: 1.5rem;
   }
 
-  /* --- Tabs Style (Scoped to #settingsTabs to fix sidebar issue) --- */
+  /* --- Old Blue Tab Style (Responsive) --- */
   .nav-tabs {
     border-bottom: none;
     margin-bottom: 1.5rem;
@@ -99,7 +99,7 @@ $barangays_query = $conn->query("SELECT * FROM deliverable_barangays ORDER BY ba
   .nav-tabs::-webkit-scrollbar { display: none; }
   .nav-tabs { -ms-overflow-style: none; scrollbar-width: none; }
 
-  #settingsTabs .nav-link {
+  .nav-link {
     border: none !important; /* Ensure no border */
     color: #6b7280;
     font-weight: 500;
@@ -113,20 +113,20 @@ $barangays_query = $conn->query("SELECT * FROM deliverable_barangays ORDER BY ba
   }
   
   /* Force removal of any pseudo-elements that might create the green line */
-  #settingsTabs .nav-link::before,
-  #settingsTabs .nav-link::after {
+  .nav-link::before,
+  .nav-link::after {
     content: none !important;
     display: none !important;
   }
 
-  #settingsTabs .nav-link i { margin-right: 8px; }
+  .nav-link i { margin-right: 8px; }
   
-  #settingsTabs .nav-link:hover {
+  .nav-link:hover {
     color: #111827;
     background-color: #e5e7eb !important;
   }
   
-  #settingsTabs .nav-link.active {
+  .nav-link.active {
     background-color: #4f46e5 !important; /* Indigo/Blue Background */
     color: #fff !important;               /* White Text */
     box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
@@ -261,7 +261,7 @@ $barangays_query = $conn->query("SELECT * FROM deliverable_barangays ORDER BY ba
       margin-bottom: 1.25rem;
     }
     .nav-tabs { gap: 5px; }
-    #settingsTabs .nav-link { padding: 0.6rem 1rem; font-size: 0.9rem; }
+    .nav-link { padding: 0.6rem 1rem; font-size: 0.9rem; }
 
     /* Stack Header Components on Mobile */
     .settings-card-header {
@@ -532,8 +532,6 @@ $barangays_query = $conn->query("SELECT * FROM deliverable_barangays ORDER BY ba
   </div>
 </div>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const statusSelect = document.getElementById('storeStatusSelect');
@@ -546,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 2. Save General Settings
+    // 2. Save General Settings (AJAX with DOM Update)
     document.getElementById('settingsForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const btn = document.getElementById('btnSaveGeneral');
@@ -564,6 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(r => r.json())
         .then(data => {
             if(data.success) {
+                // Update Header Brand Text Immediately
                 const newName = formData.get('store_name');
                 const headerBrand = document.querySelector('.brand-main');
                 if(headerBrand && newName) {
@@ -635,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 4. Barangay Search
+    // 4. Barangay Search Functionality
     document.getElementById('barangaySearch').addEventListener('keyup', function() {
         const query = this.value.toLowerCase();
         const rows = document.querySelectorAll('#barangayTableBody tr:not(#noAreasRow)');
@@ -736,14 +735,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // 6. Persist Tabs on Refresh (FIXED: Wait for bootstrap to load)
+    // Persist Tabs on Refresh
     const activeTab = localStorage.getItem('activeSettingsTab');
     if (activeTab) {
         const tabBtn = document.querySelector(`button[data-bs-target="${activeTab}"]`);
-        // Check if bootstrap is defined (it should be because footer is loaded above)
-        if(tabBtn && typeof bootstrap !== 'undefined') {
-            bootstrap.Tab.getOrCreateInstance(tabBtn).show();
-        }
+        if(tabBtn) bootstrap.Tab.getOrCreateInstance(tabBtn).show();
     }
     document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(el => {
         el.addEventListener('shown.bs.tab', e => {
@@ -752,3 +748,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<?php include __DIR__ . '/includes/footer.php'; ?>
