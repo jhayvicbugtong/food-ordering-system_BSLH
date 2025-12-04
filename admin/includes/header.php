@@ -262,7 +262,7 @@ if ($settings_result && $settings_result->num_rows > 0) {
     .dropdown-menu { min-width: 180px; right: -10px; }
   }
   @media (max-width: 576px) {
-    .site-header { padding: 8px 0; }
+    .site-header { padding: 19px 0; }
     .header-content { padding: 0 10px; }
     .brand-main { font-size: 14px; }
     .brand-sub { display: none; }
@@ -289,7 +289,7 @@ if ($settings_result && $settings_result->num_rows > 0) {
           </span>
         </button>
         
-        <img src="<?= htmlspecialchars($BASE_URL) ?>/uploads/logo/logo.png" alt="Logo" class="brand-logo">
+        <img src="<?= htmlspecialchars($BASE_URL) ?>/uploads/logo/logo_transparent.png" alt="Logo" class="brand-logo">
         
         <div class="brand-text">
           <div class="brand-main"><?= htmlspecialchars($store_name) ?></div>

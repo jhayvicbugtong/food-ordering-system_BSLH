@@ -255,7 +255,7 @@ section {
   margin: 0 auto;
 }
 
-/* ===== MIDDLE SPLIT (dark band with center image) ===== */
+/* ===== MIDDLE SPLIT ===== */
 
 .middle-split-section,
 .quality-section {
@@ -320,7 +320,7 @@ section {
   margin: 0 auto;
 }
 
-/* ===== CTA / CATERING / BULK ORDER ===== */
+/* ===== CTA / CATERING ===== */
 
 .cta-section {
   background-color: var(--bg-section-alt);
@@ -822,19 +822,16 @@ section {
   }
 }
 
-/* ---
---- NEW BOOTSTRAP-FRIENDLY MENU & CART STYLES
---- */
+/* --- BOOTSTRAP-FRIENDLY MENU & CART STYLES --- */
 
-/* Make the menu page use the light background */
 .menu-page {
   background-color: #f8f9fa;
 }
 
-/* Sticky category list */
+/* Sticky category list (Desktop) */
 .menu-categories {
   position: sticky;
-  top: 86px; /* Changed from 20px to 86px to clear the sticky header */
+  top: 86px;
   align-self: start;
 }
 
@@ -856,12 +853,6 @@ section {
   box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
 }
 
-.cart-items-container {
-  max-height: 50vh; /* Use 50% of the viewport height */
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 5px; /* for scrollbar */
-}
 /* Cart Animations */
 .cart-line.removing {
   transition: all 0.4s ease;
@@ -887,93 +878,86 @@ section {
   50% { background-color: rgba(92, 250, 99, 0.1); }
 }
 
-/* Quick Message Toast (Bootstrap override) */
 .bs-toast-container {
-  z-index: 1080; /* Ensure it's on top */
+  z-index: 1080;
 }
 
-/* ---
---- (This is where the broken checkout styles used to be. They are now correctly in checkout.css)
---- */
-
-/* Improved Cart Styles */
+/* --- IMPROVED CART STYLES (Sidebar) --- */
 .cart-sidebar {
-  max-height: calc(100vh - 40px);
+  /* Fix: Use 100% height to fill the sticky container */
+  height: 100%; 
   display: flex;
   flex-direction: column;
+  background: #fff;
+  /* Remove old max-height limits */
+  max-height: none !important; 
 }
 
 .cart-sidebar .card-body {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* Prevent the body itself from scrolling; we only want the items to scroll */
+  overflow: hidden; 
   flex-grow: 1;
 }
 
+/* Store Info Section (Top) */
+.store-card {
+  flex-shrink: 0; 
+  flex-grow: 0 !important;
+  height: auto;
+}
+
+/* Cart Items Area (Middle - Scrollable) */
 .cart-items-container {
-  flex-grow: 1;
-  overflow-y: auto;
+  flex-grow: 1;           /* Expand to fill empty space */
+  overflow-y: auto;       /* Enable vertical scrolling */
   overflow-x: hidden;
-  min-height: 0; /* Important for flexbox scrolling */
-  max-height: 400px; /* Fallback max height */
+  min-height: 0;          /* Vital for flexbox scrolling */
+  max-height: none !important; /* Override any previous fixed limits */
+  padding-right: 5px;
+  margin-bottom: 1rem;
 }
 
-/* Ensure cart items don't overflow */
-.cart-line {
-  flex-shrink: 0;
-}
-
-/* Better scrollbar styling */
+/* Custom Scrollbar for Items */
 .cart-items-container::-webkit-scrollbar {
   width: 6px;
 }
-
 .cart-items-container::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 3px;
 }
-
 .cart-items-container::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 3px;
 }
-
 .cart-items-container::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
 
-/* Responsive adjustments */
-@media (max-height: 700px) {
-  .cart-sidebar {
-    max-height: calc(100vh - 20px);
-  }
-  
-  .cart-items-container {
-    max-height: 300px;
-  }
+/* Cart Footer/Summary (Bottom - Fixed) */
+.cart-summary-block {
+  flex-shrink: 0;
+  background: #fff; /* Ensure background covers scrolling items if they overlap */
+  z-index: 2;
 }
 
-@media (max-height: 500px) {
-  .cart-sidebar {
-    max-height: calc(100vh - 10px);
-  }
-  
-  .cart-items-container {
-    max-height: 200px;
-  }
+/* Override any potential media query limits from earlier versions */
+@media (max-height: 700px) {
+  .cart-sidebar { max-height: none !important; }
+  .cart-items-container { max-height: none !important; }
 }
 
 /* ===== MY ORDERS PAGE ENHANCEMENTS ===== */
 .page-my-orders {
-  background-color: #f8f9fa; /* Light gray background for the page */
+  background-color: #f8f9fa;
 }
 
 .page-my-orders .accordion-item {
-  /* A more subtle shadow and rounded corners */
   border: 1px solid #e9ecef;
-  border-radius: 10px !important; /* Override bootstrap's 0 */
-  overflow: hidden; /* Ensures the button corners are rounded */
-  margin-bottom: 1rem; /* Space between orders */
+  border-radius: 10px !important;
+  overflow: hidden;
+  margin-bottom: 1rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.04);
   transition: box-shadow 0.2s ease-in-out;
 }
@@ -982,7 +966,6 @@ section {
 }
 
 .page-my-orders .accordion-header {
-  /* Remove the default separator line */
   border-bottom: 0; 
 }
 
@@ -993,20 +976,17 @@ section {
   padding: 1rem 1.25rem;
 }
 
-/* Remove the default blue shadow on focus */
 .page-my-orders .accordion-button:focus {
-  box-shadow: 0 0 0 0.25rem rgba(92, 250, 99, 0.25); /* Use accent color */
+  box-shadow: 0 0 0 0.25rem rgba(92, 250, 99, 0.25);
   border-color: rgba(0,0,0,0.05);
 }
 
-/* When NOT collapsed (i.e., open) */
 .page-my-orders .accordion-button:not(.collapsed) {
   background-color: #fcfcfc;
   box-shadow: inset 0 -1px 0 rgba(0,0,0,0.08);
   color: #212529;
 }
 
-/* Change the accordion icon */
 .page-my-orders .accordion-button::after {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236c757d'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
   transform: scale(0.9) translateY(0);
@@ -1017,7 +997,6 @@ section {
   transform: translateY(0);
 }
 
-/* Status badge inside the header */
 .page-my-orders .accordion-button .badge {
   font-size: 0.8rem;
   padding: 0.4em 0.7em;
@@ -1025,7 +1004,6 @@ section {
   letter-spacing: 0.5px;
 }
 
-/* Empty state card */
 .card-empty-state {
   border-radius: 12px;
   border: 2px dashed #dee2e6;
@@ -1041,23 +1019,129 @@ section {
     filter: brightness(0.9);
 }
 
-/* --- Styles for Contact Page Map --- */
-.note-map-box {
-  width: 100%;
-  border-radius: 16px;
-  background: #343a40;
-  min-height: 220px;
-  border: 1px solid rgba(0,0,0,0.5);
-  box-shadow: 0 16px 36px rgba(0,0,0,0.4);
-  padding: 0; /* REMOVED padding */
-  overflow: hidden; /* ADDED to clip iframe corners */
-  height: 100%; /* ADDED to fill the column */
+/* --- MOBILE UI ENHANCEMENTS --- */
+
+/* 1. Glassmorphic Sticky Category Nav */
+.mobile-category-nav {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 62px; 
+  z-index: 1020;
+  
+  background-color: rgba(255, 255, 255, 0.85); 
+  backdrop-filter: blur(12px); 
+  -webkit-backdrop-filter: blur(12px);
+  
+  border-bottom: 1px solid rgba(0,0,0,0.05); 
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02); 
+  transition: top 0.2s ease;
 }
 
-.note-map-box iframe {
-  width: 100%;
-  height: 100%;
-  min-height: 300px; /* Ensure it's not too small */
-  border: 0;
-  display: block;
+@media (max-width: 480px) {
+  .mobile-category-nav {
+    top: 56px; 
+  }
 }
+
+/* 2. Clean Category Pills */
+.category-link-mobile {
+  border: none;
+  background-color: #f1f3f5; 
+  color: #495057;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 100px; 
+  letter-spacing: 0.3px;
+  transition: all 0.25s ease;
+}
+
+.category-link-mobile:hover {
+  background-color: #e9ecef;
+  color: #212529;
+}
+
+.category-link-mobile.active {
+  background-color: #212529 !important; 
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(33, 37, 41, 0.25);
+  transform: translateY(-1px); 
+}
+
+/* 3. Floating Cart Island (White Theme) */
+.mobile-cart-floating {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1025;
+  
+  width: calc(100% - 32px);
+  max-width: 500px;
+  
+  background-color: #ffffff;
+  color: #212529;
+  
+  border-radius: 16px;
+  padding: 12px 20px;
+  
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05);
+  
+  animation: floatUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes floatUp {
+  from { transform: translate(-50%, 20px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.cart-floating-count {
+  font-size: 0.75rem;
+  color: #6c757d; 
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.cart-floating-total {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #212529; 
+  line-height: 1.2;
+}
+
+.btn-accent-floating {
+  background-color: var(--accent);
+  color: #000;
+  font-size: 0.9rem;
+  height: 40px;
+  border: none;
+  transition: filter 0.2s;
+}
+.btn-accent-floating:active {
+  filter: brightness(0.9);
+}
+
+/* Misc Tweaks */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Offcanvas Tweaks */
+@media (max-width: 991px) {
+  #mobileCartOffcanvas {
+    height: 85vh !important;
+  }
+  
+  #mobileCartOffcanvas .cart-sidebar {
+    height: 100% !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+}
+
+.sticky-top { overflow-y: auto; scrollbar-width: thin; }

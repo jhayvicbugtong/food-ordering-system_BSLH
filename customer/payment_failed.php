@@ -42,7 +42,7 @@ require_once __DIR__ . '/../includes/db_connect.php';
         If your payment failed, please try again. Your cart is still saved.
         <br><br>
         <a href="<?= htmlspecialchars($BASE_URL) ?>/customer/menu.php" class="btn btn-sm btn-secondary" style="font-weight:600;">Back to Menu</a>
-        <a href="<?= htmlspecialchars($BASE_URL) ?>/customer/checkout.php" class="btn btn-sm btn-success" style="color:black; font-weight:600;">Try Checkout Again</a>
+        <a href="<?= htmlspecialchars($BASE_URL) ?>/customer/checkout.php" class="btn btn-sm btn-success" style="color:white; font-weight:600;">Try Checkout Again</a>
       </div>
     </div>
   </div>

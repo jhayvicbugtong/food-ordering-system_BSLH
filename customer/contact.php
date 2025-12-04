@@ -1,11 +1,33 @@
 <?php
 // Import PHPMailer classes into the global namespace
-// These must be at the top of your script, not inside a function
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
 require_once __DIR__ . '/../includes/db_connect.php'; // Provides $conn
+
+// --- 1. Fetch System Settings from Database ---
+$settings = [];
+if (isset($conn)) {
+    $q = $conn->query("SELECT * FROM system_settings");
+    if ($q) {
+        while ($row = $q->fetch_assoc()) {
+            $settings[$row['setting_key']] = $row['setting_value'];
+        }
+    }
+}
+
+// --- 2. Set Dynamic Variables (with fallbacks) ---
+$store_name     = !empty($settings['store_name']) ? $settings['store_name'] : 'Bente Sais Lomi House';
+$store_phone    = !empty($settings['store_phone']) ? $settings['store_phone'] : '0912-345-6789';
+$store_email    = !empty($settings['store_email']) ? $settings['store_email'] : 'bentesaislomi.26@gmail.com';
+$store_location = !empty($settings['store_location']) ? $settings['store_location'] : 'Brgy. San Roque, Batangas';
+
+// Format Store Hours
+$open_time_raw  = !empty($settings['opening_time']) ? $settings['opening_time'] : '09:00';
+$close_time_raw = !empty($settings['closing_time']) ? $settings['closing_time'] : '21:00';
+$formatted_hours = date('g:i A', strtotime($open_time_raw)) . ' – ' . date('g:i A', strtotime($close_time_raw));
+
 
 // --- Contact Form Logic ---
 $success_message = '';
@@ -32,8 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         
         // --- START: Email Sending Logic (PHPMailer) ---
-        // Load Composer's autoloader or manually require the files
-        // Make sure these paths are correct relative to this file
         require_once __DIR__ . '/../includes/PHPMailer/Exception.php';
         require_once __DIR__ . '/../includes/PHPMailer/PHPMailer.php';
         require_once __DIR__ . '/../includes/PHPMailer/SMTP.php';
@@ -43,17 +63,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             // Server Settings
             $mail->isSMTP();                                            
-            $mail->Host       = 'smtp.gmail.com';                     // Gmail SMTP server
+            $mail->Host       = 'smtp.gmail.com';                     
             $mail->SMTPAuth   = true;                                   
-            $mail->Username   = 'bentesaislomi.26@gmail.com';     // YOUR GMAIL ADDRESS
-            $mail->Password   = 'gqzk qvow jxee kkns';                // YOUR GMAIL APP PASSWORD (NOT your login password)
+            $mail->Username   = 'bentesaislomi.26@gmail.com';     // SMTP Username (Keep fixed for sending)
+            $mail->Password   = 'gqzk qvow jxee kkns';                // SMTP App Password
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;       
             $mail->Port       = 587;                                    
 
             // Recipients
-            $mail->setFrom('bentesaislomi.26@gmail.com', 'Bente Sais Lomi House'); // Sender
-            $mail->addAddress('bentesaislomi.26@gmail.com');      // Where to send the inquiry (You)
-            $mail->addReplyTo($form_data['email'], $form_data['fullname']); // Reply to the customer
+            $mail->setFrom('bentesaislomi.26@gmail.com', $store_name); // Sender Name is dynamic
+            
+            // Send the inquiry to the Store Email configured in Settings
+            $mail->addAddress($store_email);      
+            
+            $mail->addReplyTo($form_data['email'], $form_data['fullname']); 
 
             // Content
             $mail->isHTML(false);                                     
@@ -68,10 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mail->Body = $emailBody;
 
             $mail->send();
-            // Email sent successfully
             
         } catch (Exception $e) {
-            // Log error but don't stop execution; we still want to save to DB
             error_log("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
         }
         // --- END: Email Sending Logic ---
@@ -95,9 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
 
             if ($stmt->execute()) {
-                // Success!
                 $success_message = "Thank you, " . $form_data['fullname'] . "! Your message has been received. We'll get back to you shortly.";
-                // Clear form data on success
                 $form_data = ['fullname' => '', 'phone' => '', 'email' => '', 'message' => ''];
             } else {
                 throw new Exception("Database error: " . $stmt->error);
@@ -109,7 +128,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error_message = "An error occurred while submitting your message. Please try again later.";
             error_log("CRITICAL Contact form DB error: " . $e->getMessage());
         }
-        // --- END: Database Insertion Logic ---
     }
 }
 ?>
@@ -120,8 +138,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=0"/>
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 
-  <title>Contact | Bente Sais Lomi House</title>
-  <meta name="description" content="Call us, message us, or drop by Bente Sais Lomi House for pickup, delivery, or bulk orders."/>
+  <title>Contact | <?= htmlspecialchars($store_name) ?></title>
+  <meta name="description" content="Call us, message us, or drop by <?= htmlspecialchars($store_name) ?> for pickup, delivery, or bulk orders."/>
   <meta name="robots" content="index,follow"/>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
@@ -129,6 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/customer.css"/>
   
   <style>
+    /* ... (CSS Styles remain exactly the same) ... */
     :root {
       --accent: #5cfa63;
       --accent-light: #7cf484;
@@ -138,7 +157,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       --text-muted: #6c757d;
     }
 
-    /* Modern Hero Section */
     .contact-hero {
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       padding: 120px 0 80px;
@@ -188,7 +206,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       margin: 0 auto 2rem;
     }
 
-    /* Contact Section */
     .contact-section {
       padding: 100px 0;
       background: #fff;
@@ -204,7 +221,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       align-items: start;
     }
 
-    /* Contact Info Cards */
     .contact-info {
       display: flex;
       flex-direction: column;
@@ -280,7 +296,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       color: var(--text-muted);
     }
 
-    /* Contact Form */
     .contact-form-container {
       background: #f8f9fa;
       padding: 40px;
@@ -359,7 +374,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       transform: translateY(0);
     }
 
-    /* Alert Styles */
     .contact-alert {
       padding: 1rem;
       border-radius: 8px;
@@ -380,7 +394,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       border-color: #f5c2c7;
     }
 
-    /* Map & Info Section */
     .contact-map-section {
       padding: 80px 0;
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -437,7 +450,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       display: block;
     }
 
-    /* Responsive Design */
     @media (max-width: 968px) {
       .contact-inner {
         grid-template-columns: 1fr;
@@ -515,13 +527,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Call / Pickup
           </h2>
           <p>
-            <strong>0912-345-6789</strong><br/>
-            Place advance orders / reserve trays / ask if lomi is still available.
+            <strong><?= htmlspecialchars($store_phone) ?></strong><br/>
+            For orders, reservations, or lomi availability, contact us.
           </p>
           <p style="margin-top:14px;">
             <strong>Pickup Location:</strong><br/>
-            Brgy. San Roque, Nasugbu, Batangas<br/>
-            Bente Sais Lomi House
+            <?= htmlspecialchars($store_location) ?><br/>
+            <?= htmlspecialchars($store_name) ?>
           </p>
         </div>
 
@@ -533,16 +545,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
           <ul class="hours-list">
             <li>
-              <span class="hours-day">Monday - Friday</span>
-              <span class="hours-time">9:00 AM – 9:00 PM</span>
-            </li>
-            <li>
-              <span class="hours-day">Saturday</span>
-              <span class="hours-time">9:00 AM – 10:00 PM</span>
-            </li>
-            <li>
-              <span class="hours-day">Sunday</span>
-              <span class="hours-time">10:00 AM – 8:00 PM</span>
+              <span class="hours-day">Opening Hours</span>
+              <span class="hours-time">Daily: <?= htmlspecialchars($formatted_hours) ?></span>
             </li>
           </ul>
 
@@ -618,7 +622,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="map-info-card">
         <h4>Delivery / Coverage</h4>
         <p>
-          We deliver within our nearby area in Nasugbu, Batangas.
+          We deliver within our nearby area in <?= htmlspecialchars($store_location) ?>.
           If you're a bit farther, send us your exact location —
           we'll confirm if we can send a rider or schedule a pickup.
         </p>

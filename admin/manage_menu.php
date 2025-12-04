@@ -39,14 +39,14 @@ include __DIR__ . '/includes/header.php';
               <p class="text-muted small mb-0">Live items visible to customers.</p>
             </div>
 
-            <div class="right d-flex gap-2">
+            <div class="right header-actions">
               <div class="menu-search-bar">
                 <div class="input-group input-group-sm">
                   <span class="input-group-text"><i class="bi bi-search"></i></span>
                   <input type="text" class="form-control" id="searchInput" placeholder="Search items...">
                 </div>
               </div>
-              <button class="btn btn-success btn-sm" id="addNewItemBtn">
+              <button class="btn btn-success btn-sm text-nowrap w-100-mobile" id="addNewItemBtn">
                 <i class="bi bi-plus-circle"></i> Add New Item
               </button>
             </div>
@@ -56,20 +56,20 @@ include __DIR__ . '/includes/header.php';
             <table class="table table-hover table-vcenter modern-table" id="menuTable">
               <thead>
                 <tr>
-                  <th>Image</th>
+                  <th style="width: 60px;">Image</th>
                   <th>Item</th>
                   <th>Category</th>
-                  <th>Price</th>
+                  <th class="text-nowrap">Price</th>
                   <th>Availability</th>
-                  <th class="text-end">Actions</th>
+                  <th class="text-end text-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody id="menuTableBody"></tbody>
             </table>
           </div>
           
-          <nav id="paginationNavContainer" aria-label="Menu Pagination">
-            <ul class="pagination justify-content-center mb-0"></ul>
+          <nav id="paginationNavContainer" aria-label="Menu Pagination" class="mt-3">
+            <ul class="pagination justify-content-end mb-0"></ul>
           </nav>
         </section>
       </div>
@@ -81,15 +81,15 @@ include __DIR__ . '/includes/header.php';
               <h2 class="section-title mb-1">Categories</h2>
               <p class="text-muted small mb-0">Organize your menu items.</p>
             </div>
-            <div class="right d-flex gap-2">
+            <div class="right header-actions">
                <div class="menu-search-bar">
                 <div class="input-group input-group-sm">
                   <span class="input-group-text"><i class="bi bi-search"></i></span>
                   <input type="text" class="form-control" id="categorySearchInput" placeholder="Search categories...">
                 </div>
               </div>
-              <button class="btn btn-success btn-sm" id="addNewCategoryBtn">
-                <i class="bi bi-plus-circle"></i> Add New Category
+              <button class="btn btn-success btn-sm text-nowrap w-100-mobile" id="addNewCategoryBtn">
+                <i class="bi bi-plus-circle"></i> Add Category
               </button>
             </div>
           </div>
@@ -102,14 +102,14 @@ include __DIR__ . '/includes/header.php';
                   <th>Description</th>
                   <th>Order</th>
                   <th>Status</th>
-                  <th class="text-end">Actions</th>
+                  <th class="text-end text-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody id="categoryTableBody"></tbody>
             </table>
           </div>
-           <nav id="categoryPaginationNav" aria-label="Category Pagination">
-            <ul class="pagination justify-content-center mb-0"></ul>
+           <nav id="categoryPaginationNav" aria-label="Category Pagination" class="mt-3">
+            <ul class="pagination justify-content-end mb-0"></ul>
           </nav>
         </section>
       </div>
@@ -119,7 +119,7 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <div class="modal fade" id="menuModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <form id="menuForm" enctype="multipart/form-data">
         <div class="modal-header">
@@ -129,11 +129,11 @@ include __DIR__ . '/includes/header.php';
         <div class="modal-body">
           <input type="hidden" id="product_id" name="product_id" value="">
           <div class="row g-3">
-            <div class="col-md-4">
+            <div class="col-md-6">
               <label class="form-label">Item Name</label>
               <input type="text" class="form-control" id="name" name="name" required>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-6">
               <label class="form-label">Category</label>
               <select class="form-select" id="category_id" name="category_id" required>
                 <option value="">Select Category</option>
@@ -150,25 +150,27 @@ include __DIR__ . '/includes/header.php';
                 ?>
               </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-md-4">
               <label class="form-label">Price (₱)</label> 
               <input type="number" step="0.01" class="form-control" id="base_price" name="base_price" required>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-4">
               <label class="form-label">Availability</label>
               <select class="form-select" id="is_available" name="is_available" required>
                 <option value="1">Visible</option>
                 <option value="0">Hidden</option>
               </select>
             </div>
-            <div class="col-md-6">
+             <div class="col-12 col-md-12">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            <div class="col-12">
               <label class="form-label">Product Image</label>
               <input type="file" class="form-control" id="product_image" name="product_image" accept="image/*">
-              <div id="imagePreview" class="mt-2"></div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Description</label>
-              <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+              <div id="imagePreview" class="mt-3 text-center bg-light rounded p-2" style="min-height: 100px; display: flex; align-items: center; justify-content: center;">
+                  <span class="text-muted small">No image selected</span>
+              </div>
             </div>
           </div>
         </div>
@@ -197,7 +199,7 @@ include __DIR__ . '/includes/header.php';
               <input type="text" class="form-control" id="cat_name" name="category_name" required>
             </div>
              <div class="col-md-4">
-              <label class="form-label">Display Order</label>
+              <label class="form-label">Order</label>
               <input type="number" class="form-control" id="cat_order" name="display_order" value="0">
             </div>
              <div class="col-md-12">
@@ -225,63 +227,205 @@ include __DIR__ . '/includes/header.php';
 <?php include __DIR__ . '/includes/footer.php'; ?>
 
 <style>
+  /* Global Background & Layout */
   body { background-color: #f3f4f6; }
-  .main-content { min-height: 100vh; padding-top: 1.5rem; padding-bottom: 1.5rem; }
+  .main-content { 
+      min-height: 100vh; 
+      padding-top: 1.5rem; 
+      padding-bottom: 1.5rem; 
+      margin-left: 220px; /* Desktop sidebar offset */
+      transition: margin-left 0.3s ease;
+  }
   
   /* Card Styles */
-  .content-card { border-radius: 18px; border: 1px solid rgba(148, 163, 184, 0.3); background: #ffffff; box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06); padding: 18px 20px; }
-  .content-card-header { border-bottom: 1px solid rgba(148, 163, 184, 0.25); padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+  .content-card { 
+      border-radius: 18px; 
+      border: 1px solid rgba(148, 163, 184, 0.3); 
+      background: #ffffff; 
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06); 
+      padding: 18px 20px; 
+  }
+  .content-card-header { 
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25); 
+      padding-bottom: 10px; 
+      margin-bottom: 12px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      gap: 0.75rem; 
+  }
   
-  /* Search & Table */
-  .menu-search-bar .input-group-text { border-radius: 999px 0 0 999px; background-color: #f9fafb; }
-  .menu-search-bar .form-control { border-radius: 0 999px 999px 0; }
-  .modern-table thead th { font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: #6b7280; }
-  .modern-table tbody td { vertical-align: middle; font-size: 0.9rem; }
-  .menu-table-img { width: 46px; height: 46px; border-radius: 12px; object-fit: cover; background: #e5e7eb; }
-  .menu-table-img-placeholder { width: 46px; height: 46px; border-radius: 12px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #adb5bd; }
+  /* Header Actions (Search + Button) */
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-  /* Tabs - FIXED */
-  .nav-tabs { border-bottom: none; gap: 10px; }
+  /* Search & Inputs */
+  .menu-search-bar .input-group-text { 
+      border-radius: 999px 0 0 999px; 
+      background-color: #f9fafb; 
+      border-color: #e5e7eb;
+  }
+  .menu-search-bar .form-control { 
+      border-radius: 0 999px 999px 0; 
+      border-color: #e5e7eb;
+      font-size: 0.9rem;
+      min-width: 200px;
+  }
+  .menu-search-bar .form-control:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
+  }
   
-  /* 1. Reset basic link styles */
-  .nav-tabs .nav-link { 
-      border-radius: 8px; 
+  /* Table Styling */
+  .modern-table thead th { 
+      font-size: 0.75rem; 
+      text-transform: uppercase; 
+      font-weight: 600; 
       color: #6b7280; 
-      font-weight: 500; 
-      border: none !important; /* Force removal of all borders */
-      background: transparent; 
-      transition: all 0.2s; 
-      position: relative; /* Ensure we control positioning */
+      border-bottom: 1px solid #e5e7eb;
+      padding: 12px 10px;
+  }
+  .modern-table tbody td { 
+      vertical-align: middle; 
+      font-size: 0.9rem; 
+      padding: 12px 10px;
+  }
+  .menu-table-img { 
+      width: 46px; 
+      height: 46px; 
+      border-radius: 12px; 
+      object-fit: cover; 
+      background: #e5e7eb; 
+  }
+  .menu-table-img-placeholder { 
+      width: 46px; 
+      height: 46px; 
+      border-radius: 12px; 
+      background-color: #f0f0f0; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      color: #adb5bd; 
+      font-size: 1.2rem;
   }
 
-  /* 2. Force removal of any pseudo-elements (::before/::after) that might be creating the green line */
-  .nav-tabs .nav-link::before,
-  .nav-tabs .nav-link::after,
-  .nav-tabs .nav-link.active::before,
-  .nav-tabs .nav-link.active::after {
-      content: none !important;
-      display: none !important;
-      border: none !important;
-      background: transparent !important;
-      width: 0 !important;
+  /* Tabs Styling - SCOPED TO #menuTabs to prevent Sidebar conflict */
+  .nav-tabs {
+    border-bottom: none;
+    margin-bottom: 1.5rem;
+    gap: 10px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 5px;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE */
   }
+  .nav-tabs::-webkit-scrollbar { display: none; }
 
-  /* 3. Active state styling (Blue/Indigo background) */
-  .nav-tabs .nav-link:hover { background: #e5e7eb; color: #111827; }
+  /* FIXED: Scope these styles to #menuTabs so sidebar nav-links aren't affected */
+  #menuTabs .nav-link {
+    border: none !important;
+    color: #6b7280;
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    background: transparent !important;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+  }
   
-  /* Use ID selector for higher specificity to override external CSS */
-  #menuTabs .nav-link.active { 
-      background: #4f46e5 !important; 
-      color: #fff !important; 
-      box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
-      border: none !important; 
-      border-left: none !important; 
+  #menuTabs .nav-link::before,
+  #menuTabs .nav-link::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  #menuTabs .nav-link i { margin-right: 8px; }
+  
+  #menuTabs .nav-link:hover {
+    color: #111827;
+    background-color: #e5e7eb !important;
+  }
+  
+  /* Active Tab */
+  #menuTabs .nav-link.active {
+    background-color: #4f46e5 !important; /* Indigo/Blue Background */
+    color: #fff !important;               /* White Text */
+    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+    font-weight: 600;
   }
   
   /* Pagination */
-  .pagination .page-link { border-radius: 999px !important; font-size: 0.8rem; border-color: #e5e7eb; margin: 0 2px; color: #4f46e5; }
-  .pagination .page-item.active .page-link { background-color: #4f46e5; border-color: #4f46e5; color: white; }
-  .pagination .page-item.disabled .page-link { color: #9ca3af; border-color: #e5e7eb; background-color: #f9fafb; }
+  .pagination .page-link { 
+      border-radius: 999px !important; 
+      font-size: 0.8rem; 
+      border-color: #e5e7eb; 
+      margin: 0 2px; 
+      color: #4f46e5; 
+  }
+  .pagination .page-item.active .page-link { 
+      background-color: #4f46e5; 
+      border-color: #4f46e5; 
+      color: white; 
+  }
+  .pagination .page-item.disabled .page-link { 
+      color: #9ca3af; 
+      border-color: #e5e7eb; 
+      background-color: #f9fafb; 
+  }
+
+  /* Button Styling */
+  .btn { border-radius: 999px; }
+  .btn-group-sm .btn { border-radius: 999px; }
+
+  /* RESPONSIVE BREAKPOINTS */
+  @media (max-width: 992px) {
+    .main-content {
+      margin-left: 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .content-card-header {
+      flex-direction: column;
+      align-items: stretch; /* Full width items */
+      gap: 15px;
+    }
+    
+    /* Mobile: Stack search and add button */
+    .header-actions {
+      width: 100%;
+      flex-direction: column; /* Search Top, Button Bottom */
+      gap: 10px;
+    }
+    
+    .menu-search-bar {
+      width: 100%;
+    }
+    
+    .menu-search-bar .form-control {
+        min-width: 0; /* Reset min-width */
+    }
+    
+    .w-100-mobile {
+        width: 100%;
+    }
+    
+    /* Ensure table doesn't break layout */
+    .table-responsive {
+      margin-left: -20px;
+      margin-right: -20px;
+      width: calc(100% + 40px);
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+  }
 </style>
 
 <script>
@@ -313,7 +457,7 @@ $(document).ready(function() {
     $('#addNewItemBtn').click(function() {
         resetMenuForm();
         $('#menuModalLabel').text('Add New Item');
-        $('#submitMenuButton').text('Add Item');
+        $('#submitMenuButton').text('Save Item');
         menuModalInstance.show();
     });
 
@@ -360,7 +504,7 @@ $(document).ready(function() {
     $('#addNewCategoryBtn').click(function() {
         resetCategoryForm();
         $('#categoryModalLabel').text('Add New Category');
-        $('#submitCategoryButton').text('Add Category');
+        $('#submitCategoryButton').text('Save Category');
         categoryModalInstance.show();
     });
 
@@ -406,6 +550,10 @@ function loadMenuItems(page, search) {
 }
 
 function saveMenuItem() {
+    const btn = $('#submitMenuButton');
+    const originalText = btn.text();
+    btn.prop('disabled', true).text('Saving...');
+
     const formData = new FormData($('#menuForm')[0]);
     $.ajax({
         url: 'actions/save_menu_item.php',
@@ -415,12 +563,21 @@ function saveMenuItem() {
         success: function(res) {
             const result = (typeof res === 'string') ? JSON.parse(res) : res;
             if (result.success) {
-                Swal.fire('Saved!', result.message, 'success');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Saved!',
+                    text: result.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
                 menuModalInstance.hide();
                 loadMenuItems(menuPage, $('#searchInput').val());
             } else {
                 Swal.fire('Error', result.message, 'error');
             }
+        },
+        complete: function() {
+            btn.prop('disabled', false).text(originalText);
         }
     });
 }
@@ -439,7 +596,11 @@ function editItem(id) {
                 $('#base_price').val(item.base_price);
                 $('#is_available').val(item.is_available);
                 $('#description').val(item.description);
-                if(item.image_url) $('#imagePreview').html(`<img src="../${item.image_url}" class="img-thumbnail" style="max-height: 100px;">`);
+                if(item.image_url) {
+                    $('#imagePreview').html(`<img src="../${item.image_url}" class="img-thumbnail" style="max-height: 150px;">`);
+                } else {
+                    $('#imagePreview').html(`<div class="text-muted small p-3 bg-light rounded">No image set</div>`);
+                }
                 $('#menuModalLabel').text('Edit Menu Item');
                 $('#submitMenuButton').text('Update Item');
                 menuModalInstance.show();
@@ -450,13 +611,24 @@ function editItem(id) {
 
 function deleteItem(id) {
     Swal.fire({
-        title: 'Delete Item?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete', confirmButtonColor: '#d33'
+        title: 'Delete Item?', 
+        text: "You won't be able to revert this!",
+        icon: 'warning', 
+        showCancelButton: true, 
+        confirmButtonText: 'Yes, delete', 
+        confirmButtonColor: '#d33'
     }).then((result) => {
         if (result.isConfirmed) {
             $.post('actions/delete_menu_item.php', { product_id: id }, function(res) {
                 const r = (typeof res === 'string') ? JSON.parse(res) : res;
                 if(r.success) {
-                    Swal.fire('Deleted!', r.message, 'success');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!', 
+                        text: r.message,
+                        timer: 1000,
+                        showConfirmButton: false
+                    });
                     loadMenuItems(menuPage, $('#searchInput').val());
                 } else {
                     Swal.fire('Error', r.message, 'error');
@@ -498,17 +670,16 @@ function renderCategoryTable(categories) {
         categories.forEach(cat => {
             // Badge style
             const statusBadge = cat.is_active == 1 
-                ? '<span class="badge bg-success bg-opacity-10 text-success">Active</span>' 
-                : '<span class="badge bg-secondary bg-opacity-10 text-secondary">Inactive</span>';
+                ? '<span class="badge bg-success-subtle text-success rounded-pill">Active</span>' 
+                : '<span class="badge bg-secondary-subtle text-secondary rounded-pill">Inactive</span>';
             
-            // Edit/Delete Buttons: Matching Menu Items Style
             html += `
                 <tr>
                     <td class="fw-bold text-dark">${cat.category_name}</td>
-                    <td class="text-muted small">${cat.description || '<em>No description</em>'}</td>
+                    <td class="text-muted small text-wrap" style="max-width: 200px;">${cat.description || '<em>No description</em>'}</td>
                     <td>${cat.display_order}</td>
                     <td>${statusBadge}</td>
-                    <td class="text-end">
+                    <td class="text-end text-nowrap">
                         <div class="btn-group btn-group-sm" role="group">
                             <button class="btn btn-outline-secondary btn-edit-cat" data-id="${cat.category_id}">
                                 <i class="bi bi-pencil-fill"></i> Edit
@@ -525,17 +696,23 @@ function renderCategoryTable(categories) {
     $('#categoryTableBody').html(html);
 }
 
-
-// ... inside $(document).ready(function() { ...
-
-// [UPDATE THIS FUNCTION]
 function saveCategory() {
+    const btn = $('#submitCategoryButton');
+    const originalText = btn.text();
+    btn.prop('disabled', true).text('Saving...');
+
     const data = $('#categoryForm').serialize();
     $.post('actions/save_category.php', data, function(res) {
         const result = (typeof res === 'string') ? JSON.parse(res) : res;
         
         if (result.success) {
-            Swal.fire('Success', result.message, 'success');
+            Swal.fire({
+                icon: 'success',
+                title: 'Success', 
+                text: result.message,
+                timer: 1500,
+                showConfirmButton: false
+            });
             categoryModalInstance.hide();
             
             // 1. Refresh the category table
@@ -550,22 +727,19 @@ function saveCategory() {
             let $option = $dropdown.find(`option[value="${catId}"]`);
             
             if ($option.length > 0) {
-                // Update existing option text
                 $option.text(catName);
             } else {
-                // Append new option for "Add" mode
-                // (We use append because categories are usually at the end, 
-                // or you could re-sort if strictly necessary)
                 $dropdown.append(new Option(catName, catId));
             }
 
         } else {
             Swal.fire('Error', result.message, 'error');
         }
+    }).always(function() {
+        btn.prop('disabled', false).text(originalText);
     });
 }
 
-// [UPDATE THIS FUNCTION]
 function deleteCategory(id) {
     Swal.fire({
         title: 'Delete Category?', 
@@ -581,13 +755,8 @@ function deleteCategory(id) {
                 
                 if(r.success) {
                     Swal.fire('Deleted!', r.message, 'success');
-                    
-                    // 1. Refresh table
                     loadCategories(categoryPage, $('#categorySearchInput').val());
-                    
-                    // 2. Remove from "Add New Item" Dropdown
                     $(`#category_id option[value="${id}"]`).remove();
-                    
                 } else {
                     Swal.fire('Cannot Delete', r.message, 'error');
                 }
@@ -595,8 +764,6 @@ function deleteCategory(id) {
         }
     });
 }
-
-// ... rest of your code
 
 function editCategory(id) {
     $.get('actions/get_category.php', { category_id: id }, function(cat) {
@@ -616,7 +783,6 @@ function editCategory(id) {
         }
     }, 'json');
 }
-
 
 function resetCategoryForm() {
     $('#categoryForm')[0].reset();
@@ -639,7 +805,7 @@ function buildPagination(pagination, containerSelector) {
                         <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
                       </li>`);
 
-    // Page Numbers (1, 2 ... 5, 6, 7 ... 10)
+    // Page Numbers
     let startPage = Math.max(1, currentPage - 1);
     let endPage = Math.min(totalPages, currentPage + 1);
 

@@ -8,40 +8,37 @@ include __DIR__ . '/includes/header.php';
     <section class="content-card mb-4">
       <div class="content-card-header">
         <div class="left">
-          <h2 class="page-title mb-1">Staff Management</h2>
+          <h2 class="page-title mb-1">UserF Management</h2>
           <p class="text-muted small mb-0">Add and maintain users with access to the system.</p>
         </div>
-        <div class="right">
-          <button class="btn btn-success" id="saveStaffTopBtn" type="submit" form="addStaffForm">
-            <i class="bi bi-person-plus"></i> Save User
-          </button>
-        </div>
+        <div class="right header-actions">
+            </div>
       </div>
 
       <form class="row g-3" id="addStaffForm">
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
           <label class="form-label">First Name <span class="text-danger">*</span></label>
           <input type="text" class="form-control" name="first_name" placeholder="Juan" required>
         </div>
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
           <label class="form-label">Last Name <span class="text-danger">*</span></label>
           <input type="text" class="form-control" name="last_name" placeholder="Dela Cruz" required>
         </div>
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
           <label class="form-label">Role <span class="text-danger">*</span></label>
           <select class="form-select" name="role" required>
             <option value="staff">Staff</option>
             <option value="customer">Customer</option>
             <option value="admin">Admin (Full Access)</option>
           </select>
-          <div class="form-text">This controls their login permissions.</div>
+          <div class="form-text small text-muted">Controls login permissions.</div>
         </div>
         
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
           <label class="form-label">Email <span class="text-danger">*</span></label>
           <input type="email" class="form-control" name="email" placeholder="user@example.com" required>
         </div>
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
           <label class="form-label">Phone</label>
           <div class="input-group">
             <span class="input-group-text">+63</span>
@@ -56,18 +53,20 @@ include __DIR__ . '/includes/header.php';
           </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-12 col-md-4"></div> 
+
+        <div class="col-12 col-md-4">
           <label class="form-label">Password <span class="text-danger">*</span></label>
           <input type="password" class="form-control" name="password" placeholder="••••••••" required>
         </div>
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
           <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
           <input type="password" class="form-control" name="password2" placeholder="••••••••" required>
         </div>
 
-        <div class="col-12">
-          <button type="submit" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Add User
+        <div class="col-12 text-start mt-4">
+          <button type="submit" class="btn btn-success w-100-mobile px-4">
+            <i class="bi bi-plus-circle me-1"></i> Add User
           </button>
         </div>
       </form>
@@ -76,11 +75,11 @@ include __DIR__ . '/includes/header.php';
     <section class="content-card">
       <div class="content-card-header">
         <div class="left">
-          <h2 class="section-title mb-1">Current Staff</h2>
+          <h2 class="section-title mb-1">Current Users</h2>
           <p class="text-muted small mb-0">Active team members with system access.</p>
         </div>
-        <div class="right">
-          <select class="form-select form-select-sm w-auto" id="roleFilter">
+        <div class="right header-actions">
+          <select class="form-select form-select-sm w-100-mobile" id="roleFilter">
             <option value="">All roles</option>
             <option value="staff">Staff</option>
             <option value="customer">Customer</option>
@@ -93,7 +92,7 @@ include __DIR__ . '/includes/header.php';
         <table class="table table-hover modern-table" id="staffTable">
           <thead>
             <tr>
-              <th>Staff Member</th>
+              <th>User Member</th>
               <th>Role</th>
               <th>Email</th>
               <th>Contact</th>
@@ -108,15 +107,17 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <style>
-  /* Page background + main layout */
-  body {
-    background-color: #f3f4f6;
+  /* Global Background & Layout */
+  body { 
+    background-color: #f3f4f6; 
   }
-
+  
   .main-content {
     min-height: 100vh;
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
+    margin-left: 220px; /* Desktop sidebar offset */
+    transition: margin-left 0.3s ease;
   }
 
   /* Modern cards */
@@ -163,6 +164,7 @@ include __DIR__ . '/includes/header.php';
   .form-label {
     font-size: 0.9rem;
     font-weight: 500;
+    color: #374151;
   }
 
   .form-control,
@@ -170,19 +172,29 @@ include __DIR__ . '/includes/header.php';
     font-size: 0.9rem;
     border-radius: 10px;
     border-color: #e5e7eb;
+    padding: 0.5rem 0.75rem;
   }
 
   .form-control:focus,
   .form-select:focus {
     border-color: #4f46e5;
-    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
   }
 
   .input-group-text {
-    border-radius: 999px 0 0 999px;
+    border-radius: 10px 0 0 10px;
+    background-color: #f9fafb;
+    border-color: #e5e7eb;
+    font-size: 0.9rem;
+  }
+  
+  /* Fix input group radius when attached */
+  .input-group .form-control {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
   }
 
-  /* Table */
+  /* Table Styles */
   .modern-table thead th {
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -190,11 +202,13 @@ include __DIR__ . '/includes/header.php';
     font-weight: 600;
     color: #6b7280;
     border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap; /* Prevent header wrapping */
   }
 
   .modern-table tbody td {
     font-size: 0.9rem;
     vertical-align: middle;
+    white-space: nowrap; /* Keep data on one line mostly */
   }
 
   .table-hover tbody tr:hover {
@@ -253,6 +267,7 @@ include __DIR__ . '/includes/header.php';
   .staff-name-main {
     font-weight: 600;
     font-size: 0.92rem;
+    color: #111827;
   }
 
   .staff-name-sub {
@@ -265,22 +280,23 @@ include __DIR__ . '/includes/header.php';
     border-radius: 999px;
     border-color: #e5e7eb;
     font-size: 0.8rem;
+    min-width: 140px;
   }
 
   /* Buttons */
-  .btn-group-sm .btn {
-    border-radius: 999px;
-  }
+  .btn { border-radius: 999px; }
+  .btn-group-sm .btn { border-radius: 999px; }
 
-  /* Simple modal (edit) – refine look */
+  /* Simple Modal Styling */
   .simple-modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.45);
+    background: rgba(0, 0, 0, 0.5); /* Standard dark overlay */
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 1050;
+
   }
   .simple-modal {
     width: 680px;
@@ -289,6 +305,9 @@ include __DIR__ . '/includes/header.php';
     border-radius: 16px;
     box-shadow: 0 24px 70px rgba(15, 23, 42, 0.35);
     overflow: hidden;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
   }
   .simple-modal .hdr {
     display: flex;
@@ -297,62 +316,87 @@ include __DIR__ . '/includes/header.php';
     padding: 14px 16px;
     border-bottom: 1px solid #e5e7eb;
     background: #f9fafb;
+    flex-shrink: 0;
   }
   .simple-modal .hdr strong {
-    font-size: 0.98rem;
+    font-size: 1rem;
+    color: #111827;
   }
   .simple-modal .body {
-    padding: 16px;
+    padding: 20px;
+    overflow-y: auto;
   }
   .simple-modal .ftr {
     display: flex;
     gap: 8px;
     justify-content: flex-end;
-    padding: 12px 16px;
+    padding: 12px 20px;
     border-top: 1px solid #e5e7eb;
     background: #f9fafb;
+    flex-shrink: 0;
   }
 
-  /* Payment section in Order Details modal (from your other pages) */
-  #od-payment {
-    line-height: 1.3;
+  /* RESPONSIVE BREAKPOINTS */
+  @media (max-width: 992px) {
+    .main-content {
+      margin-left: 0;
+    }
   }
-  .od-payment-main {
-    display: block;
-    font-weight: 600;
-  }
-  .od-payment-meta {
-    display: block;
-    font-size: 0.8rem;
-    color: #6b7280;
-    margin-top: 2px;
-    text-transform: capitalize;
+
+  @media (max-width: 768px) {
+    .content-card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 15px;
+    }
+    
+    .header-actions {
+      width: 100%;
+    }
+    
+    .w-100-mobile {
+      width: 100% !important;
+    }
+    
+    /* Ensure table fits horizontally */
+    .table-responsive {
+      margin-left: -20px;
+      margin-right: -20px;
+      width: calc(100% + 40px);
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+    
+    /* Adjust modal for mobile */
+    .simple-modal .body {
+      padding: 16px;
+    }
   }
 </style>
 
 <div class="simple-modal-backdrop" id="editBackdrop">
   <div class="simple-modal">
     <div class="hdr">
-      <strong>Edit Staff Member</strong>
+      <strong>Edit User Details</strong>
       <button type="button" id="editClose" class="btn btn-outline-secondary btn-sm">Close</button>
     </div>
-    <form id="editForm">
+    <form id="editForm" style="display: flex; flex-direction: column; height: 100%;">
       <input type="hidden" name="user_id" id="edit_user_id">
       <div class="body">
         <div class="row g-3">
-          <div class="col-md-6">
+          <div class="col-12 col-md-6">
             <label class="form-label">First Name</label>
             <input class="form-control" name="first_name" id="edit_first_name" required>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-md-6">
             <label class="form-label">Last Name</label>
             <input class="form-control" name="last_name" id="edit_last_name" required>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-md-6">
             <label class="form-label">Email</label>
             <input class="form-control" name="email" id="edit_email" required>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-md-6">
             <label class="form-label">Phone</label>
             <div class="input-group">
               <span class="input-group-text">+63</span>
@@ -365,7 +409,7 @@ include __DIR__ . '/includes/header.php';
                 maxlength="10">
             </div>
           </div>
-          <div class="col-md-12">
+          <div class="col-12">
             <label class="form-label">Role</label>
             <select class="form-select" name="role" id="edit_role">
               <option value="staff">Staff</option>
@@ -374,12 +418,12 @@ include __DIR__ . '/includes/header.php';
             </select>
           </div>
 
-          <div class="col-md-6">
-            <label class="form-label">New Password (optional)</label>
-            <input type="password" class="form-control" name="new_password" id="edit_new_password" placeholder="Leave blank to keep current">
+          <div class="col-12 col-md-6">
+            <label class="form-label">New Password <small class="text-muted">(optional)</small></label>
+            <input type="password" class="form-control" name="new_password" id="edit_new_password" placeholder="Leave blank to keep">
           </div>
-          <div class="col-md-6">
-            <label class="form-label">Confirm</label>
+          <div class="col-12 col-md-6">
+            <label class="form-label">Confirm New Password</label>
             <input type="password" class="form-control" name="new_password2" id="edit_new_password2" placeholder="Repeat new password">
           </div>
         </div>
@@ -392,13 +436,12 @@ include __DIR__ . '/includes/header.php';
   </div>
 </div>
 
-<!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('addStaffForm');
-  const topBtn = document.getElementById('saveStaffTopBtn');
+  // const topBtn = document.getElementById('saveStaffTopBtn'); // ID removed
   const tbody = document.getElementById('staffTbody');
   const roleFilter = document.getElementById('roleFilter');
 
@@ -511,12 +554,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </td>
         <td><span class="${r.klass}">${r.label}</span></td>
-        <td>${s.email || '—'}</td>
-        <td>${s.phone || '—'}</td>
-        <td class="text-end">
+        <td class="text-nowrap">${s.email || '—'}</td>
+        <td class="text-nowrap">${s.phone || '—'}</td>
+        <td class="text-end text-nowrap">
           <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-secondary btn-edit">Edit</button>
-            <button class="btn btn-outline-danger btn-remove">Remove</button>
+            <button class="btn btn-outline-secondary btn-edit"><i class="bi bi-pencil"></i> Edit</button>
+            <button class="btn btn-outline-danger btn-remove"><i class="bi bi-trash"></i> </button>
           </div>
         </td>
       </tr>
@@ -534,16 +577,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadStaff(){
-    tbody.innerHTML = `<tr><td colspan="5">Loading…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4">Loading…</td></tr>`;
     try{
       const res = await fetch('actions/list_staff.php');
       const data = await res.json();
       if (data.status !== 'ok') throw new Error(data.message || 'Failed to load');
       if (!Array.isArray(data.rows)) data.rows = [];
-      tbody.innerHTML = data.rows.map(rowHTML).join('') || `<tr><td colspan="5">No staff found.</td></tr>`;
+      tbody.innerHTML = data.rows.map(rowHTML).join('') || `<tr><td colspan="5" class="text-center py-4 text-muted">No User found.</td></tr>`;
       applyRoleFilter();
     }catch(e){
-      tbody.innerHTML = `<tr><td colspan="5" class="text-danger">${e.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" class="text-danger text-center py-4">${e.message}</td></tr>`;
     }
   }
 
@@ -573,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const ct = res.headers.get('content-type')||'';
       const data = ct.includes('json') ? await res.json() : {status:'error',message:await res.text()};
       if (data.status !== 'ok') throw new Error(data.message || 'Failed to add staff');
-      showAlert('success','Staff added successfully.');
+      showAlert('success','User added successfully.');
       form.reset();
       await loadStaff();
     }catch(err){
@@ -587,15 +630,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!tr) return;
     const id = tr.getAttribute('data-id');
 
-    if (e.target.classList.contains('btn-remove')) {
+    if (e.target.closest('.btn-remove')) {
       // SweetAlert2 confirmation
       Swal.fire({
-        title: 'Remove this staff member?',
+        title: 'Remove this user?',
         text: 'This action is permanent.',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, remove',
-        cancelButtonText: 'Cancel'
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#d33'
       }).then(async (result) => {
         if (!result.isConfirmed) return;
         try{
@@ -604,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const res = await fetch('actions/delete_staff.php', { method:'POST', body:fd });
           const data = await res.json();
           if (data.status !== 'ok') throw new Error(data.message || 'Delete failed');
-          showAlert('success','Staff removed.');
+          showAlert('success','User removed.');
           tr.remove();
           if (!tbody.children.length) loadStaff();
         }catch(err){
@@ -615,11 +659,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return; // don’t fall through to edit handler
     }
 
-    if (e.target.classList.contains('btn-edit')) {
+    if (e.target.closest('.btn-edit')) {
       try{
         const res = await fetch('actions/list_staff.php?user_id='+encodeURIComponent(id));
         const data = await res.json();
-        if (data.status !== 'ok' || !data.row) throw new Error('Failed to fetch staff details');
+        if (data.status !== 'ok' || !data.row) throw new Error('Failed to fetch user details');
 
         // Fill modal
         editForm.reset();

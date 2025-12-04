@@ -2,7 +2,7 @@
 // customer/auth/verify_email.php
 require_once __DIR__ . '/../../includes/db_connect.php'; 
 
-// --- NEW: Fetch Store Name ---
+// --- Fetch Store Name ---
 $store_name = "Bente Sais Lomi House";
 if (isset($conn) && $conn instanceof mysqli) {
     $res = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'store_name' LIMIT 1");
@@ -141,20 +141,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       flex-direction: column;
       gap: 16px;
     }
+
+    /* UPDATED: Logo Styling */
     .brand-logo {
-      height: 48px;
-      width: 48px;
+      height: 64px;
+      width: 64px;
       border-radius: 12px;
-      background: radial-gradient(circle at 30% 30%, #5cfa63 0%, #1c1f1f 70%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      color: #000;
-      font-size: 18px;
-      line-height: 1;
-      box-shadow: 0 0 20px rgba(92,250,99,0.4);
+      object-fit: cover;
+      background: transparent;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      box-shadow: none;
     }
+
     .brand-text h1 {
       margin: 0;
       font-size: 24px;
@@ -283,7 +281,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       .auth-aside::before { display: none; }
       .intro-text { display: none; } /* Hide text on mobile */
       .auth-main { padding: 40px 24px; }
-      .brand-logo { height: 40px; width: 40px; font-size: 16px; }
+      .brand-logo { height: 50px; width: 50px; }
       .brand-text h1 { font-size: 20px; }
     }
   </style>
@@ -294,7 +292,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     <aside class="auth-aside">
       <div class="brand-block">
-        <div class="brand-logo">BS</div>
+        <img src="<?= htmlspecialchars($BASE_URL) ?>/uploads/logo/logo_transparent.png" alt="Store Logo" class="brand-logo">
+        
         <div class="brand-text">
           <h1><?= htmlspecialchars($store_name) ?></h1>
           <p>Security Verification</p>

@@ -1,6 +1,56 @@
 <?php
 // customer/payment_success.php
 require_once __DIR__ . '/../includes/db_connect.php';
+
+// --- ADDED: Fetch Order Number Logic ---
+$order_number_display = null;
+$found_order_number = false;
+
+// Define Key (Ensure this matches your other files)
+if (!defined('PAYMONGO_SECRET_KEY')) {
+    define('PAYMONGO_SECRET_KEY', 'sk_test_MVV2EXZhRxpfiQmM16c18aM7');
+}
+
+if (isset($_GET['session_id'])) {
+    $session_id = $_GET['session_id'];
+
+    // 1. Get Payment ID from PayMongo API
+    // We need this because the webhook stores the Payment ID (not always the Session ID) in the database.
+    $ch = curl_init('https://api.paymongo.com/v1/checkout_sessions/' . $session_id);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_USERPWD, PAYMONGO_SECRET_KEY . ':');
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $data = json_decode($response, true);
+    
+    // Logic matches webhook: use payment ID if available, else fallback to session ID
+    $payment_id_ref = $data['data']['attributes']['payments'][0]['id'] ?? $session_id;
+
+    // 2. Poll DB for Order Number (max 3 seconds) to handle webhook race condition
+    for ($i = 0; $i < 3; $i++) {
+        $stmt = $conn->prepare("
+            SELECT o.order_number 
+            FROM orders o
+            JOIN order_payment_details op ON o.order_id = op.order_id
+            WHERE op.gcash_reference = ?
+            LIMIT 1
+        ");
+        $stmt->bind_param("s", $payment_id_ref);
+        $stmt->execute();
+        $stmt->bind_result($ord_num);
+        
+        if ($stmt->fetch()) {
+            $order_number_display = $ord_num;
+            $found_order_number = true;
+            $stmt->close();
+            break; // Found it, stop waiting
+        }
+        $stmt->close();
+        sleep(1); // Wait 1 sec for webhook to finish processing
+    }
+}
+// ---------------------------------------
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,6 +62,7 @@ require_once __DIR__ . '/../includes/db_connect.php';
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
   <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/customer.css"/>
   <link rel="stylesheet" href="<?= htmlspecialchars($BASE_URL) ?>/assets/css/checkout.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="checkout-page">
 
@@ -29,7 +80,21 @@ require_once __DIR__ . '/../includes/db_connect.php';
     <div class="confirm-icon">✅</div>
     <div class="confirm-main">
       <h2 id="confirmTitle">Payment Successful!</h2>
-      <p id="confirmSubtitle">Your order is being confirmed. Please check your email/phone for updates.</p>
+      
+      <?php if ($found_order_number): ?>
+          <div style="margin: 10px 0;">
+              <span style="color: #555; font-size: 0.95rem;">Order Reference:</span>
+              <div style="font-size: 1.5rem; font-weight: 700; color: #2e7d32; letter-spacing: 0.5px;">
+                  <?= htmlspecialchars($order_number_display) ?>
+              </div>
+          </div>
+      <?php elseif (isset($_GET['session_id'])): ?>
+          <div style="font-size: 0.9rem; color: #666; margin: 10px 0;">
+              Processing Order...<br>
+              <small>Ref: <?= htmlspecialchars($_GET['session_id']) ?></small>
+          </div>
+      <?php endif; ?>
+      <p id="confirmSubtitle">Your order has been placed. Please wait for the store to confirm.</p>
     </div>
   </div>
 
@@ -66,7 +131,7 @@ require_once __DIR__ . '/../includes/db_connect.php';
       <div>
         We've received your payment. Our system is logging your order now.
         <br><br>
-        <button onclick="finishOrder()" class="btn btn-sm btn-success" style="color:black; font-weight:600;">Back to Menu</button>
+        <button onclick="finishOrder()" class="btn btn-sm btn-success" style="color:white; font-weight:600;">Back to Menu</button>
       </div>
     </div>
   </div>
@@ -92,6 +157,17 @@ require_once __DIR__ . '/../includes/db_connect.php';
     try {
       const orderData = JSON.parse(orderDataJson);
       hydrateConfirmation(orderData);
+      
+      // --- ADDED: SweetAlert2 Success Popup for Online Payment ---
+      Swal.fire({
+        icon: 'success',
+        title: 'Payment Successful!',
+        text: 'Your payment has been received and your order is placed.',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'Great!'
+      });
+      // -----------------------------------------------------------
+
       // Note: We DO NOT delete 'bslh_pending_order' here immediately. 
       // We delete it when they click "Back to Menu".
     } catch (e) {

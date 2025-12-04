@@ -32,12 +32,11 @@ $user = "root";
 $pass = "";
 $dbname = "online_food_ordering_db";
 
-// Database configuration in infinityfree hosting
-// $host = "sql204.infinityfree.com";
-// $user = "if0_40429008";
-// $pass = "bentesais3102";
-// $dbname = "if0_40429008_online_food_ordering_db";
-
+// // Database configuration in production
+// $host = "localhost";
+// $user = "u920374553_bentesais";
+// $pass = "Bentesais.26";
+// $dbname = "u920374553_bentesais_db";
 
 $conn = new mysqli($host, $user, $pass, $dbname);
 

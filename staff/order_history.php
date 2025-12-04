@@ -86,8 +86,7 @@ include __DIR__ . '/includes/header.php';
   /* Table styling */
   .dashboard-table {
     margin-bottom: 0;
-    /* Fix responsiveness: Force min width to trigger scroll on mobile */
-    min-width: 900px;
+    width: 100%;
   }
 
   .dashboard-table thead th {
@@ -189,9 +188,72 @@ include __DIR__ . '/includes/header.php';
     border-color: #4f46e5;
   }
 
+  /* Mobile Responsive Table (Cards) */
+  @media (max-width: 768px) {
+    .dashboard-table thead {
+        display: none;
+    }
+    .dashboard-table tbody tr {
+        display: block;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        padding: 1rem;
+    }
+    .dashboard-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border: none;
+        text-align: right;
+        flex-wrap: wrap;
+        white-space: normal !important;
+    }
+    .dashboard-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-right: 1rem;
+        text-align: left;
+    }
+    .dashboard-table td:last-child {
+        border-top: 1px solid #f3f4f6;
+        margin-top: 0.5rem;
+        padding-top: 1rem;
+        justify-content: flex-end;
+    }
+    .dashboard-table td:last-child::before {
+        display: none;
+    }
+    
+    .content-card-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .right {
+        width: 100%;
+    }
+    .filter-form {
+        flex-direction: column;
+    }
+    .filter-form .col-auto {
+        width: 100%;
+    }
+    .filter-form .input-group, 
+    .filter-form select, 
+    .filter-form button {
+        width: 100%;
+    }
+  }
+
   @media (max-width: 576px) {
     .content-card {
-      padding: 14px 10px;
+      padding: 14px 14px;
     }
   }
 </style>
@@ -350,17 +412,17 @@ include __DIR__ . '/includes/header.php';
 
     bodyEl.innerHTML = rows.map(r => `
       <tr>
-        <td>${escapeHtml(r.order_number)}</td>
-        <td>${escapeHtml(r.customer)}</td>
-        <td>${escapeHtml(r.type_label)}</td>
-        <td>${escapeHtml(r.total_formatted)}</td>
-        <td>
+        <td data-label="Order #">${escapeHtml(r.order_number)}</td>
+        <td data-label="Customer">${escapeHtml(r.customer)}</td>
+        <td data-label="Type">${escapeHtml(r.type_label)}</td>
+        <td data-label="Total">${escapeHtml(r.total_formatted)}</td>
+        <td data-label="Status">
           <span class="badge ${escapeHtml(r.status_badge_class)} status-badge">
             ${escapeHtml(r.status_label)}
           </span>
         </td>
-        <td>${escapeHtml(r.created_at)}</td>
-        <td>
+        <td data-label="Placed At">${escapeHtml(r.created_at)}</td>
+        <td data-label="Actions">
           <button type="button"
                   class="btn btn-sm btn-outline-primary btn-view-details"
                   data-order-id="${encodeURIComponent(r.order_id)}"
@@ -580,7 +642,7 @@ include __DIR__ . '/includes/header.php';
         itemsHtml = '<p class="text-muted">No items found for this order.</p>';
       }
 
-      // Timeline - RESTORED TO ORIGINAL LIST FORMAT
+      // Timeline
       const timelineBits = [];
       if (o.created_at)          timelineBits.push('<strong>Placed:</strong> ' + escapeHtml(o.created_at));
       if (o.confirmed_at)        timelineBits.push('<strong>Confirmed:</strong> ' + escapeHtml(o.confirmed_at));

@@ -8,7 +8,7 @@ $orders_query = "
         o.order_id, 
         o.order_number, 
         o.order_type, 
-        o.status,
+        o.status, 
         o.created_at,
         o.total_amount,
         ocd.customer_first_name, 
@@ -21,7 +21,7 @@ $orders_query = "
     WHERE o.status NOT IN ('completed', 'delivered', 'cancelled')
       AND NOT (o.order_type = 'delivery' AND o.status IN ('ready', 'out_for_delivery'))
     ORDER BY o.created_at ASC
-    LIMIT 50;
+    LIMIT 100; 
 ";
 $orders_result = $conn->query($orders_query);
 ?>
@@ -63,8 +63,9 @@ $orders_result = $conn->query($orders_query);
     margin-bottom: 12px;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.75rem;
+    flex-wrap: wrap;
   }
 
   .content-card-header h2 {
@@ -87,8 +88,7 @@ $orders_result = $conn->query($orders_query);
   /* Table styling */
   .orders-queue-table {
     margin-bottom: 0;
-    /* Ensure the table maintains width to prevent squishing */
-    min-width: 900px; 
+    width: 100%;
   }
 
   .orders-queue-table thead th {
@@ -98,15 +98,13 @@ $orders_result = $conn->query($orders_query);
     font-weight: 600;
     color: #6b7280;
     border-bottom: 1px solid #e5e7eb;
-    white-space: nowrap; /* Prevent header wrapping */
+    white-space: nowrap;
   }
 
   .orders-queue-table th,
   .orders-queue-table td {
     font-size: 0.9rem;
-    /* Force text to stay on one line to prevent vertical stacking */
-    white-space: nowrap !important; 
-    vertical-align: middle; 
+    vertical-align: middle;
     padding: 12px;
   }
 
@@ -166,6 +164,14 @@ $orders_result = $conn->query($orders_query);
   }
 
   /* Status pills */
+  /* ADDED: Missing badge-primary class for 'Confirmed' state */
+  .status-badge.badge-primary,
+  .status-badge.bg-primary {
+    background: #dbeafe; 
+    color: #1d4ed8; 
+    border: 1px solid rgba(37, 99, 235, 0.2);
+  }
+
   .status-badge.badge-warning,
   .status-badge.bg-warning {
     background: #fef3c7;
@@ -196,6 +202,30 @@ $orders_result = $conn->query($orders_query);
 
   .actions-cell .btn {
     white-space: nowrap;
+  }
+
+  /* Search Box Styles */
+  .search-box {
+    position: relative;
+    width: 250px;
+  }
+  .search-box .form-control {
+    padding-left: 2.5rem;
+    border-radius: 999px;
+    border-color: #e5e7eb;
+    font-size: 0.9rem;
+  }
+  .search-box .form-control:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  }
+  .search-box .bi-search {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
   }
 
   /* Modal Tweaks */
@@ -229,11 +259,75 @@ $orders_result = $conn->query($orders_query);
     margin-top: 10px;
   }
 
+  /* Mobile Responsive Table (Cards) */
+  @media (max-width: 768px) {
+    .orders-queue-table thead {
+        display: none;
+    }
+    .orders-queue-table tbody tr {
+        display: block;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        padding: 1rem;
+    }
+    .orders-queue-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border: none;
+        text-align: right;
+        flex-wrap: wrap;
+    }
+    .orders-queue-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-right: 1rem;
+        text-align: left;
+    }
+    .orders-queue-table td:last-child {
+        border-top: 1px solid #f3f4f6;
+        margin-top: 0.5rem;
+        padding-top: 1rem;
+        justify-content: flex-end;
+    }
+    .orders-queue-table td:last-child::before {
+        display: none;
+    }
+    /* Align lists inside tables properly */
+    .orders-queue-table ul {
+        text-align: right;
+        width: 100%;
+    }
+    
+    .content-card-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .search-box {
+        width: 100%;
+        margin-top: 10px;
+    }
+    .meta-text {
+        display: none; /* Hide meta text on mobile */
+    }
+  }
+
   @media (max-width: 576px) {
     .content-card {
       padding: 14px 14px;
     }
   }
+  
+  /* Fade animation for row updates */
+  .fade-in-row { animation: fadeIn 0.5s; }
+  @keyframes fadeIn { from { opacity: 0; background-color: #ecfdf3; } to { opacity: 1; background-color: transparent; } }
 </style>
 
 <div class="container-fluid">
@@ -242,18 +336,11 @@ $orders_result = $conn->query($orders_query);
   <main class="main-content">
 
     <div class="content-card mb-3">
-      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
         <div>
           <h2 class="page-title mb-1">Orders Queue</h2>
           <p class="page-subtitle mb-1">All active orders that still need action.</p>
-          <p class="meta-text mb-0">
-            Sorted by time placed (Oldest first). Use the actions on the right to move orders through the pipeline.
-          </p>
-        </div>
-        <div class="text-end">
-          <button class="btn btn-success btn-sm" onclick="location.reload();">
-            <i class="bi bi-arrow-clockwise"></i> Refresh
-          </button>
+          <p class="meta-text mb-0">Sorted by time placed (Oldest first).</p>
         </div>
       </div>
     </div>
@@ -264,8 +351,12 @@ $orders_result = $conn->query($orders_query);
           <h2>Active Orders</h2>
           <p>Pending, confirmed, preparing, and pickup-ready orders.</p>
         </div>
-        <div class="text-end meta-text">
-          <span class="d-block">Max 50 latest active orders</span>
+        
+        <div class="d-flex align-items-center gap-3">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="orderSearchInput" class="form-control" placeholder="Search order #, customer...">
+            </div>
         </div>
       </div>
 
@@ -282,14 +373,14 @@ $orders_result = $conn->query($orders_query);
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="ordersTableBody">
             <?php if ($orders_result && $orders_result->num_rows > 0): ?>
               <?php while($order = $orders_result->fetch_assoc()): ?>
                 <?php
                   $status = $order['status'];
                   $status_map = [
                     'pending'          => 'badge-warning',
-                    'confirmed'        => 'badge-info',
+                    'confirmed'        => 'badge-primary', // UPDATED: Match API/JS logic (was badge-info)
                     'preparing'        => 'badge-info',
                     'ready'            => 'badge-success',
                     'out_for_delivery' => 'badge-success',
@@ -302,6 +393,7 @@ $orders_result = $conn->query($orders_query);
                   }
 
                   $order_id       = (int)$order['order_id'];
+                  $order_number   = htmlspecialchars($order['order_number'] ?? $order_id);
                   $payment_status = $order['payment_status'] ?? null;
                   $created_time   = $order['created_at']
                     ? date('g:i A', strtotime($order['created_at']))
@@ -334,18 +426,24 @@ $orders_result = $conn->query($orders_query);
                   }
 
                   // Total
-                  $total = (float)($order['total_amount'] ?? 0);
+                  $total = ($order['total_amount'] ?? 0);
                 ?>
-                <tr data-order-id="<?= $order_id ?>">
-                  <td>
-                    <strong><?= htmlspecialchars($order['order_number'] ?? $order_id) ?></strong><br>
-                    <?php if ($created_time): ?>
-                      <span class="meta-text">Placed: <?= htmlspecialchars($created_time) ?></span>
-                    <?php endif; ?>
+                <tr data-order-id="<?= $order_id ?>" 
+                    data-order-type="<?= htmlspecialchars($order['order_type']) ?>" 
+                    data-payment-status="<?= htmlspecialchars($payment_status ?? '') ?>"
+                    data-status="<?= htmlspecialchars($status) ?>"
+                    class="order-row">
+                  <td data-label="Order #">
+                    <div class="searchable-text">
+                        <strong><?= $order_number ?></strong>
+                        <?php if ($created_time): ?>
+                          <div class="meta-text">Placed: <?= htmlspecialchars($created_time) ?></div>
+                        <?php endif; ?>
+                    </div>
                   </td>
                   
-                  <td>
-                    <ul class="list-unstyled mb-0" style="padding-left: 0; font-size: 0.85em;">
+                  <td data-label="Items">
+                    <ul class="list-unstyled mb-0 searchable-text" style="padding-left: 0; font-size: 0.85em;">
                       <?php
                         // Fetch items for this order
                         $items_stmt = $conn->prepare("SELECT product_name, quantity FROM order_items WHERE order_id = ? LIMIT 3");
@@ -364,33 +462,35 @@ $orders_result = $conn->query($orders_query);
                     </ul>
                   </td>
 
-                  <td><?= $customer_name ?></td>
-                  <td>
+                  <td data-label="Customer" class="searchable-text"><?= $customer_name ?></td>
+                  <td data-label="Total">
                     <span style="font-weight:600; white-space:nowrap;">
                         ₱<?= number_format($total, 2) ?>
                     </span>
                   </td>
-                  <td>
-                    <span class="source-pill <?= $source_class ?>">
-                      <?= htmlspecialchars($source_label) ?>
-                    </span><br>
-                    <span class="payment-badge badge <?= $payment_badge_class ?> mt-1 d-inline-block">
-                      <?= htmlspecialchars($payment_label) ?>
-                    </span>
+                  <td data-label="Type / Payment">
+                    <div class="d-flex flex-column align-items-end align-items-md-start gap-1">
+                        <span class="source-pill <?= $source_class ?>">
+                          <?= htmlspecialchars($source_label) ?>
+                        </span>
+                        <span class="payment-badge badge <?= $payment_badge_class ?>">
+                          <?= htmlspecialchars($payment_label) ?>
+                        </span>
+                    </div>
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span class="status-badge badge <?= $status_class ?>">
                       <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $status))) ?>
                     </span>
                   </td>
                   <td class="actions-cell">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center justify-content-end justify-content-md-start gap-2 action-buttons-container">
                         
                         <button class="btn btn-sm btn-outline-secondary btn-view-details" data-id="<?= $order_id ?>" title="View Details">
                              <i class="bi bi-eye"></i>
                         </button>
 
-                        <div class="btn-group btn-group-sm">
+                        <div class="btn-group btn-group-sm action-group">
                         <?php if ($status == 'pending'): ?>
                             <button class="btn btn-outline-success btn-action" data-action="confirm" data-id="<?= $order_id ?>">Accept</button>
                             <button class="btn btn-outline-danger btn-action" data-action="cancel" data-id="<?= $order_id ?>">Reject</button>
@@ -414,12 +514,17 @@ $orders_result = $conn->query($orders_query);
                 </tr>
               <?php endwhile; ?>
             <?php else: ?>
-              <tr>
+              <tr id="no-orders-row">
                 <td colspan="7" class="text-center text-muted">No active orders in the queue.</td>
               </tr>
             <?php endif; ?>
           </tbody>
         </table>
+        
+        <div id="no-search-results" class="text-center py-4 text-muted" style="display: none;">
+            <i class="bi bi-search" style="font-size: 1.5rem; display: block; margin-bottom: 10px;"></i>
+            No orders match your search.
+        </div>
       </div>
     </section>
 
@@ -510,113 +615,163 @@ $orders_result = $conn->query($orders_query);
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const staffUserId = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+  const staffUserId = <?php echo ($_SESSION['user_id'] ?? 0); ?>;
   const viewModalEl = document.getElementById('viewOrderModal');
   const viewModal = new bootstrap.Modal(viewModalEl);
 
-  // --- View Details Logic ---
-  document.querySelectorAll('.btn-view-details').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-          const orderId = e.currentTarget.dataset.id;
-          
-          // Show modal & loader
-          viewModal.show();
-          document.getElementById('modalLoader').style.display = 'block';
-          document.getElementById('modalContent').style.display = 'none';
-          
-          try {
-              const res = await fetch(`actions/get_order_details.php?order_id=${orderId}`);
-              const data = await res.json();
+  // --- REAL-TIME UPDATES LOGIC ---
+  const tableBody = document.getElementById('ordersTableBody');
+  const noOrdersRow = document.getElementById('no-orders-row');
+
+  function fetchQueueUpdates() {
+      // Don't poll if user is typing search query to avoid jitter
+      if (document.getElementById('orderSearchInput').value.length > 0) return;
+
+      fetch('actions/fetch_queue_updates.php')
+          .then(response => response.json())
+          .then(data => {
+              if (!data.orders) return;
               
-              if(data.success) {
-                  const o = data.order;
-                  
-                  // Header Info
-                  document.getElementById('modalOrderNumber').textContent = o.order_number;
-                  document.getElementById('modalCustomer').textContent = o.customer_name;
-                  
-                  // Contact Info
-                  let contact = o.customer_phone || 'No phone';
-                  if(o.customer_email) contact += ` / ${o.customer_email}`;
-                  document.getElementById('modalContact').textContent = contact;
-                  
-                  // Type & Status
-                  document.getElementById('modalType').textContent = o.type_label;
-                  document.getElementById('modalStatus').innerHTML = 
-                      `<span class="badge ${o.status_badge_class}">${o.status_label}</span>`;
-                  
-                  // Address
-                  const addrDiv = document.getElementById('modalAddressContainer');
-                  if(o.delivery_address) {
-                      addrDiv.style.display = 'block';
-                      document.getElementById('modalAddress').textContent = o.delivery_address;
-                  } else {
-                      addrDiv.style.display = 'none';
+              const newOrders = data.orders;
+              const existingRows = Array.from(tableBody.querySelectorAll('tr.order-row'));
+              const existingIds = existingRows.map(row => row.dataset.orderId);
+              const newIds = Object.keys(newOrders);
+
+              // 1. Remove rows that are no longer in the queue
+              existingRows.forEach(row => {
+                  if (!newIds.includes(row.dataset.orderId)) {
+                      row.remove();
                   }
-                  
-                  // Items
-                  const tbody = document.getElementById('modalItemsTable');
-                  tbody.innerHTML = '';
-                  data.items.forEach(item => {
-                      const tr = document.createElement('tr');
-                      let instructions = '';
-                      if(item.special_instructions) {
-                          instructions = `<br><small class="text-danger">Note: ${item.special_instructions}</small>`;
+              });
+
+              // 2. Add or Update rows
+              newIds.forEach(id => {
+                  const orderData = newOrders[id];
+                  const existingRow = tableBody.querySelector(`tr[data-order-id="${id}"]`);
+
+                  if (!existingRow) {
+                      // ADD NEW ROW
+                      tableBody.insertAdjacentHTML('beforeend', orderData.html);
+                      // Add fade-in animation
+                      const newRow = tableBody.querySelector(`tr[data-order-id="${id}"]`);
+                      if(newRow) newRow.classList.add('fade-in-row');
+                  } else {
+                      // UPDATE EXISTING ROW (only if status changed)
+                      if (existingRow.dataset.status !== orderData.status) {
+                          existingRow.outerHTML = orderData.html;
                       }
-                      tr.innerHTML = `
-                        <td>
-                            ${item.product_name}
-                            ${instructions}
-                        </td>
-                        <td class="text-end">${item.unit_price_fmt}</td>
-                        <td class="text-center">${item.quantity}</td>
-                        <td class="text-end fw-bold">${item.total_price_fmt}</td>
-                      `;
-                      tbody.appendChild(tr);
-                  });
-                  
-                  // Totals
-                  document.getElementById('modalSubtotal').textContent = o.subtotal_formatted;
-                  document.getElementById('modalDeliveryFee').textContent = o.delivery_fee_formatted;
-                  document.getElementById('modalTotal').textContent = o.total_formatted;
-                  
-                  // Payment Badge
-                  document.getElementById('modalPaymentBadge').textContent = o.payment_label;
-                  
-                  // Timestamp
-                  document.getElementById('modalTime').textContent = o.created_at;
-                  
-                  // Reveal Content
-                  document.getElementById('modalLoader').style.display = 'none';
-                  document.getElementById('modalContent').style.display = 'block';
-                  
+                  }
+              });
+
+              // 3. Toggle "No Active Orders" message
+              if (newIds.length === 0) {
+                  if (!document.getElementById('no-orders-row')) {
+                      tableBody.innerHTML = '<tr id="no-orders-row"><td colspan="7" class="text-center text-muted">No active orders in the queue.</td></tr>';
+                  }
               } else {
-                  alert('Failed to load details: ' + data.message);
-                  viewModal.hide();
+                  if (document.getElementById('no-orders-row')) {
+                      document.getElementById('no-orders-row').remove();
+                  }
               }
-          } catch(err) {
-              console.error(err);
-              alert('Error loading details');
-              viewModal.hide();
+          })
+          .catch(err => console.error("Polling error:", err));
+  }
+
+  // Poll every 1 seconds
+  setInterval(fetchQueueUpdates, 1000);
+
+  // --- CLIENT SIDE SEARCH (Unchanged) ---
+  const searchInput = document.getElementById('orderSearchInput');
+  const noResultsMsg = document.getElementById('no-search-results');
+
+  if(searchInput) {
+      searchInput.addEventListener('keyup', function() {
+          const query = this.value.toLowerCase().trim();
+          const rows = tableBody.querySelectorAll('.order-row');
+          let hasVisible = false;
+
+          rows.forEach(row => {
+              const searchableElements = row.querySelectorAll('.searchable-text');
+              let textContent = "";
+              searchableElements.forEach(el => textContent += el.textContent.toLowerCase() + " ");
+
+              if (textContent.includes(query)) {
+                  row.style.display = '';
+                  hasVisible = true;
+              } else {
+                  row.style.display = 'none';
+              }
+          });
+
+          if(noResultsMsg) {
+              if (rows.length === 0) {
+                  noResultsMsg.style.display = 'none';
+              } else {
+                  noResultsMsg.style.display = hasVisible ? 'none' : 'block';
+              }
           }
       });
-  });
+  }
 
-  // --- Action Button Logic (Existing) ---
-  document.querySelectorAll('.btn-action').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const button = e.currentTarget;
+  // --- Helper to rebuild action buttons dynamically ---
+  function renderActionButtons(status, orderType, paymentStatus, orderId) {
+      let html = '';
+      if (status === 'pending') {
+           html = `<button class="btn btn-outline-success btn-action" data-action="confirm" data-id="${orderId}">Accept</button>
+                   <button class="btn btn-outline-danger btn-action" data-action="cancel" data-id="${orderId}">Reject</button>`;
+      } else if (status === 'confirmed') {
+           html = `<button class="btn btn-outline-primary btn-action" data-action="prepare" data-id="${orderId}">Prep</button>`;
+      } else if (status === 'preparing') {
+           html = `<button class="btn btn-outline-success btn-action" data-action="ready" data-id="${orderId}">Ready</button>`;
+      } else if (status === 'ready') {
+           if (orderType === 'pickup') {
+               if (paymentStatus === 'paid') {
+                   html = `<button class="btn btn-outline-success btn-action" data-action="complete" data-id="${orderId}">Done</button>`;
+               } else {
+                   html = `<a href="pos_payment.php?order_id=${orderId}" class="btn btn-outline-success">Pay</a>`;
+               }
+           }
+      }
+      return html;
+  }
+
+  // --- Handle Action Buttons (Event Delegation) ---
+  document.querySelector('.orders-queue-table').addEventListener('click', async function(e) {
+      const button = e.target.closest('.btn-action');
+      if (!button) return;
+
       const orderId = button.dataset.id;
       const action = button.dataset.action;
       
       let newStatus = '';
+      let rejectionReason = '';
+
       if (action === 'confirm')        newStatus = 'confirmed';
       if (action === 'prepare')        newStatus = 'preparing';
       if (action === 'ready')          newStatus = 'ready';
-      if (action === 'start_delivery') newStatus = 'out_for_delivery';
-      if (action === 'mark_delivered') newStatus = 'delivered';
       if (action === 'complete')       newStatus = 'completed';
-      if (action === 'cancel')         newStatus = 'cancelled';
+      
+      if (action === 'cancel') {
+          const { value: reason } = await Swal.fire({
+              title: 'Reject Order',
+              input: 'textarea',
+              inputLabel: 'Reason for rejection',
+              inputPlaceholder: 'Type your reason here...',
+              inputAttributes: {
+                  'aria-label': 'Type your reason here'
+              },
+              showCancelButton: true,
+              confirmButtonText: 'Reject',
+              confirmButtonColor: '#dc3545'
+          });
+
+          if (reason) {
+              newStatus = 'cancelled';
+              rejectionReason = reason;
+          } else {
+              return; 
+          }
+      }
       
       if (!newStatus) return;
 
@@ -630,6 +785,7 @@ document.addEventListener('DOMContentLoaded', function() {
           body: JSON.stringify({
             order_id: orderId,
             new_status: newStatus,
+            rejection_reason: rejectionReason, 
             handler_id: staffUserId 
           })
         });
@@ -638,16 +794,34 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (data.success) {
           const row = button.closest('tr');
-          const statusBadge = row.querySelector('.status-badge');
+          const orderType = row.getAttribute('data-order-type');
+          
+          if (
+              newStatus === 'cancelled' || 
+              newStatus === 'completed' || 
+              (orderType === 'delivery' && newStatus === 'ready')
+          ) {
+              row.style.transition = 'opacity 0.3s';
+              row.style.opacity = '0';
+              setTimeout(() => row.remove(), 300);
+              fetchQueueUpdates(); 
+              return; 
+          }
 
+          const statusBadge = row.querySelector('.status-badge');
           if (statusBadge) {
             statusBadge.textContent = data.new_status_label;
             statusBadge.className = `status-badge badge ${data.new_status_class}`;
           }
 
-          // Temporarily show "Done" before reload
-          // We can also keep it simple and just reload immediately
-          setTimeout(() => location.reload(), 500);
+          const paymentStatus = row.getAttribute('data-payment-status');
+          const actionGroup = row.querySelector('.action-group');
+          if (actionGroup) {
+             actionGroup.innerHTML = renderActionButtons(newStatus, orderType, paymentStatus, orderId);
+          }
+          // Update data-status so poll doesn't overwrite it immediately
+          row.setAttribute('data-status', newStatus);
+
         } else {
           throw new Error(data.message || 'Failed to update status');
         }
@@ -657,7 +831,78 @@ document.addEventListener('DOMContentLoaded', function() {
         button.disabled = false;
         button.innerHTML = 'Retry';
       }
-    });
+  });
+
+  // --- View Details Modal Logic ---
+  document.querySelectorAll('.orders-queue-table').forEach(table => {
+      table.addEventListener('click', async (e) => {
+          const btn = e.target.closest('.btn-view-details');
+          if(!btn) return;
+          
+          const orderId = btn.dataset.id;
+          viewModal.show();
+          document.getElementById('modalLoader').style.display = 'block';
+          document.getElementById('modalContent').style.display = 'none';
+          
+          try {
+              const res = await fetch(`actions/get_order_details.php?order_id=${orderId}`);
+              const data = await res.json();
+              
+              if(data.success) {
+                  const o = data.order;
+                  document.getElementById('modalOrderNumber').textContent = o.order_number;
+                  document.getElementById('modalCustomer').textContent = o.customer_name;
+                  
+                  let contact = o.customer_phone || 'No phone';
+                  if(o.customer_email) contact += ` / ${o.customer_email}`;
+                  document.getElementById('modalContact').textContent = contact;
+                  
+                  document.getElementById('modalType').textContent = o.type_label;
+                  document.getElementById('modalStatus').innerHTML = `<span class="badge ${o.status_badge_class}">${o.status_label}</span>`;
+                  
+                  const addrDiv = document.getElementById('modalAddressContainer');
+                  if(o.delivery_address) {
+                      addrDiv.style.display = 'block';
+                      document.getElementById('modalAddress').textContent = o.delivery_address;
+                  } else {
+                      addrDiv.style.display = 'none';
+                  }
+                  
+                  const tbody = document.getElementById('modalItemsTable');
+                  tbody.innerHTML = '';
+                  data.items.forEach(item => {
+                      const tr = document.createElement('tr');
+                      let instructions = '';
+                      if(item.special_instructions) {
+                          instructions = `<br><small class="text-danger">Note: ${item.special_instructions}</small>`;
+                      }
+                      tr.innerHTML = `
+                        <td>${item.product_name}${instructions}</td>
+                        <td class="text-end">${item.unit_price_fmt}</td>
+                        <td class="text-center">${item.quantity}</td>
+                        <td class="text-end fw-bold">${item.total_price_fmt}</td>
+                      `;
+                      tbody.appendChild(tr);
+                  });
+                  
+                  document.getElementById('modalSubtotal').textContent = o.subtotal_formatted;
+                  document.getElementById('modalDeliveryFee').textContent = o.delivery_fee_formatted;
+                  document.getElementById('modalTotal').textContent = o.total_formatted;
+                  document.getElementById('modalPaymentBadge').textContent = o.payment_label;
+                  document.getElementById('modalTime').textContent = o.created_at;
+                  
+                  document.getElementById('modalLoader').style.display = 'none';
+                  document.getElementById('modalContent').style.display = 'block';
+              } else {
+                  alert('Failed to load details: ' + data.message);
+                  viewModal.hide();
+              }
+          } catch(err) {
+              console.error(err);
+              alert('Error loading details');
+              viewModal.hide();
+          }
+      });
   });
 });
 </script>

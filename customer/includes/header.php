@@ -55,16 +55,24 @@ function isActive($names, $current) {
   <div class="site-header-inner">
     <a class="brand-left" href="<?= htmlspecialchars($HOME) ?>">
       <div class="logo-container">
-        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo.png" alt="Logo">
+        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo_transparent.png" alt="Logo">
         <div class="logo-glow"></div>
       </div>
       <div class="brand-text">
         <div class="brand-text-title"><?= htmlspecialchars($store_name) ?></div>
-        <div class="brand-text-sub">Since 26</div>
+        <div class="brand-text-sub">Since 2013</div>
       </div>
     </a>
 
     <nav class="nav-links">
+      <div class="mobile-sidebar-header">
+        <img src="<?= htmlspecialchars($BASE) ?>/uploads/logo/logo_transparent.png" alt="Logo">
+        <div class="mobile-brand-text">
+            <div class="brand-text-title"><?= htmlspecialchars($store_name) ?></div>
+            <div class="brand-text-sub">Since 2013</div>
+        </div>
+      </div>
+
       <a
         href="<?= htmlspecialchars($HOME) ?>"
         class="nav-link <?= isActive(['index.php'], $currentPage) ?>"
@@ -104,9 +112,9 @@ function isActive($names, $current) {
         <span>Order online</span>
       </a>
       
-      <?php if ($is_logged_in_customer): ?>
-        <div class="nav-item dropdown user-dropdown">
-          <a class="nav-link dropdown-toggle user-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <div class="nav-item dropdown user-dropdown desktop-only">
+        <?php if ($is_logged_in_customer): ?>
+          <a class="nav-link dropdown-toggle user-toggle" href="javascript:void(0);" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-person-circle"></i>
             <span>Hi, <?= htmlspecialchars($_SESSION['name'] ?? 'Customer') ?></span>
           </a>
@@ -116,27 +124,32 @@ function isActive($names, $current) {
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="<?= htmlspecialchars($LOGOUT) ?>"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
           </ul>
-        </div>
-      <?php else: ?>
-        <div class="nav-item dropdown user-dropdown">
-          <a class="nav-link dropdown-toggle user-toggle" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <?php else: ?>
+          <a class="nav-link dropdown-toggle user-toggle" href="javascript:void(0);" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-person-circle"></i>
             <span>Account</span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarUserDropdown">
-            <li>
-              <a class="dropdown-item" href="<?= htmlspecialchars($LOGIN_URL) ?>">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Login
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="<?= htmlspecialchars($SIGNUP_URL) ?>">
-                <i class="bi bi-person-plus me-2"></i>Register
-              </a>
-            </li>
+            <li><a class="dropdown-item" href="<?= htmlspecialchars($LOGIN_URL) ?>"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a></li>
+            <li><a class="dropdown-item" href="<?= htmlspecialchars($SIGNUP_URL) ?>"><i class="bi bi-person-plus me-2"></i>Register</a></li>
           </ul>
-        </div>
-      <?php endif; ?>
+        <?php endif; ?>
+      </div>
+
+      <div class="mobile-only w-100 mt-2">
+         <div class="nav-divider mb-2" style="border-top: 1px solid rgba(255,255,255,0.1);"></div>
+         <?php if ($is_logged_in_customer): ?>
+            <div class="px-3 py-2 text-ligth small text-uppercase fw-bold">Account (<?= htmlspecialchars($_SESSION['name']) ?>)</div>
+            <a class="nav-link" href="<?= htmlspecialchars($PROFILE) ?>"><i class="bi bi-person me-2"></i>Profile</a>
+            <a class="nav-link" href="<?= htmlspecialchars($MY_ORDERS) ?>"><i class="bi bi-receipt me-2"></i>My Orders</a>
+            <a class="nav-link text-danger" href="<?= htmlspecialchars($LOGOUT) ?>"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+         <?php else: ?>
+            <div class="px-3 py-2 text-ligth small text-uppercase fw-bold">Account</div>
+            <a class="nav-link" href="<?= htmlspecialchars($LOGIN_URL) ?>"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a>
+            <a class="nav-link" href="<?= htmlspecialchars($SIGNUP_URL) ?>"><i class="bi bi-person-plus me-2"></i>Register</a>
+         <?php endif; ?>
+      </div>
+
     </nav>
     
     <button class="mobile-menu-toggle" aria-label="Toggle navigation">
@@ -149,10 +162,13 @@ function isActive($names, $current) {
     // Make the base URL available to all client-side scripts
     window.BASE_URL = "<?= htmlspecialchars($BASE_URL, ENT_QUOTES, 'UTF-8') ?>";
   </script>
-  </header>
 </header>
 
 <style>
+/* Utility Classes for Responsiveness */
+.desktop-only { display: block; }
+.mobile-only { display: none; }
+
 /* Enhanced Header Styles */
 .site-header {
   background-color: #343a40;
@@ -161,14 +177,22 @@ function isActive($names, $current) {
   position: sticky;
   top: 0;
   z-index: 1030;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+  /* Removed large shadow, added bottom border like admin */
+  box-shadow: none; 
+  border-bottom: 1px solid #454d55;
   transition: all 0.3s ease;
 }
 
 .site-header.scrolled {
   padding: 10px 20px;
-  background-color: rgba(26, 26, 26, 0.95);
+  background-color: #343a40;
   backdrop-filter: blur(10px);
+  border-bottom: 1px solid #454d55;
+}
+
+/* FIX: Elevate Header Z-Index when Menu is Open */
+body.menu-open .site-header {
+  z-index: 1055 !important;
 }
 
 .site-header-inner {
@@ -209,8 +233,11 @@ function isActive($names, $current) {
   height: 42px;
   width: 42px;
   border-radius: 10px;
-  background: radial-gradient(circle at 30% 30%, var(--accent) 0%, #1c1f1f 70%);
-  box-shadow: 0 8px 20px rgba(92,250,99,0.5);
+  /* Removed green gradient and shadow */
+  background: transparent;
+  box-shadow: none;
+  /* ADDED: Border like in Admin */
+  border: 2px solid rgba(255, 255, 255, 0.1);
   object-fit: cover;
   position: relative;
   z-index: 2;
@@ -218,24 +245,12 @@ function isActive($names, $current) {
 }
 
 .logo-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  background: radial-gradient(circle, rgba(92,250,99,0.3) 0%, rgba(92,250,99,0) 70%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.brand-left:hover .logo-glow {
-  opacity: 1;
+  display: none; /* Hidden glow effect */
 }
 
 .brand-left:hover img {
-  box-shadow: 0 10px 25px rgba(92,250,99,0.6);
+  /* Removed hover glow */
+  box-shadow: none;
 }
 
 .brand-text {
@@ -257,6 +272,11 @@ function isActive($names, $current) {
   color: var(--accent);
   font-weight: 500;
   letter-spacing: 0.5px;
+}
+
+/* Mobile Sidebar Header */
+.mobile-sidebar-header {
+  display: none; /* Hidden on desktop */
 }
 
 /* Enhanced Navigation */
@@ -321,7 +341,8 @@ function isActive($names, $current) {
   padding: 10px 16px;
   text-decoration: none;
   line-height: 1.2;
-  box-shadow: 0 10px 20px rgba(92,250,99,0.4);
+  /* box-shadow: 0 10px 20px rgba(92,250,99,0.4);  <-- REMOVED or commented out */
+  box-shadow: none; /* <-- Added to remove the static glow */
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -348,7 +369,8 @@ function isActive($names, $current) {
 
 .order-btn:hover {
   filter: brightness(1.05);
-  box-shadow: 0 12px 24px rgba(92,250,99,0.5);
+  /* box-shadow: 0 12px 24px rgba(92,250,99,0.5); <-- REMOVED or commented out */
+  box-shadow: none; /* <-- Added to remove the hover glow */
   transform: translateY(-1px);
 }
 
@@ -357,7 +379,8 @@ function isActive($names, $current) {
 }
 
 .order-btn.active {
-  box-shadow: 0 0 0 2px var(--accent), 0 12px 24px rgba(92,250,99,0.5);
+  /* box-shadow: 0 0 0 2px var(--accent), 0 12px 24px rgba(92,250,99,0.5); <-- REMOVED */
+  box-shadow: 0 0 0 2px var(--accent); /* <-- Kept only the border outline for active state */
 }
 
 .order-btn i {
@@ -377,6 +400,7 @@ function isActive($names, $current) {
   border-radius: 6px;
   transition: all 0.2s ease;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .user-toggle:hover {
@@ -427,7 +451,8 @@ function isActive($names, $current) {
   border: none;
   cursor: pointer;
   padding: 0;
-  z-index: 1031;
+  /* CHANGED: Z-index higher than backdrop (1050) and sidebar (1051) */
+  z-index: 1052; 
 }
 
 .mobile-menu-toggle span {
@@ -468,14 +493,13 @@ function isActive($names, $current) {
   .user-toggle {
     padding: 10px !important;
   }
-  
-  .brand-text {
-    display: none;
-  }
 }
 
 /* FIXED MOBILE STYLES - Menu slides from LEFT side */
 @media (max-width: 768px) {
+  .desktop-only { display: none !important; }
+  .mobile-only { display: block !important; }
+
   .mobile-menu-toggle {
     display: flex;
   }
@@ -488,14 +512,56 @@ function isActive($names, $current) {
     height: 100vh;
     background-color: #1a1a1a;
     flex-direction: column;
-    padding: 80px 20px 20px 20px;
-    gap: 8px;
+    padding: 20px;
+    gap: 4px;
     box-shadow: 2px 0 15px rgba(0, 0, 0, 0.3);
+    /* Added border-right like admin sidebar */
+    border-right: 1px solid #454d55;
     transition: all 0.3s ease;
-    z-index: 1020;
+    /* CHANGED: Higher than backdrop (1050) and floating cart (1025) */
+    z-index: 1051; 
     overflow-y: auto;
     margin: 0;
     align-items: flex-start;
+  }
+
+  /* Mobile Sidebar Header Styling */
+  .mobile-sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding-bottom: 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .mobile-sidebar-header img {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: none;
+    box-shadow: none;
+    /* ADDED: Border like in Admin */
+    border: 2px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .mobile-brand-text {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mobile-sidebar-header .brand-text-title {
+    font-size: 16px;
+    color: #fff;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .mobile-sidebar-header .brand-text-sub {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 500;
   }
   
   .nav-links.active {
@@ -533,27 +599,6 @@ function isActive($names, $current) {
     width: 100%;
   }
   
-  .user-dropdown .dropdown-menu {
-    position: static !important;
-    transform: none !important;
-    width: 100%;
-    margin-top: 8px !important;
-    box-shadow: none;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: #2a2a2a;
-  }
-  
-  .user-dropdown .dropdown-item {
-    color: #fff;
-    padding: 10px 16px;
-  }
-  
-  .user-dropdown .dropdown-item:hover,
-  .user-dropdown .dropdown-item:focus {
-    color: #fff;
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-  
   /* Ensure proper spacing for mobile */
   .site-header-inner {
     padding: 0;
@@ -581,6 +626,13 @@ function isActive($names, $current) {
   .nav-links {
     width: 260px; /* Slightly smaller on very small screens */
   }
+
+  .brand-text-title {
+    font-size: 14px;
+  }
+  .brand-text-sub {
+    font-size: 10px;
+  }
 }
 
 /* Backdrop for mobile menu */
@@ -592,7 +644,8 @@ function isActive($names, $current) {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1019;
+  /* CHANGED: Covers header (1030) and cart (1025) */
+  z-index: 1050; 
   transition: opacity 0.3s ease;
 }
 
