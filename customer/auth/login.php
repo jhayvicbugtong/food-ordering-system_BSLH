@@ -187,8 +187,11 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     .form-control:focus {
       border-color: var(--accent); box-shadow: 0 0 0 3px rgba(92, 250, 99, 0.15); background-color: #fff;
     }
+<<<<<<< HEAD
     
     /* Main Login Button */
+=======
+>>>>>>> 5fbad8b569a9db41eb67099029ed6d08fed544e0
     .btn-login {
       background-color: var(--accent); border: 0; width: 100%; border-radius: 10px; padding: 14px;
       font-size: 16px; font-weight: 600; color: #052e06; cursor: pointer; margin-top: 8px;
@@ -196,6 +199,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     }
     .btn-login:hover { background-color: var(--accent-hover); transform: translateY(-2px); }
     
+<<<<<<< HEAD
     /* Secondary Demo Button */
     .btn-demo {
       background-color: #f8f9fa; border: 1px solid #e9ecef; width: 100%; border-radius: 10px; padding: 12px;
@@ -207,6 +211,12 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     .extra-links { text-align: center; margin-top: 24px; font-size: 14px; color: var(--text-dim); }
     .extra-links a { color: var(--text-main); text-decoration: none; font-weight: 600; }
     .extra-links a:hover { text-decoration: underline; }
+=======
+    .extra-links { text-align: center; margin-top: 24px; font-size: 14px; color: var(--text-dim); }
+    .extra-links a { color: var(--text-main); text-decoration: none; font-weight: 600; }
+    .extra-links a:hover { text-decoration: underline; }
+    .divider { margin: 0 8px; color: #dee2e6; }
+>>>>>>> 5fbad8b569a9db41eb67099029ed6d08fed544e0
     
     .nav-back { display: inline-block; margin-top: 12px; font-size: 13px; color: #adb5bd; text-decoration: none; }
     .nav-back:hover { color: #6c757d; }
@@ -264,10 +274,13 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
         </div>
 
         <button class="btn-login" type="submit">Sign in</button>
+<<<<<<< HEAD
         
         <button class="btn-demo" type="button" onclick="fillDemo()">
             <i class="bi bi-magic me-1"></i> Use Demo Account
         </button>
+=======
+>>>>>>> 5fbad8b569a9db41eb67099029ed6d08fed544e0
 
         <div class="extra-links">
           Don't have an account? 
@@ -279,6 +292,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     </main>
   </div>
 
+<<<<<<< HEAD
   <script>
     function fillDemo() {
         const emailField = document.querySelector('input[name="email"]');
@@ -298,5 +312,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     }
   </script>
 
+=======
+>>>>>>> 5fbad8b569a9db41eb67099029ed6d08fed544e0
 </body>
 </html>

@@ -26,6 +26,7 @@ $BASE_URL = rtrim($base_path, '/');
 // --- END NEW DYNAMIC BASE URL ---
 
 
+<<<<<<< HEAD
 // Create database connection\
 // $host = "sql100.infinityfree.com";
 // $user = "if0_40717585";
@@ -45,6 +46,19 @@ $db   = "online_ordering_system_db";
 
 // Create connection
 $conn = new mysqli($host, $user, $pass, $db);
+=======
+// // Database configuration in local development
+// $host = "localhost";
+// $user = "root";
+// $pass = "";
+// $dbname = "online_food_ordering_db";
+
+// Database configuration in production
+$host = "localhost";
+$user = "u920374553_bentesais";
+$pass = "Bentesais.26";
+$dbname = "u920374553_bentesais_db";
+>>>>>>> 5fbad8b569a9db41eb67099029ed6d08fed544e0
 
 
 if ($conn->connect_error) {
