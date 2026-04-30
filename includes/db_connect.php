@@ -26,24 +26,21 @@ $BASE_URL = rtrim($base_path, '/');
 // --- END NEW DYNAMIC BASE URL ---
 
 
-// Create database connection\
-$host = "sql100.infinityfree.com";
-$user = "if0_40717585";
-$pass = "bentesais15";
-$dbname = "if0_40717585_bentesais_db";
+// Database configuration for local development
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "online_ordering_system_db";
 
-$conn = new mysqli($host, $user, $pass, $dbname);
-
+// Create connection
+$conn = new mysqli($host, $user, $pass, $db);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
 // Set timezone to Philippines Standard Time
 date_default_timezone_set('Asia/Manila');
-
-// +08:00 is the offset for Philippines Standard Time
 $conn->query("SET time_zone = '+08:00'");
 
-// Set charset to utf8
+// Set charset to utf8mb4
 $conn->set_charset("utf8mb4");
-?>
