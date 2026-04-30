@@ -44,7 +44,7 @@ if (!empty($search)) {
 }
 
 // --- Pagination Logic ---
-$items_per_page = 5; // Show 5 items per page
+$items_per_page = 8; // Show 5 items per page
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) {
     $page = 1;
@@ -74,7 +74,7 @@ $data_sql = "SELECT p.*, c.category_name
              FROM products p 
              LEFT JOIN categories c ON p.category_id = c.category_id 
              $where_clause
-             ORDER BY p.name ASC 
+
              LIMIT ? OFFSET ?";
 
 // Add limit and offset to params

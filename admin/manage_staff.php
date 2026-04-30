@@ -5,167 +5,425 @@ include __DIR__ . '/includes/header.php';
   <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
   <main class="main-content">
-    <!-- ADD STAFF -->
     <section class="content-card mb-4">
       <div class="content-card-header">
         <div class="left">
-          <h2>Staff Management</h2>
-          <p>Kitchen, riders, front of house</p>
+          <h2 class="page-title mb-1">User Management</h2>
+          <p class="text-muted small mb-0">Add and maintain users with access to the system.</p>
         </div>
-        <div class="right">
-          <button class="btn btn-success" id="saveStaffTopBtn">
-            <i class="bi bi-person-plus"></i> Save Staff
-          </button>
-        </div>
+        <div class="right header-actions">
+            </div>
       </div>
 
-      <div id="staffAlert" class="alert d-none" role="alert"></div>
-
       <form class="row g-3" id="addStaffForm">
-        <div class="col-md-4">
-          <label class="form-label">Full Name <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" name="full_name" placeholder="Juan Dela Cruz" required>
+        <div class="col-12 col-md-4">
+          <label class="form-label">First Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="first_name" placeholder="Juan" required>
         </div>
-
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
+          <label class="form-label">Last Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="last_name" placeholder="Dela Cruz" required>
+        </div>
+        <div class="col-12 col-md-4">
           <label class="form-label">Role <span class="text-danger">*</span></label>
-          <select class="form-select" name="staff_role" required>
-            <option value="kitchen">Cook / Kitchen</option>
-            <option value="cashier">Cashier / Front Desk</option>
-            <option value="rider">Delivery Rider</option>
-            <option value="manager">Manager</option>
+          <select class="form-select" name="role" required>
+            <option value="staff">Staff</option>
+            <option value="customer">Customer</option>
+            <option value="admin">Admin (Full Access)</option>
           </select>
-          <div class="form-text">Stored as sub-role; main role in users.role = "staff".</div>
+          <div class="form-text small text-muted">Controls login permissions.</div>
         </div>
-
-        <div class="col-md-4">
-          <label class="form-label">Shift</label>
-          <select class="form-select" name="shift">
-            <option value="morning">Morning (6am - 2pm)</option>
-            <option value="mid">Mid (10am - 6pm)</option>
-            <option value="evening">Evening (2pm - 10pm)</option>
-          </select>
-        </div>
-
-        <div class="col-md-4">
-          <label class="form-label">Contact #</label>
-          <input type="text" class="form-control" name="phone" placeholder="+63 9XX XXX XXXX">
-        </div>
-
-        <div class="col-md-8">
-          <label class="form-label">Notes</label>
-          <input type="text" class="form-control" name="notes" placeholder="Allergic to peanuts, prefers delivery shifts, etc.">
-        </div>
-
-        <!-- Credentials -->
-        <div class="col-md-4">
+        
+        <div class="col-12 col-md-4">
           <label class="form-label">Email <span class="text-danger">*</span></label>
-          <input type="email" class="form-control" name="email" placeholder="staff@example.com" required>
+          <input type="email" class="form-control" name="email" placeholder="user@example.com" required>
         </div>
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
+          <label class="form-label">Phone</label>
+          <div class="input-group">
+            <span class="input-group-text">+63</span>
+            <input
+              type="text"
+              class="form-control"
+              name="phone"
+              id="phone"
+              placeholder="9XX XXX XXXX"
+              inputmode="numeric"
+              maxlength="10">
+          </div>
+        </div>
+
+        <div class="col-12 col-md-4"></div> 
+
+        <div class="col-12 col-md-4">
           <label class="form-label">Password <span class="text-danger">*</span></label>
           <input type="password" class="form-control" name="password" placeholder="••••••••" required>
         </div>
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
           <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
           <input type="password" class="form-control" name="password2" placeholder="••••••••" required>
         </div>
 
-        <div class="col-12">
-          <button type="submit" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Add Staff Member
+        <div class="col-12 text-start mt-4">
+          <button type="submit" class="btn btn-success w-100-mobile px-4">
+            <i class="bi bi-plus-circle me-1"></i> Add User
           </button>
         </div>
       </form>
     </section>
 
-    <!-- CURRENT STAFF LIST -->
     <section class="content-card">
       <div class="content-card-header">
         <div class="left">
-          <h2>Current Staff</h2>
-          <p>Active team members</p>
+          <h2 class="section-title mb-1">Current Users</h2>
+          <p class="text-muted small mb-0">Active team members with system access.</p>
+        </div>
+        <div class="right header-actions">
+          <select class="form-select form-select-sm w-100-mobile" id="roleFilter">
+            <option value="">All roles</option>
+            <option value="staff">Staff</option>
+            <option value="customer">Customer</option>
+            <option value="admin">Admin</option>
+          </select>
         </div>
       </div>
 
       <div class="table-responsive">
-        <table class="table table-hover" id="staffTable">
+        <table class="table table-hover modern-table" id="staffTable">
           <thead>
             <tr>
-              <th>Name</th>
+              <th>User Member</th>
               <th>Role</th>
-              <th>Shift</th>
+              <th>Email</th>
               <th>Contact</th>
-              <th>Actions</th>
+              <th class="text-end">Actions</th>
             </tr>
           </thead>
-          <tbody id="staffTbody"><!-- filled by JS --></tbody>
+          <tbody id="staffTbody"></tbody>
         </table>
       </div>
     </section>
   </main>
 </div>
 
-<!-- SIMPLE EDIT MODAL -->
 <style>
-.simple-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000}
-.simple-modal{width:680px;max-width:94%;background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
-.simple-modal .hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #eee}
-.simple-modal .body{padding:16px}
-.simple-modal .ftr{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid #eee}
+  /* Global Background & Layout */
+  body { 
+    background-color: #f3f4f6; 
+  }
+  
+  .main-content {
+    min-height: 100vh;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+    margin-left: 220px; /* Desktop sidebar offset */
+    transition: margin-left 0.3s ease;
+  }
+
+  /* Modern cards */
+  .content-card {
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    padding: 18px 20px;
+  }
+
+  .content-card-header {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .content-card-header .left h2.page-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .content-card-header .left h2.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .content-card-header .left p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+
+  .content-card-header .right .btn {
+    border-radius: 999px;
+    font-size: 0.85rem;
+  }
+
+  /* Form styling */
+  .form-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  .form-control,
+  .form-select {
+    font-size: 0.9rem;
+    border-radius: 10px;
+    border-color: #e5e7eb;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  }
+
+  .input-group-text {
+    border-radius: 10px 0 0 10px;
+    background-color: #f9fafb;
+    border-color: #e5e7eb;
+    font-size: 0.9rem;
+  }
+  
+  /* Fix input group radius when attached */
+  .input-group .form-control {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  /* Table Styles */
+  .modern-table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap; /* Prevent header wrapping */
+  }
+
+  .modern-table tbody td {
+    font-size: 0.9rem;
+    vertical-align: middle;
+    white-space: nowrap; /* Keep data on one line mostly */
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: #f9fafb;
+  }
+
+  /* Role badges */
+  .badge-role-admin {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.7rem;
+    font-weight: 600;
+  }
+
+  .badge-role-staff {
+    background-color: #dcfce7;
+    color: #15803d;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.7rem;
+    font-weight: 600;
+  }
+
+  .badge-role-customer {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.7rem;
+    font-weight: 600;
+  }
+
+  /* Name cell: avatar + text */
+  .staff-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .staff-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: #eef2ff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4f46e5;
+    flex-shrink: 0;
+  }
+
+  .staff-name-main {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #111827;
+  }
+
+  .staff-name-sub {
+    font-size: 0.78rem;
+    color: #9ca3af;
+  }
+
+  /* Role filter */
+  #roleFilter {
+    border-radius: 999px;
+    border-color: #e5e7eb;
+    font-size: 0.8rem;
+    min-width: 140px;
+  }
+
+  /* Buttons */
+  .btn { border-radius: 999px; }
+  .btn-group-sm .btn { border-radius: 999px; }
+
+  /* Simple Modal Styling */
+  .simple-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5); /* Standard dark overlay */
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+
+  }
+  .simple-modal {
+    width: 680px;
+    max-width: 94%;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.35);
+    overflow: hidden;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .simple-modal .hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    flex-shrink: 0;
+  }
+  .simple-modal .hdr strong {
+    font-size: 1rem;
+    color: #111827;
+  }
+  .simple-modal .body {
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .simple-modal .ftr {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    padding: 12px 20px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+    flex-shrink: 0;
+  }
+
+  /* RESPONSIVE BREAKPOINTS */
+  @media (max-width: 992px) {
+    .main-content {
+      margin-left: 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .content-card-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 15px;
+    }
+    
+    .header-actions {
+      width: 100%;
+    }
+    
+    .w-100-mobile {
+      width: 100% !important;
+    }
+    
+    /* Ensure table fits horizontally */
+    .table-responsive {
+      margin-left: -20px;
+      margin-right: -20px;
+      width: calc(100% + 40px);
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+    
+    /* Adjust modal for mobile */
+    .simple-modal .body {
+      padding: 16px;
+    }
+  }
 </style>
+
 <div class="simple-modal-backdrop" id="editBackdrop">
   <div class="simple-modal">
     <div class="hdr">
-      <strong>Edit Staff Member</strong>
+      <strong>Edit User Details</strong>
       <button type="button" id="editClose" class="btn btn-outline-secondary btn-sm">Close</button>
     </div>
-    <form id="editForm">
-      <input type="hidden" name="id" id="edit_id">
+    <form id="editForm" style="display: flex; flex-direction: column; height: 100%;">
+      <input type="hidden" name="user_id" id="edit_user_id">
       <div class="body">
         <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Full Name</label>
-            <input class="form-control" name="full_name" id="edit_full_name" required>
+          <div class="col-12 col-md-6">
+            <label class="form-label">First Name</label>
+            <input class="form-control" name="first_name" id="edit_first_name" required>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-md-6">
+            <label class="form-label">Last Name</label>
+            <input class="form-control" name="last_name" id="edit_last_name" required>
+          </div>
+          <div class="col-12 col-md-6">
             <label class="form-label">Email</label>
             <input class="form-control" name="email" id="edit_email" required>
           </div>
-
-          <div class="col-md-4">
-            <label class="form-label">Role</label>
-            <select class="form-select" name="staff_role" id="edit_staff_role">
-              <option value="kitchen">Cook / Kitchen</option>
-              <option value="cashier">Cashier / Front Desk</option>
-              <option value="rider">Delivery Rider</option>
-              <option value="manager">Manager</option>
-            </select>
+          <div class="col-12 col-md-6">
+            <label class="form-label">Phone</label>
+            <div class="input-group">
+              <span class="input-group-text">+63</span>
+              <input
+                class="form-control"
+                name="phone"
+                id="edit_phone"
+                placeholder="9XX XXX XXXX"
+                inputmode="numeric"
+                maxlength="10">
+            </div>
           </div>
-          <div class="col-md-4">
-            <label class="form-label">Shift</label>
-            <select class="form-select" name="shift" id="edit_shift">
-              <option value="morning">Morning (6am - 2pm)</option>
-              <option value="mid">Mid (10am - 6pm)</option>
-              <option value="evening">Evening (2pm - 10pm)</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Contact #</label>
-            <input class="form-control" name="phone" id="edit_phone">
-          </div>
-
           <div class="col-12">
-            <label class="form-label">Notes</label>
-            <input class="form-control" name="notes" id="edit_notes">
+            <label class="form-label">Role</label>
+            <select class="form-select" name="role" id="edit_role">
+              <option value="staff">Staff</option>
+              <option value="customer">Customer</option>
+              <option value="admin">Admin (Full Access)</option>
+            </select>
           </div>
 
-          <div class="col-md-6">
-            <label class="form-label">New Password (optional)</label>
-            <input type="password" class="form-control" name="new_password" id="edit_new_password" placeholder="Leave blank to keep current">
+          <div class="col-12 col-md-6">
+            <label class="form-label">New Password <small class="text-muted">(optional)</small></label>
+            <input type="password" class="form-control" name="new_password" id="edit_new_password" placeholder="Leave blank to keep">
           </div>
-          <div class="col-md-6">
-            <label class="form-label">Confirm</label>
+          <div class="col-12 col-md-6">
+            <label class="form-label">Confirm New Password</label>
             <input type="password" class="form-control" name="new_password2" id="edit_new_password2" placeholder="Repeat new password">
           </div>
         </div>
@@ -178,104 +436,192 @@ include __DIR__ . '/includes/header.php';
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('addStaffForm');
-  const topBtn = document.getElementById('saveStaffTopBtn');
-  const alertBox = document.getElementById('staffAlert');
+  // const topBtn = document.getElementById('saveStaffTopBtn'); // ID removed
   const tbody = document.getElementById('staffTbody');
+  const roleFilter = document.getElementById('roleFilter');
 
   const editBackdrop = document.getElementById('editBackdrop');
   const editClose = document.getElementById('editClose');
   const editCancel = document.getElementById('editCancel');
   const editForm = document.getElementById('editForm');
 
+  const phoneInput = document.getElementById('phone');
+  const editPhoneInput = document.getElementById('edit_phone');
+
   function showAlert(type, msg){
-    alertBox.className = 'alert alert-' + type;
-    alertBox.textContent = msg;
-    alertBox.classList.remove('d-none');
-    setTimeout(()=> alertBox.classList.add('d-none'), 4200);
+    let icon = 'info';
+    let title = 'Notice';
+
+    if (type === 'success') {
+      icon = 'success';
+      title = 'Success';
+    } else if (type === 'danger' || type === 'error') {
+      icon = 'error';
+      title = 'Error';
+    } else if (type === 'warning') {
+      icon = 'warning';
+      title = 'Warning';
+    }
+
+    Swal.fire({
+      icon: icon,
+      title: title,
+      text: msg,
+      timer: 2200,
+      showConfirmButton: false,
+      timerProgressBar: true
+    });
+  }
+
+  // Force only digits and max 10 digits in the visible phone input
+  function enforceLocalPhone(el) {
+    if (!el) return;
+    el.addEventListener('input', () => {
+      let digits = el.value.replace(/\D/g, '');
+      if (digits.length > 10) digits = digits.slice(0, 10);
+      el.value = digits;
+    });
+  }
+
+  enforceLocalPhone(phoneInput);
+  enforceLocalPhone(editPhoneInput);
+
+  // Normalize phone to +63XXXXXXXXXX before sending to backend
+  function normalizePhone(value) {
+    if (!value) return '';
+    let digits = value.replace(/[^\d]/g, '');
+
+    // handle pasted values with 63 or 09 prefix
+    if (digits.startsWith('63')) {
+      digits = digits.slice(2);
+    } else if (digits.startsWith('0')) {
+      digits = digits.slice(1);
+    }
+
+    if (digits.length > 10) {
+      digits = digits.slice(0, 10);
+    }
+
+    if (!digits) return '';
+    return '+63' + digits;
+  }
+
+  function getLocalDigits(value) {
+    if (!value) return '';
+    return value.replace(/\D/g, '');
   }
 
   function badgeForRole(role) {
     role = (role||'').toLowerCase();
     const label =
-      role === 'kitchen' ? 'Kitchen' :
-      role === 'cashier' ? 'Front Desk' :
-      role === 'rider'   ? 'Delivery Rider' :
-      role === 'manager' ? 'Manager' : 'Staff';
+      role === 'admin' ? 'Admin' :
+      role === 'customer' ? 'Customer' : 'Staff';
     const klass =
-      role === 'manager' ? 'badge-danger' :
-      (role === 'cashier' ? 'badge-warning' : 'badge-success');
+      role === 'admin' ? 'badge-role-admin' :
+      (role === 'customer' ? 'badge-role-customer' : 'badge-role-staff');
     return {label, klass};
   }
 
-  function shiftText(code){
-    return code==='morning' ? 'Morning (6am - 2pm)' :
-           code==='mid'     ? 'Mid (10am - 6pm)' :
-           code==='evening' ? 'Evening (2pm - 10pm)' : '—';
-  }
-
-  function monthYear(dstr){
-    if (!dstr) return '—';
-    const d = new Date(dstr.replace(' ','T'));
-    const opts = {month:'short', year:'numeric'};
-    if (isNaN(d.getTime())) return '—';
-    return d.toLocaleString(undefined, opts);
+  function initials(first, last) {
+    const f = (first || '').trim();
+    const l = (last || '').trim();
+    if (!f && !l) return '?';
+    const fi = f ? f[0] : '';
+    const li = l ? l[0] : '';
+    return (fi + li).toUpperCase();
   }
 
   function rowHTML(s){
-    const r = badgeForRole(s.staff_role);
-    const started = s.started_at ? `Started: ${monthYear(s.started_at)}` : '';
+    const r = badgeForRole(s.role);
+    const first = s.first_name || '';
+    const last  = s.last_name || '';
+    const name  = `${first} ${last}`.trim() || 'Unnamed User';
+    const avatar = initials(first, last);
     return `
-      <tr data-id="${s.id}">
+      <tr data-id="${s.user_id}" data-role="${(s.role || 'staff').toLowerCase()}">
         <td>
-          <strong>${s.name || '—'}</strong><br>
-          <small class="text-muted">${started}</small>
+          <div class="staff-name-cell">
+            <div class="staff-avatar">${avatar}</div>
+            <div>
+              <div class="staff-name-main">${name}</div>
+              <div class="staff-name-sub">${s.email || '&nbsp;'}</div>
+            </div>
+          </div>
         </td>
-        <td><span class="badge ${r.klass}">${r.label}</span></td>
-        <td>${shiftText(s.shift)}</td>
-        <td>${s.phone || '—'}</td>
-        <td>
+        <td><span class="${r.klass}">${r.label}</span></td>
+        <td class="text-nowrap">${s.email || '—'}</td>
+        <td class="text-nowrap">${s.phone || '—'}</td>
+        <td class="text-end text-nowrap">
           <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-secondary btn-edit">Edit</button>
-            <button class="btn btn-outline-danger btn-remove">Remove</button>
+            <button class="btn btn-outline-secondary btn-edit"><i class="bi bi-pencil"></i> Edit</button>
+            <button class="btn btn-outline-danger btn-remove"><i class="bi bi-trash"></i> </button>
           </div>
         </td>
       </tr>
     `;
   }
 
+  function applyRoleFilter() {
+    if (!roleFilter) return;
+    const selected = (roleFilter.value || '').toLowerCase();
+
+    [...tbody.querySelectorAll('tr[data-id]')].forEach(tr => {
+      const rowRole = (tr.getAttribute('data-role') || '').toLowerCase();
+      tr.style.display = (!selected || selected === rowRole) ? '' : 'none';
+    });
+  }
+
   async function loadStaff(){
-    tbody.innerHTML = `<tr><td colspan="5">Loading…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4">Loading…</td></tr>`;
     try{
       const res = await fetch('actions/list_staff.php');
       const data = await res.json();
       if (data.status !== 'ok') throw new Error(data.message || 'Failed to load');
       if (!Array.isArray(data.rows)) data.rows = [];
-      tbody.innerHTML = data.rows.map(rowHTML).join('') || `<tr><td colspan="5">No staff found.</td></tr>`;
+      tbody.innerHTML = data.rows.map(rowHTML).join('') || `<tr><td colspan="5" class="text-center py-4 text-muted">No User found.</td></tr>`;
+      applyRoleFilter();
     }catch(e){
-      tbody.innerHTML = `<tr><td colspan="5" class="text-danger">${e.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" class="text-danger text-center py-4">${e.message}</td></tr>`;
     }
   }
 
-  // Add new staff (use API then reload list)
-  topBtn.addEventListener('click', () => form.requestSubmit());
+  // Add new staff
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(form);
     if ((fd.get('password')||'') !== (fd.get('password2')||'')) {
-      showAlert('danger','Passwords do not match.'); return;
+      showAlert('danger','Passwords do not match.');
+      return;
     }
+
+    const rawPhone = fd.get('phone') || '';
+    const localDigits = getLocalDigits(rawPhone);
+
+    // Phone is optional, but if user entered something, it must be exactly 10 digits
+    if (localDigits && localDigits.length !== 10) {
+      showAlert('danger','Phone number must be exactly 10 digits after +63.');
+      return;
+    }
+
+    const fullPhone = normalizePhone(rawPhone);
+    fd.set('phone', fullPhone);
+
     try{
       const res = await fetch('actions/add_staff.php', { method:'POST', body:fd });
       const ct = res.headers.get('content-type')||'';
       const data = ct.includes('json') ? await res.json() : {status:'error',message:await res.text()};
       if (data.status !== 'ok') throw new Error(data.message || 'Failed to add staff');
-      showAlert('success','Staff added successfully.');
+      showAlert('success','User added successfully.');
       form.reset();
       await loadStaff();
-    }catch(err){ showAlert('danger', err.message); }
+    }catch(err){
+      showAlert('danger', err.message);
+    }
   });
 
   // Edit / Remove actions
@@ -284,38 +630,60 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!tr) return;
     const id = tr.getAttribute('data-id');
 
-    if (e.target.classList.contains('btn-remove')) {
-      if (!confirm('Remove this staff member?')) return;
-      try{
-        const fd = new FormData(); fd.append('id', id);
-        const res = await fetch('actions/delete_staff.php', { method:'POST', body:fd });
-        const data = await res.json();
-        if (data.status !== 'ok') throw new Error(data.message || 'Delete failed');
-        showAlert('success','Staff removed.');
-        tr.remove();
-        if (!tbody.children.length) loadStaff();
-      }catch(err){ showAlert('danger', err.message); }
+    if (e.target.closest('.btn-remove')) {
+      // SweetAlert2 confirmation
+      Swal.fire({
+        title: 'Remove this user?',
+        text: 'This action is permanent.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, remove',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#d33'
+      }).then(async (result) => {
+        if (!result.isConfirmed) return;
+        try{
+          const fd = new FormData();
+          fd.append('user_id', id);
+          const res = await fetch('actions/delete_staff.php', { method:'POST', body:fd });
+          const data = await res.json();
+          if (data.status !== 'ok') throw new Error(data.message || 'Delete failed');
+          showAlert('success','User removed.');
+          tr.remove();
+          if (!tbody.children.length) loadStaff();
+        }catch(err){
+          showAlert('danger', err.message);
+        }
+      });
+
+      return; // don’t fall through to edit handler
     }
 
-    if (e.target.classList.contains('btn-edit')) {
-      // Load the single row data (reuse list endpoint and pick one) or read from DOM if you prefer
+    if (e.target.closest('.btn-edit')) {
       try{
-        const res = await fetch('actions/list_staff.php?id='+encodeURIComponent(id));
+        const res = await fetch('actions/list_staff.php?user_id='+encodeURIComponent(id));
         const data = await res.json();
-        if (data.status !== 'ok' || !data.row) throw new Error('Failed to fetch staff details');
+        if (data.status !== 'ok' || !data.row) throw new Error('Failed to fetch user details');
 
         // Fill modal
         editForm.reset();
-        document.getElementById('edit_id').value = data.row.id;
-        document.getElementById('edit_full_name').value = data.row.name || '';
+        document.getElementById('edit_user_id').value = data.row.user_id;
+        document.getElementById('edit_first_name').value = data.row.first_name || '';
+        document.getElementById('edit_last_name').value = data.row.last_name || '';
         document.getElementById('edit_email').value = data.row.email || '';
-        document.getElementById('edit_staff_role').value = (data.row.staff_role || 'kitchen');
-        document.getElementById('edit_shift').value = (data.row.shift || 'morning');
-        document.getElementById('edit_phone').value = data.row.phone || '';
-        document.getElementById('edit_notes').value = data.row.notes || '';
+        document.getElementById('edit_role').value = (data.row.role || 'staff');
+
+        // Strip leading +63 when showing in the input (prefix is fixed in UI)
+        let dbPhone = data.row.phone || '';
+        dbPhone = dbPhone.replace(/^\+?63/, '');
+        dbPhone = dbPhone.replace(/\D/g, '');
+        if (dbPhone.length > 10) dbPhone = dbPhone.slice(0,10);
+        document.getElementById('edit_phone').value = dbPhone;
 
         editBackdrop.style.display = 'flex';
-      }catch(err){ showAlert('danger', err.message); }
+      }catch(err){
+        showAlert('danger', err.message);
+      }
     }
   });
 
@@ -329,8 +697,21 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const fd = new FormData(editForm);
     if ((fd.get('new_password')||'') !== (fd.get('new_password2')||'')) {
-      showAlert('danger','New passwords do not match.'); return;
+      showAlert('danger','New passwords do not match.');
+      return;
     }
+
+    const rawPhone = fd.get('phone') || '';
+    const localDigits = getLocalDigits(rawPhone);
+
+    if (localDigits && localDigits.length !== 10) {
+      showAlert('danger','Phone number must be exactly 10 digits after +63.');
+      return;
+    }
+
+    const fullPhone = normalizePhone(rawPhone);
+    fd.set('phone', fullPhone);
+
     try{
       const res = await fetch('actions/update_staff.php', { method:'POST', body:fd });
       const data = await res.json();
@@ -338,8 +719,15 @@ document.addEventListener('DOMContentLoaded', () => {
       showAlert('success','Changes saved.');
       closeEdit();
       await loadStaff();
-    }catch(err){ showAlert('danger', err.message); }
+    }catch(err){
+      showAlert('danger', err.message);
+    }
   });
+
+  // Role filter change
+  if (roleFilter) {
+    roleFilter.addEventListener('change', applyRoleFilter);
+  }
 
   // Initial load
   loadStaff();

@@ -1,17 +1,33 @@
 <?php
-// auth.php
+// includes/auth.php
 
-// Function to ensure the user has the correct role
+// Ensure database connection and configuration (like $BASE_URL) are loaded
+require_once __DIR__ . '/db_connect.php';
+
+// Function to ensure the user has the correct role(s)
 function require_role($role) {
+    // Access the global $BASE_URL defined in db_connect.php
+    global $BASE_URL;
+
     // Start session if not already started
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
 
+    $user_role = $_SESSION['role'] ?? null;
+
+    // Allow $role to be an array or a single string
+    $is_authorized = false;
+    if (is_array($role)) {
+        $is_authorized = $user_role && in_array($user_role, $role);
+    } else {
+        $is_authorized = ($user_role === $role);
+    }
+
     // Check if the user is authenticated and if they have the right role
-    if (!isset($_SESSION['role']) || $_SESSION['role'] !== $role) {
-        // Redirect to the login page if the user doesn't have the correct role
-        header("Location: /food-ordering-system_BSLH/auth/login.php");
+    if (!$is_authorized) {
+        // Redirect to the customer login page using dynamic Base URL
+        header("Location: " . $BASE_URL . "/customer/auth/login.php");
         exit();
     }
 }

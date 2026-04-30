@@ -1,15 +1,16 @@
 <?php
 // customer/auth/logout.php
-session_start();
+require_once __DIR__ . '/../../includes/db_connect.php'; // Provides $BASE_URL and starts session
 
 /*
   Blow away the customer session.
   (Safe even if the session is already empty.)
 */
-$_SESSION['customer_id']    = null;
-$_SESSION['customer_name']  = null;
-$_SESSION['customer_email'] = null;
-$_SESSION['customer_role']  = null;
+// --- MODIFIED: Unset new session keys ---
+$_SESSION['user_id'] = null;
+$_SESSION['name']    = null;
+$_SESSION['email']   = null;
+$_SESSION['role']    = null;
 
 session_unset();
 session_destroy();
@@ -20,8 +21,8 @@ session_destroy();
   - Otherwise, compute the site base and send them to /index.php
     (works whether the project folder is /food-ordering-system_BSLH or something else)
 */
-$base = rtrim(dirname(dirname($_SERVER['PHP_SELF'])), '/'); // up 2 dirs from /customer/auth/
-$default = $base . '/index.php';
+// --- MODIFIED: Use new base URL logic ---
+$default = $BASE_URL . '/index.php'; // FIXED
 $to = isset($_GET['next']) && $_GET['next'] !== '' ? $_GET['next'] : $default;
 
 header('Location: ' . $to);

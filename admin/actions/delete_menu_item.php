@@ -4,23 +4,38 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if user is authenticated and has admin role
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
     exit();
 }
 
-// 1. FIXED: Correct path to db_connect.php
 require_once __DIR__ . '/../../includes/db_connect.php';
 
 $response = ['success' => false, 'message' => ''];
 
 if (isset($_POST['product_id'])) {
     $product_id = $_POST['product_id'];
+
+    // --- CHECK 1: Check if item is in any order ---
+    $stmt_check = $conn->prepare("SELECT COUNT(*) as count FROM order_items WHERE product_id = ?");
+    $stmt_check->bind_param("i", $product_id);
+    $stmt_check->execute();
+    $check_result = $stmt_check->get_result()->fetch_assoc();
+    $stmt_check->close();
+
+    if ($check_result['count'] > 0) {
+        // Item exists in orders, stop deletion
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Cannot delete: This item is part of previous orders. You can hide it instead.'
+        ]);
+        exit;
+    }
+
+    // --- PROCEED: If no orders, delete image and record ---
     
-    // 2. FIXED: Use PREPARED STATEMENTS
-    // First, get the image path to delete the file
+    // Get image path
     $stmt_find = $conn->prepare("SELECT image_url FROM products WHERE product_id = ?");
     $stmt_find->bind_param("i", $product_id);
     $stmt_find->execute();
@@ -34,7 +49,7 @@ if (isset($_POST['product_id'])) {
     }
     $stmt_find->close();
     
-    // Now, delete the item from the database
+    // Delete from database
     $stmt_delete = $conn->prepare("DELETE FROM products WHERE product_id = ?");
     $stmt_delete->bind_param("i", $product_id);
     
@@ -45,6 +60,7 @@ if (isset($_POST['product_id'])) {
         $response['message'] = 'Error deleting menu item: ' . $stmt_delete->error;
     }
     $stmt_delete->close();
+
 } else {
     $response['message'] = 'No product ID provided';
 }
