@@ -52,6 +52,46 @@
           <span class="nav-text">User Management</span>
         </a>
       </li>
+
+      <li class="nav-item">
+        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'attendance.php' ? 'active' : ''; ?>" 
+           href="<?= htmlspecialchars($BASE_URL) ?>/admin/attendance.php">
+          <div class="nav-icon">
+            <i class="bi bi-calendar-check"></i>
+          </div>
+          <span class="nav-text">Staff Attendance</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'payroll.php' ? 'active' : ''; ?>" 
+           href="<?= htmlspecialchars($BASE_URL) ?>/admin/payroll.php">
+          <div class="nav-icon">
+            <i class="bi bi-cash-stack"></i>
+          </div>
+          <span class="nav-text">Payroll</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+  <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'leave_requests.php' ? 'active' : ''; ?>" 
+     href="<?= htmlspecialchars($BASE_URL) ?>/admin/leave_requests.php">
+    <div class="nav-icon">
+      <i class="bi bi-calendar-x"></i>
+    </div>
+    <span class="nav-text">Leave Requests</span>
+  </a>
+</li> 
+
+<li class="nav-item">
+  <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'schedules.php' ? 'active' : ''; ?>" 
+     href="<?= htmlspecialchars($BASE_URL) ?>/admin/schedules.php">
+    <div class="nav-icon">
+      <i class="bi bi-calendar-week"></i>
+    </div>
+    <span class="nav-text">Staff Schedule</span>
+  </a>
+</li>
       
       <li class="nav-item">
         <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'reports.php' ? 'active' : ''; ?>" 

@@ -13,56 +13,100 @@
 
   <div class="sidebar-content">
     <ul class="sidebar-nav">
-      <li class="nav-item">
-        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'index.php' ? 'active' : ''; ?>" 
-           href="<?= htmlspecialchars($BASE_URL) ?>/staff/index.php">
-          <div class="nav-icon">
-            <i class="bi bi-speedometer2"></i>
-          </div>
-          <span class="nav-text">Dashboard</span>
-        </a>
-      </li>
-      
-      <li class="nav-item">
-        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'view_orders.php' ? 'active' : ''; ?>" 
-           href="<?= htmlspecialchars($BASE_URL) ?>/staff/view_orders.php">
-          <div class="nav-icon">
-            <i class="bi bi-cart4"></i>
-          </div>
-          <span class="nav-text">Orders Queue</span>
-        </a>
-      </li>
-      
-      <li class="nav-item">
-        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'deliveries.php' ? 'active' : ''; ?>" 
-           href="<?= htmlspecialchars($BASE_URL) ?>/staff/deliveries.php">
-          <div class="nav-icon">
-            <i class="bi bi-truck"></i>
-          </div>
-          <span class="nav-text">Deliveries</span>
-        </a>
-      </li>
-      
-      <li class="nav-item">
-        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'menu.php' ? 'active' : ''; ?>" 
-           href="<?= htmlspecialchars($BASE_URL) ?>/staff/menu.php">
-          <div class="nav-icon">
-            <i class="bi bi-book"></i>
-          </div>
-          <span class="nav-text">Menu</span>
-        </a>
-      </li>
+  <li class="nav-item">
+    <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'index.php' ? 'active' : ''; ?>" 
+       href="<?= htmlspecialchars($BASE_URL) ?>/staff/index.php">
+      <div class="nav-icon">
+        <i class="bi bi-speedometer2"></i>
+      </div>
+      <span class="nav-text">Dashboard</span>
+    </a>
+  </li>
+  
+  <li class="nav-item">
+    <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'view_orders.php' ? 'active' : ''; ?>" 
+       href="<?= htmlspecialchars($BASE_URL) ?>/staff/view_orders.php">
+      <div class="nav-icon">
+        <i class="bi bi-cart4"></i>
+      </div>
+      <span class="nav-text">Orders Queue</span>
+    </a>
+  </li>
+  
+  <li class="nav-item">
+    <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'deliveries.php' ? 'active' : ''; ?>" 
+       href="<?= htmlspecialchars($BASE_URL) ?>/staff/deliveries.php">
+      <div class="nav-icon">
+        <i class="bi bi-truck"></i>
+      </div>
+      <span class="nav-text">Deliveries</span>
+    </a>
+  </li>
+  
+  <li class="nav-item">
+    <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'menu.php' ? 'active' : ''; ?>" 
+       href="<?= htmlspecialchars($BASE_URL) ?>/staff/menu.php">
+      <div class="nav-icon">
+        <i class="bi bi-book"></i>
+      </div>
+      <span class="nav-text">Menu</span>
+    </a>
+  </li>
 
-      <li class="nav-item">
-        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'order_history.php' ? 'active' : ''; ?>" 
-           href="<?= htmlspecialchars($BASE_URL) ?>/staff/order_history.php">
-          <div class="nav-icon">
-            <i class="bi bi-clock-history"></i>
-          </div>
-          <span class="nav-text">Order History</span>
-        </a>
-      </li>
-    </ul>
+  <li class="nav-item">
+    <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'order_history.php' ? 'active' : ''; ?>" 
+       href="<?= htmlspecialchars($BASE_URL) ?>/staff/order_history.php">
+      <div class="nav-icon">
+        <i class="bi bi-clock-history"></i>
+      </div>
+      <span class="nav-text">Order History</span>
+    </a>
+  </li>
+
+  <!-- ✅ NEW: Attendance -->
+  <li class="nav-item">
+    <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'attendance.php' ? 'active' : ''; ?>" 
+       href="<?= htmlspecialchars($BASE_URL) ?>/staff/attendance.php">
+      <div class="nav-icon">
+        <i class="bi bi-calendar-check"></i>
+      </div>
+      <span class="nav-text">Attendance</span>
+    </a>
+  </li>
+
+  <!-- ✅ NEW: Payroll -->
+  <li class="nav-item">
+    <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'payroll.php' ? 'active' : ''; ?>" 
+       href="<?= htmlspecialchars($BASE_URL) ?>/staff/payroll.php">
+      <div class="nav-icon">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+      <span class="nav-text">Payroll</span>
+    </a>
+  </li>
+
+  <li class="nav-item">
+  <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'leave_requests.php' ? 'active' : ''; ?>" 
+     href="<?= htmlspecialchars($BASE_URL) ?>/staff/leave_requests.php">
+    <div class="nav-icon">
+      <i class="bi bi-calendar-x"></i>
+    </div>
+    <span class="nav-text">Leave Request</span>
+  </a>
+</li>
+
+<li class="nav-item">
+  <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'my_schedule.php' ? 'active' : ''; ?>" 
+     href="<?= htmlspecialchars($BASE_URL) ?>/staff/my_schedule.php">
+    <div class="nav-icon">
+      <i class="bi bi-calendar-week"></i>
+    </div>
+    <span class="nav-text">My Schedule</span>
+  </a>
+</li>
+</ul>
+
+
 
     <div class="sidebar-footer">
       <div class="user-quick-profile">

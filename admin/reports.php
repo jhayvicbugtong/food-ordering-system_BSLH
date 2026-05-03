@@ -1,6 +1,6 @@
 <?php
 // admin/reports.php
-include __DIR__ . '/includes/header.php'; // Includes db_connect.php
+include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/sidebar.php';
 
 // ============ DB CONFIG ============
@@ -27,14 +27,18 @@ if (!isset($conn) || !($conn instanceof mysqli)) {
   die('<div class="alert alert-danger m-4">DB connection not found.</div>');
 }
 
-// --- Helpers ---
-function peso($n) { return '₱' . number_format((float)$n, 2); }
-function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+function peso($n) { 
+  return '₱' . number_format((float)$n, 2); 
+}
+
+function h($s) { 
+  return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); 
+}
 
 // --- Inputs ---
 $start = isset($_GET['start']) && $_GET['start'] !== '' ? $_GET['start'] : date('Y-m-d', strtotime('-6 days'));
-$end   = isset($_GET['end'])   && $_GET['end']   !== '' ? $_GET['end']   : date('Y-m-d');
-$revMode = $_GET['rev_mode'] ?? 'completed'; // 'completed' | 'paid'
+$end   = isset($_GET['end']) && $_GET['end'] !== '' ? $_GET['end'] : date('Y-m-d');
+$revMode = $_GET['rev_mode'] ?? 'completed';
 
 // Pagination
 $perPage = 10;
@@ -42,7 +46,7 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 
 $from = $start . ' 00:00:00';
-$to   = $end   . ' 23:59:59';
+$to   = $end . ' 23:59:59';
 
 // Aliases
 $T_O = $DB['TABLE_ORDERS'];
@@ -61,23 +65,35 @@ $P_METHOD = $DB['COL_PAY_METHOD'];
 $P_DATE = $DB['COL_PAY_DATE'];
 $P_AMOUNT = $DB['COL_PAY_AMOUNT'];
 
-// --- Summary: total sales + total orders ---
-$sum = ['revenue'=>0,'orders'=>0];
+// --- Summary: revenue + orders ---
+$sum = ['revenue' => 0, 'orders' => 0];
 
 if ($revMode === 'paid') {
-    $sql = "SELECT COALESCE(SUM($T_P.$P_AMOUNT),0) FROM $T_P WHERE $T_P.$P_DATE BETWEEN ? AND ? AND $T_P.$P_STATUS = 'paid'";
+  $sql = "SELECT COALESCE(SUM($T_P.$P_AMOUNT),0) 
+          FROM $T_P 
+          WHERE $T_P.$P_DATE BETWEEN ? AND ? 
+          AND $T_P.$P_STATUS = 'paid'";
 } else {
-    $sql = "SELECT COALESCE(SUM($T_O.$O_TOTAL),0) FROM $T_O WHERE $T_O.$O_CREATED BETWEEN ? AND ? AND $T_O.$O_STATUS IN ('delivered','completed')";
+  $sql = "SELECT COALESCE(SUM($T_O.$O_TOTAL),0) 
+          FROM $T_O 
+          WHERE $T_O.$O_CREATED BETWEEN ? AND ? 
+          AND $T_O.$O_STATUS IN ('delivered','completed')";
 }
 
 if ($stmt = $conn->prepare($sql)) {
   $stmt->bind_param('ss', $from, $to);
-  $stmt->execute(); $stmt->bind_result($sum['revenue']); $stmt->fetch(); $stmt->close();
+  $stmt->execute();
+  $stmt->bind_result($sum['revenue']);
+  $stmt->fetch();
+  $stmt->close();
 }
 
 if ($stmt = $conn->prepare("SELECT COUNT(*) FROM $T_O WHERE $O_CREATED BETWEEN ? AND ?")) {
   $stmt->bind_param('ss', $from, $to);
-  $stmt->execute(); $stmt->bind_result($sum['orders']); $stmt->fetch(); $stmt->close();
+  $stmt->execute();
+  $stmt->bind_result($sum['orders']);
+  $stmt->fetch();
+  $stmt->close();
 }
 
 $totalOrders = (int)$sum['orders'];
@@ -87,96 +103,220 @@ $offset = ($page - 1) * $perPage;
 
 // --- Payment method breakdown ---
 $payRows = [];
-$sql = "SELECT COALESCE($P_METHOD,'Unknown') AS method, COUNT($O_ID) AS cnt, COALESCE(SUM($P_AMOUNT),0) AS amt FROM $T_P WHERE $P_DATE BETWEEN ? AND ? AND $P_STATUS='paid' GROUP BY COALESCE($P_METHOD,'Unknown') ORDER BY amt DESC";
+
+$sql = "
+  SELECT 
+    COALESCE($P_METHOD,'Unknown') AS method, 
+    COUNT($O_ID) AS cnt, 
+    COALESCE(SUM($P_AMOUNT),0) AS amt 
+  FROM $T_P 
+  WHERE $P_DATE BETWEEN ? AND ? 
+  AND $P_STATUS = 'paid' 
+  GROUP BY COALESCE($P_METHOD,'Unknown') 
+  ORDER BY amt DESC
+";
+
 if ($stmt = $conn->prepare($sql)) {
   $stmt->bind_param('ss', $from, $to);
   $stmt->execute();
   $res = $stmt->get_result();
-  while ($r = $res->fetch_assoc()) { $payRows[] = $r; }
+
+  while ($r = $res->fetch_assoc()) { 
+    $payRows[] = $r; 
+  }
+
+  $stmt->close();
+}
+
+// --- Payroll summary ---
+$payrollSummary = [
+  'total_payroll' => 0,
+  'paid_payroll' => 0,
+  'pending_payroll' => 0,
+  'total_hours' => 0
+];
+
+$sql = "
+  SELECT
+    COALESCE(SUM(net_pay), 0) AS total_payroll,
+    COALESCE(SUM(CASE WHEN status = 'Paid' THEN net_pay ELSE 0 END), 0) AS paid_payroll,
+    COALESCE(SUM(CASE WHEN status = 'Pending' THEN net_pay ELSE 0 END), 0) AS pending_payroll,
+    COALESCE(SUM(total_hours), 0) AS total_hours
+  FROM staff_payroll
+  WHERE created_at BETWEEN ? AND ?
+";
+
+if ($stmt = $conn->prepare($sql)) {
+  $stmt->bind_param('ss', $from, $to);
+  $stmt->execute();
+  $payrollSummary = $stmt->get_result()->fetch_assoc();
+  $stmt->close();
+}
+
+// --- Payroll rows ---
+$payrollRows = [];
+
+$sql = "
+  SELECT 
+    p.*,
+    u.first_name,
+    u.last_name
+  FROM staff_payroll p
+  INNER JOIN users u ON p.staff_id = u.user_id
+  WHERE p.created_at BETWEEN ? AND ?
+  ORDER BY p.created_at DESC
+  LIMIT 10
+";
+
+if ($stmt = $conn->prepare($sql)) {
+  $stmt->bind_param('ss', $from, $to);
+  $stmt->execute();
+  $res = $stmt->get_result();
+
+  while ($r = $res->fetch_assoc()) {
+    $payrollRows[] = $r;
+  }
+
   $stmt->close();
 }
 
 // --- Orders list ---
 $orders = [];
-$sql = "SELECT o.$O_ID, o.$O_NUM, o.$O_CREATED, o.$O_TYPE, o.$O_STATUS, o.$O_TOTAL, CONCAT(ocd.$C_FNAME, ' ', ocd.$C_LNAME) as customer_name, opd.$P_STATUS, opd.$P_METHOD FROM $T_O o LEFT JOIN $T_C ocd ON o.$O_ID = ocd.$O_ID LEFT JOIN $T_P opd ON o.$O_ID = opd.$O_ID WHERE o.$O_CREATED BETWEEN ? AND ? ORDER BY o.$O_CREATED DESC LIMIT ? OFFSET ?";
+
+$sql = "
+  SELECT 
+    o.$O_ID, 
+    o.$O_NUM, 
+    o.$O_CREATED, 
+    o.$O_TYPE, 
+    o.$O_STATUS, 
+    o.$O_TOTAL, 
+    CONCAT(ocd.$C_FNAME, ' ', ocd.$C_LNAME) AS customer_name, 
+    opd.$P_STATUS, 
+    opd.$P_METHOD 
+  FROM $T_O o 
+  LEFT JOIN $T_C ocd ON o.$O_ID = ocd.$O_ID 
+  LEFT JOIN $T_P opd ON o.$O_ID = opd.$O_ID 
+  WHERE o.$O_CREATED BETWEEN ? AND ? 
+  ORDER BY o.$O_CREATED DESC 
+  LIMIT ? OFFSET ?
+";
+
 if ($stmt = $conn->prepare($sql)) {
   $stmt->bind_param('ssii', $from, $to, $perPage, $offset);
   $stmt->execute();
   $res = $stmt->get_result();
-  while ($r = $res->fetch_assoc()) { $orders[] = $r; }
+
+  while ($r = $res->fetch_assoc()) { 
+    $orders[] = $r; 
+  }
+
   $stmt->close();
 }
 ?>
 
 <div class="container-fluid">
   <main class="main-content py-4">
-    
+
     <div class="content-card mb-4 no-print">
       <div class="content-card-header d-flex justify-content-between align-items-center">
         <div>
           <h2 class="page-title mb-1">Reports &amp; Analytics</h2>
           <p class="text-muted mb-0 small">
-            Track revenue, orders, and payment performance for your online food orders.
+            Track revenue, orders, payment performance, and payroll records.
           </p>
         </div>
+
         <div class="d-flex gap-2 header-quick-range">
-          <a href="?start=<?=h(date('Y-m-01'))?>&end=<?=h(date('Y-m-d'))?>&rev_mode=completed" class="btn btn-light btn-sm"><i class="bi bi-calendar3"></i> This Month</a>
-          <a href="?start=<?=h(date('Y-m-d', strtotime('-6 days')))?>&end=<?=h(date('Y-m-d'))?>&rev_mode=completed" class="btn btn-light btn-sm"><i class="bi bi-clock-history"></i> Last 7 Days</a>
+          <a href="?start=<?= h(date('Y-m-01')) ?>&end=<?= h(date('Y-m-d')) ?>&rev_mode=completed" class="btn btn-light btn-sm">
+            <i class="bi bi-calendar3"></i> This Month
+          </a>
+
+          <a href="?start=<?= h(date('Y-m-d', strtotime('-6 days'))) ?>&end=<?= h(date('Y-m-d')) ?>&rev_mode=completed" class="btn btn-light btn-sm">
+            <i class="bi bi-clock-history"></i> Last 7 Days
+          </a>
         </div>
       </div>
 
       <form class="row g-3 align-items-end mt-2" method="get" id="filterForm">
         <input type="hidden" name="page" value="1">
+
         <div class="col-md-3">
           <label class="form-label small text-muted">Start date</label>
-          <input type="date" class="form-control modern-input" name="start" value="<?=h($start)?>">
+          <input type="date" class="form-control modern-input" name="start" value="<?= h($start) ?>">
         </div>
+
         <div class="col-md-3">
           <label class="form-label small text-muted">End date</label>
-          <input type="date" class="form-control modern-input" name="end" value="<?=h($end)?>">
+          <input type="date" class="form-control modern-input" name="end" value="<?= h($end) ?>">
         </div>
+
         <div class="col-md-3">
           <label class="form-label small text-muted">Revenue mode</label>
           <select class="form-select modern-input" name="rev_mode">
-            <option value="completed" <?= $revMode==='completed' ? 'selected':''; ?>>Delivered / Completed Orders</option>
-            <option value="paid"      <?= $revMode==='paid' ? 'selected':''; ?>>Paid Transactions Only</option>
+            <option value="completed" <?= $revMode === 'completed' ? 'selected' : ''; ?>>
+              Delivered / Completed Orders
+            </option>
+            <option value="paid" <?= $revMode === 'paid' ? 'selected' : ''; ?>>
+              Paid Transactions Only
+            </option>
           </select>
         </div>
+
         <div class="col-md-3 d-flex gap-2 justify-content-md-end">
-          <button class="btn btn-primary flex-grow-1 flex-md-grow-0 px-3"><i class="bi bi-funnel"></i> Apply</button>
-          <a class="btn btn-outline-secondary px-3" href="reports.php"><i class="bi bi-x-circle"></i> Reset</a>
+          <button class="btn btn-primary flex-grow-1 flex-md-grow-0 px-3">
+            <i class="bi bi-funnel"></i> Apply
+          </button>
+
+          <a class="btn btn-outline-secondary px-3" href="reports.php">
+            <i class="bi bi-x-circle"></i> Reset
+          </a>
         </div>
       </form>
     </div>
 
     <div id="print-area">
-      
+
       <div class="row g-3 mb-4">
         <div class="col-sm-6 col-lg-3">
           <div class="stat-card stat-card-main">
-            <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+            <div class="stat-icon">
+              <i class="bi bi-cash-stack"></i>
+            </div>
             <div>
               <h5 class="stat-label">Total Revenue</h5>
-              <div class="stat-value" id="stat-revenue"><?= h(peso($sum['revenue'])) ?></div>
-              <div class="stat-hint"><?= $revMode==='paid' ? 'Paid transactions only' : 'Delivered / Completed orders' ?></div>
+              <div class="stat-value" id="stat-revenue">
+                <?= h(peso($sum['revenue'])) ?>
+              </div>
+              <div class="stat-hint">
+                <?= $revMode === 'paid' ? 'Paid transactions only' : 'Delivered / Completed orders' ?>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="col-sm-6 col-lg-3">
           <div class="stat-card">
-            <div class="stat-icon subtle"><i class="bi bi-basket2"></i></div>
+            <div class="stat-icon subtle">
+              <i class="bi bi-basket2"></i>
+            </div>
             <div>
               <h5 class="stat-label">Total Orders</h5>
-              <div class="stat-value" id="stat-orders"><?= h(number_format($sum['orders'])) ?></div>
-              <div class="stat-hint"><?= h($start) ?> – <?= h($end) ?></div>
+              <div class="stat-value" id="stat-orders">
+                <?= h(number_format($sum['orders'])) ?>
+              </div>
+              <div class="stat-hint">
+                <?= h($start) ?> – <?= h($end) ?>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="col-sm-6 col-lg-3">
           <div class="stat-card">
-            <div class="stat-icon subtle"><i class="bi bi-receipt-cutoff"></i></div>
+            <div class="stat-icon subtle">
+              <i class="bi bi-receipt-cutoff"></i>
+            </div>
             <div>
               <h5 class="stat-label">Average Ticket</h5>
               <div class="stat-value" id="stat-avg">
@@ -189,10 +329,14 @@ if ($stmt = $conn->prepare($sql)) {
 
         <div class="col-sm-6 col-lg-3">
           <div class="stat-card">
-            <div class="stat-icon subtle"><i class="bi bi-calendar-range"></i></div>
+            <div class="stat-icon subtle">
+              <i class="bi bi-calendar-range"></i>
+            </div>
             <div>
               <h5 class="stat-label">Date Range</h5>
-              <div class="stat-value"><?= h(date('M d', strtotime($start))) ?> – <?= h(date('M d, Y', strtotime($end))) ?></div>
+              <div class="stat-value">
+                <?= h(date('M d', strtotime($start))) ?> – <?= h(date('M d, Y', strtotime($end))) ?>
+              </div>
               <div class="stat-hint">Customizable range</div>
             </div>
           </div>
@@ -203,25 +347,200 @@ if ($stmt = $conn->prepare($sql)) {
         <div class="content-card-header d-flex justify-content-between align-items-center">
           <div>
             <h2 class="section-title mb-1">Payment Breakdown</h2>
-            <p class="text-muted small mb-0">Distribution of <strong>paid</strong> transactions by payment method.</p>
+            <p class="text-muted small mb-0">
+              Distribution of <strong>paid</strong> transactions by payment method.
+            </p>
           </div>
+
           <div class="d-flex gap-2 no-print">
-            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="printReport()"><i class="bi bi-printer"></i> Print report</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="printReport()">
+              <i class="bi bi-printer"></i> Print report
+            </button>
           </div>
         </div>
 
         <div class="table-responsive mt-3">
           <table class="table table-hover align-middle modern-table">
-            <thead><tr><th>Payment method</th><th class="text-end">Count</th><th class="text-end">Total (₱)</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Payment method</th>
+                <th class="text-end">Count</th>
+                <th class="text-end">Total (₱)</th>
+              </tr>
+            </thead>
+
             <tbody id="payment-body">
               <?php if (!$payRows): ?>
-                <tr><td colspan="3" class="text-center text-muted py-4"><i class="bi bi-info-circle me-1"></i>No paid transactions in this range.</td></tr>
+                <tr>
+                  <td colspan="3" class="text-center text-muted py-4">
+                    <i class="bi bi-info-circle me-1"></i>
+                    No paid transactions in this range.
+                  </td>
+                </tr>
               <?php else: ?>
                 <?php foreach ($payRows as $r): ?>
                   <tr>
-                    <td class="fw-medium"><span class="badge rounded-pill bg-light text-dark border me-1"><?= h(ucfirst($r['method'])) ?></span></td>
+                    <td class="fw-medium">
+                      <span class="badge rounded-pill bg-light text-dark border me-1">
+                        <?= h(ucfirst($r['method'])) ?>
+                      </span>
+                    </td>
                     <td class="text-end"><?= h(number_format($r['cnt'])) ?></td>
                     <td class="text-end"><?= h(peso($r['amt'])) ?></td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="content-card mb-4">
+        <div class="content-card-header d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="section-title mb-1">Payroll Report</h2>
+            <p class="text-muted small mb-0">
+              Payroll summary and latest salary records within the selected date range.
+            </p>
+          </div>
+
+          <div class="d-flex gap-2 no-print">
+            <a href="print_payroll.php" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-printer"></i> Print Payroll
+            </a>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-2 mb-3">
+          <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+              <div class="stat-icon subtle">
+                <i class="bi bi-wallet2"></i>
+              </div>
+              <div>
+                <h5 class="stat-label">Total Payroll</h5>
+                <div class="stat-value">
+                  <?= h(peso($payrollSummary['total_payroll'] ?? 0)) ?>
+                </div>
+                <div class="stat-hint">Generated payroll</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+              <div class="stat-icon subtle">
+                <i class="bi bi-check-circle"></i>
+              </div>
+              <div>
+                <h5 class="stat-label">Paid Payroll</h5>
+                <div class="stat-value">
+                  <?= h(peso($payrollSummary['paid_payroll'] ?? 0)) ?>
+                </div>
+                <div class="stat-hint">Already marked as paid</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+              <div class="stat-icon subtle">
+                <i class="bi bi-hourglass-split"></i>
+              </div>
+              <div>
+                <h5 class="stat-label">Pending Payroll</h5>
+                <div class="stat-value">
+                  <?= h(peso($payrollSummary['pending_payroll'] ?? 0)) ?>
+                </div>
+                <div class="stat-hint">Not yet paid</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+              <div class="stat-icon subtle">
+                <i class="bi bi-clock-history"></i>
+              </div>
+              <div>
+                <h5 class="stat-label">Staff Hours</h5>
+                <div class="stat-value">
+                  <?= h(number_format((float)($payrollSummary['total_hours'] ?? 0), 2)) ?> hrs
+                </div>
+                <div class="stat-hint">Total payroll hours</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive mt-3">
+          <table class="table table-hover align-middle modern-table">
+            <thead>
+              <tr>
+                <th>Staff</th>
+                <th>Period</th>
+                <th class="text-end">Hours</th>
+                <th class="text-end">Gross</th>
+                <th class="text-end">Deductions</th>
+                <th class="text-end">Net Pay</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <?php if (!$payrollRows): ?>
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    <i class="bi bi-info-circle me-1"></i>
+                    No payroll records in this range.
+                  </td>
+                </tr>
+              <?php else: ?>
+                <?php foreach ($payrollRows as $p): ?>
+                  <?php
+                    $payStatus = strtolower($p['status'] ?? 'pending');
+
+                    if ($payStatus === 'paid') {
+                      $payrollBadge = 'bg-success-subtle text-success';
+                    } elseif ($payStatus === 'pending') {
+                      $payrollBadge = 'bg-warning-subtle text-warning';
+                    } else {
+                      $payrollBadge = 'bg-secondary-subtle text-secondary';
+                    }
+                  ?>
+
+                  <tr>
+                    <td class="fw-semibold">
+                      <?= h($p['first_name'] . ' ' . $p['last_name']) ?>
+                    </td>
+
+                    <td>
+                      <?= h(date('M d, Y', strtotime($p['period_start']))) ?>
+                      -
+                      <?= h(date('M d, Y', strtotime($p['period_end']))) ?>
+                    </td>
+
+                    <td class="text-end">
+                      <?= h(number_format((float)$p['total_hours'], 2)) ?> hrs
+                    </td>
+
+                    <td class="text-end">
+                      <?= h(peso($p['gross_pay'])) ?>
+                    </td>
+
+                    <td class="text-end">
+                      <?= h(peso($p['deductions'])) ?>
+                    </td>
+
+                    <td class="text-end fw-semibold">
+                      <?= h(peso($p['net_pay'])) ?>
+                    </td>
+
+                    <td>
+                      <span class="badge <?= h($payrollBadge) ?> badge-rounded">
+                        <?= h($p['status']) ?>
+                      </span>
+                    </td>
                   </tr>
                 <?php endforeach; ?>
               <?php endif; ?>
@@ -233,36 +552,109 @@ if ($stmt = $conn->prepare($sql)) {
       <div class="content-card">
         <div class="content-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
-            <h2 class="section-title mb-1">All Orders <span class="text-muted fw-normal">(<?= h($start) ?> – <?= h($end) ?>)</span></h2>
+            <h2 class="section-title mb-1">
+              All Orders 
+              <span class="text-muted fw-normal">
+                (<?= h($start) ?> – <?= h($end) ?>)
+              </span>
+            </h2>
             <p class="text-muted small mb-0">All orders in the selected range, 10 per page.</p>
           </div>
         </div>
 
         <div class="table-responsive mt-3">
           <table class="table table-hover align-middle modern-table">
-            <thead><tr><th>Order</th><th>Customer</th><th>Type</th><th>Payment status</th><th>Payment method</th><th>Order status</th><th class="text-end">Total (₱)</th><th>Created at</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Type</th>
+                <th>Payment status</th>
+                <th>Payment method</th>
+                <th>Order status</th>
+                <th class="text-end">Total (₱)</th>
+                <th>Created at</th>
+              </tr>
+            </thead>
+
             <tbody id="orders-body">
               <?php if (!$orders): ?>
-                <tr><td colspan="8" class="text-center text-muted py-4"><i class="bi bi-inbox me-1"></i>No orders in this period.</td></tr>
+                <tr>
+                  <td colspan="8" class="text-center text-muted py-4">
+                    <i class="bi bi-inbox me-1"></i>
+                    No orders in this period.
+                  </td>
+                </tr>
               <?php else: ?>
                 <?php foreach ($orders as $r): ?>
                   <?php
                     $payStatus = $r[$P_STATUS] ?? 'unpaid';
-                    $payBadge = ($payStatus === 'paid') ? 'bg-success-subtle text-success' : (($payStatus === 'failed') ? 'bg-danger-subtle text-danger' : (($payStatus === 'refunded') ? 'bg-info-subtle text-info' : 'bg-secondary-subtle text-secondary'));
-                    $status_map = ['pending'=>'status-pending', 'confirmed'=>'status-confirmed', 'preparing'=>'status-preparing', 'ready'=>'status-ready', 'out_for_delivery'=>'status-out-for-delivery', 'delivered'=>'status-delivered', 'completed'=>'status-completed', 'cancelled'=>'status-cancelled'];
+
+                    $payBadge = ($payStatus === 'paid') 
+                      ? 'bg-success-subtle text-success' 
+                      : (($payStatus === 'failed') 
+                        ? 'bg-danger-subtle text-danger' 
+                        : (($payStatus === 'refunded') 
+                          ? 'bg-info-subtle text-info' 
+                          : 'bg-secondary-subtle text-secondary'));
+
+                    $status_map = [
+                      'pending' => 'status-pending', 
+                      'confirmed' => 'status-confirmed', 
+                      'preparing' => 'status-preparing', 
+                      'ready' => 'status-ready', 
+                      'out_for_delivery' => 'status-out-for-delivery', 
+                      'delivered' => 'status-delivered', 
+                      'completed' => 'status-completed', 
+                      'cancelled' => 'status-cancelled'
+                    ];
+
                     $status_class = $status_map[$r[$O_STATUS]] ?? 'bg-secondary text-white';
                     $customer = trim($r['customer_name'] ?? '');
                     $initials = ($customer !== '') ? strtoupper(substr($customer, 0, 1)) : 'C';
                   ?>
+
                   <tr>
-                    <td class="fw-semibold"><strong><?= h($r[$O_NUM] ?? $r[$O_ID]) ?></strong></td>
-                    <td><div class="d-flex align-items-center gap-2"><div class="avatar-circle"><span><?= h($initials) ?></span></div><span class="text-truncate" style="max-width: 160px;"><?= h($customer ?: 'Walk-in / Unknown') ?></span></div></td>
+                    <td class="fw-semibold">
+                      <strong><?= h($r[$O_NUM] ?? $r[$O_ID]) ?></strong>
+                    </td>
+
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="avatar-circle">
+                          <span><?= h($initials) ?></span>
+                        </div>
+                        <span class="text-truncate" style="max-width: 160px;">
+                          <?= h($customer ?: 'Walk-in / Unknown') ?>
+                        </span>
+                      </div>
+                    </td>
+
                     <td><?= h(ucfirst($r[$O_TYPE])) ?></td>
-                    <td><span class="badge <?= h($payBadge) ?> badge-rounded"><?= h(ucfirst($payStatus ?: 'Pending')) ?></span></td>
-                    <td class="text-capitalize"><?= h($r[$P_METHOD] ? $r[$P_METHOD] : '—') ?></td>
-                    <td><span class="status-badge <?= h($status_class) ?>"><?= h(ucfirst(str_replace('_', ' ', $r[$O_STATUS]))) ?></span></td>
-                    <td class="text-end fw-semibold"><?= h(peso($r[$O_TOTAL])) ?></td>
-                    <td><?= h(date('Y-m-d H:i', strtotime($r[$O_CREATED]))) ?></td>
+
+                    <td>
+                      <span class="badge <?= h($payBadge) ?> badge-rounded">
+                        <?= h(ucfirst($payStatus ?: 'Pending')) ?>
+                      </span>
+                    </td>
+
+                    <td class="text-capitalize">
+                      <?= h($r[$P_METHOD] ? $r[$P_METHOD] : '—') ?>
+                    </td>
+
+                    <td>
+                      <span class="status-badge <?= h($status_class) ?>">
+                        <?= h(ucfirst(str_replace('_', ' ', $r[$O_STATUS]))) ?>
+                      </span>
+                    </td>
+
+                    <td class="text-end fw-semibold">
+                      <?= h(peso($r[$O_TOTAL])) ?>
+                    </td>
+
+                    <td>
+                      <?= h(date('Y-m-d H:i', strtotime($r[$O_CREATED]))) ?>
+                    </td>
                   </tr>
                 <?php endforeach; ?>
               <?php endif; ?>
@@ -271,38 +663,47 @@ if ($stmt = $conn->prepare($sql)) {
         </div>
 
         <?php if ($totalPages > 1): ?>
-        <div class="d-flex justify-content-between align-items-center no-print mt-3 flex-wrap gap-2">
-          <small class="text-muted" id="pagination-info">Showing page <?= $page ?> of <?= $totalPages ?> • <?= h(number_format($totalOrders)) ?> orders total</small>
-          <nav>
-            <ul class="pagination pagination-sm mb-0">
-              <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                <a class="page-link" href="?start=<?=h($start)?>&end=<?=h($end)?>&rev_mode=<?=h($revMode)?>&page=<?= max(1, $page - 1) ?>">&laquo;</a>
-              </li>
-              <li class="page-item disabled"><span class="page-link">Page <?= $page ?> of <?= $totalPages ?></span></li>
-              <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
-                <a class="page-link" href="?start=<?=h($start)?>&end=<?=h($end)?>&rev_mode=<?=h($revMode)?>&page=<?= min($totalPages, $page + 1) ?>">&raquo;</a>
-              </li>
-            </ul>
-          </nav>
-        </div>
+          <div class="d-flex justify-content-between align-items-center no-print mt-3 flex-wrap gap-2">
+            <small class="text-muted" id="pagination-info">
+              Showing page <?= $page ?> of <?= $totalPages ?> • <?= h(number_format($totalOrders)) ?> orders total
+            </small>
+
+            <nav>
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                  <a class="page-link" href="?start=<?= h($start) ?>&end=<?= h($end) ?>&rev_mode=<?= h($revMode) ?>&page=<?= max(1, $page - 1) ?>">
+                    &laquo;
+                  </a>
+                </li>
+
+                <li class="page-item disabled">
+                  <span class="page-link">Page <?= $page ?> of <?= $totalPages ?></span>
+                </li>
+
+                <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                  <a class="page-link" href="?start=<?= h($start) ?>&end=<?= h($end) ?>&rev_mode=<?= h($revMode) ?>&page=<?= min($totalPages, $page + 1) ?>">
+                    &raquo;
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
         <?php endif; ?>
       </div>
-    </div> 
+
+    </div>
   </main>
 </div>
 
 <style>
-/* --- Modern look for dashboard --- */
 body {
   background-color: #f3f4f6;
 }
 
-/* Main layout */
 .main-content {
   min-height: 100vh;
 }
 
-/* Card styling */
 .content-card {
   border-radius: 18px;
   border: 1px solid rgba(148, 163, 184, 0.3);
@@ -326,7 +727,6 @@ body {
   font-weight: 600;
 }
 
-/* Stat cards */
 .stat-card {
   display: flex;
   gap: 12px;
@@ -390,10 +790,6 @@ body {
   color: #6b7280;
 }
 
-.stat-card-main .stat-label {
-  color: #e5e7eb;
-}
-
 .stat-value {
   font-size: 1.25rem;
   font-weight: 600;
@@ -404,7 +800,6 @@ body {
   color: #9ca3af;
 }
 
-/* Inputs */
 .modern-input {
   border-radius: 999px;
   border-color: #e5e7eb;
@@ -416,7 +811,6 @@ body {
   box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
 }
 
-/* Table */
 .modern-table thead th {
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -435,7 +829,6 @@ body {
   background-color: #f9fafb;
 }
 
-/* Avatar circle for customer initials */
 .avatar-circle {
   width: 28px;
   height: 28px;
@@ -449,7 +842,6 @@ body {
   color: #4f46e5;
 }
 
-/* Status Badges (Same as Manage Orders) */
 .status-badge {
   display: inline-block;
   padding: 3px 12px;
@@ -458,6 +850,7 @@ body {
   font-weight: 600;
   white-space: nowrap;
 }
+
 .status-pending          { background:#fef3c7; color:#92400e; }
 .status-confirmed        { background:#dbeafe; color:#1d4ed8; }
 .status-preparing        { background:#e0f2fe; color:#0369a1; }
@@ -467,14 +860,12 @@ body {
 .status-completed        { background:#e5e7eb; color:#111827; }
 .status-cancelled        { background:#fee2e2; color:#b91c1c; }
 
-/* Payment Badge (Same as Manage Orders) */
 .badge-rounded {
   border-radius: 999px;
   padding: 0.25rem 0.6rem;
   font-size: 0.75rem;
 }
 
-/* Buttons */
 .header-quick-range .btn-light {
   border-radius: 999px;
   border-color: #e5e7eb;
@@ -485,12 +876,10 @@ body {
   background-color: #eef2ff;
 }
 
-/* Pagination */
 .pagination .page-link {
   border-radius: 999px !important;
 }
 
-/* Print styles */
 @media print {
   body { background: #fff; }
   .sidebar, .no-print, nav, .content-card-header .right { display:none !important; }
@@ -501,48 +890,32 @@ body {
 </style>
 
 <script>
-  function printReport() {
-    var printArea = document.getElementById('print-area');
-    if (!printArea) { window.print(); return; }
-    var printWindow = window.open('', '_blank', 'width=1000,height=700');
-    printWindow.document.write('<html><head><title>Reports - Print</title>');
-    var styles = document.querySelectorAll('link[rel="stylesheet"], style');
-    styles.forEach(function(node) { printWindow.document.write(node.outerHTML); });
-    printWindow.document.write('</head><body>');
-    printWindow.document.write(printArea.innerHTML);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
+function printReport() {
+  var printArea = document.getElementById('print-area');
+
+  if (!printArea) { 
+    window.print(); 
+    return; 
   }
 
-  // --- Real-time Polling ---
-  document.addEventListener('DOMContentLoaded', function() {
-      function fetchUpdates() {
-          const params = window.location.search;
-          fetch('actions/fetch_reports_updates.php' + params)
-              .then(res => res.json())
-              .then(data => {
-                  // Update Stats
-                  document.getElementById('stat-revenue').textContent = data.stats.revenue;
-                  document.getElementById('stat-orders').textContent = data.stats.orders;
-                  document.getElementById('stat-avg').textContent = data.stats.avg;
+  var printWindow = window.open('', '_blank', 'width=1000,height=700');
 
-                  // Update Tables (only if changed to avoid flicker, simplified here)
-                  document.getElementById('payment-body').innerHTML = data.html.payment;
-                  document.getElementById('orders-body').innerHTML = data.html.orders;
-                  
-                  // Update pagination info if exists
-                  const pagInfo = document.getElementById('pagination-info');
-                  if (pagInfo) pagInfo.textContent = data.pagination.info;
-              })
-              .catch(err => console.error("Polling error:", err));
-      }
+  printWindow.document.write('<html><head><title>Reports - Print</title>');
 
-      // Poll every 1 seconds
-      setInterval(fetchUpdates, 1000);
+  var styles = document.querySelectorAll('link[rel="stylesheet"], style');
+
+  styles.forEach(function(node) { 
+    printWindow.document.write(node.outerHTML); 
   });
+
+  printWindow.document.write('</head><body>');
+  printWindow.document.write(printArea.innerHTML);
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+  printWindow.close();
+}
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

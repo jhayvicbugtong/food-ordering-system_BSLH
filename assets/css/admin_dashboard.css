@@ -457,3 +457,105 @@ body {
   background-color: #fff;
   border-right: 0;
 }
+
+/* ----- Attendance & Payroll Page Enhancements ----- */
+
+.attendance-summary,
+.payroll-summary {
+  margin-bottom: 20px;
+}
+
+.attendance-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.attendance-time-box {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 14px 16px;
+  height: 100%;
+}
+
+.attendance-time-box .label {
+  font-size: 12px;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.attendance-time-box .time {
+  font-size: 20px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.payroll-form {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.payroll-form .form-control,
+.payroll-form .form-select {
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.payroll-total {
+  font-size: 18px;
+  font-weight: 700;
+  color: #212529;
+}
+
+.status-present,
+.status-paid {
+  background: #d3ffe0;
+  color: #0f5132;
+}
+
+.status-late,
+.status-pending {
+  background: #fff3cd;
+  color: #664d03;
+}
+
+.status-absent,
+.status-unpaid {
+  background: #f8d7da;
+  color: #842029;
+}
+
+.action-btn-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+}
+
+.empty-state i {
+  font-size: 40px;
+  color: #adb5bd;
+  margin-bottom: 10px;
+}
+
+.empty-state h5 {
+  font-size: 16px;
+  color: #343a40;
+  margin-bottom: 4px;
+}
+
+.empty-state p {
+  font-size: 13px;
+  margin: 0;
+}
