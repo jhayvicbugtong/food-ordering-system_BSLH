@@ -30,7 +30,7 @@ $BASE_URL = rtrim($base_path, '/');
 $host = "localhost";
 $user = "root";
 $pass = "";
-$dbname = "online_food_ordering_db";
+$dbname = "online_ordering_system_db";
 
 // // Database configuration in production
 // $host = "localhost";
